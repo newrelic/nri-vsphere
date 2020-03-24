@@ -1,0 +1,14 @@
+integrations:
+  - name: nri-vmware-esxi
+    exec:
+      - /var/db/newrelic-infra/newrelic-integrations/bin/nri-vmware-esxi
+      # - --datacenter_location
+      # - Wolli Creek
+      - --user
+      - administrator@vsphere.local
+      - --pass
+      - Example!
+      - --url
+      - https://192.168.0.210/sdk
+      - --validate_ssl
+    inventory_source: metadata/system

@@ -1,0 +1,17 @@
+bin*
+*.tar
+nri-vmwarev*
+nri-vmware_v*
+*.old
+vendor*
+nri-vmware
+coverage*
+.DS_Store
+examples_*
+CHANGELOG_*
+dump*
+*.serverless
+LATEST
+.vendor-new*
+.idea
+dist
