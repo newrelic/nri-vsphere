@@ -8,7 +8,7 @@ package integration
 import (
 	"os"
 
-	"github.com/kav91/nri-vmware-esxi/internal/load"
+	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 	"github.com/sirupsen/logrus"
 )
 

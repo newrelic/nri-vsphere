@@ -47,10 +47,10 @@ var Hostname string
 var Logrus = logrus.New()
 
 // IntegrationName name of integration
-var IntegrationName = "com.newrelic.nri-vmware-esxi-kav"
+var IntegrationName = "com.newrelic.nri-vmware-vsphere"
 
 // IntegrationNameShort Short Name
-var IntegrationNameShort = "nri-vmware-esxi-kav"
+var IntegrationNameShort = "nri-vmware-vsphere"
 
 // IntegrationVersion Version
 var IntegrationVersion = "Unknown-SNAPSHOT"

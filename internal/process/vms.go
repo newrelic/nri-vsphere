@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kav91/nri-vmware-esxi/internal/load"
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
+	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 	"github.com/vmware/govmomi/object"
 )
 

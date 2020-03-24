@@ -1,7 +1,7 @@
 integrations:
-  - name: nri-vmware-esxi
+  - name: nri-vmware-vsphere
     exec:
-      - /var/db/newrelic-infra/newrelic-integrations/bin/nri-vmware-esxi
+      - /var/db/newrelic-infra/newrelic-integrations/bin/nri-vmware-vsphere
       # - --datacenter_location
       # - Wolli Creek
       - --user

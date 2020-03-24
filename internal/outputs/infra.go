@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kav91/nri-vmware-esxi/internal/load"
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 )
 
 // InfraIntegration Creates Infrastructure SDK Integration
@@ -44,5 +44,5 @@ func createEntity(isLocalEntity bool, entityName string) (*Integration.Entity, e
 		entityName = load.Hostname // default hostname
 	}
 
-	return load.Integration.Entity(entityName, "nri-vmware-esxi")
+	return load.Integration.Entity(entityName, load.IntegrationNameShort)
 }

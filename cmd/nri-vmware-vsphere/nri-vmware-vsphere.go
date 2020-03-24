@@ -9,12 +9,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/kav91/nri-vmware-esxi/internal/client"
-	"github.com/kav91/nri-vmware-esxi/internal/collect"
-	"github.com/kav91/nri-vmware-esxi/internal/integration"
-	"github.com/kav91/nri-vmware-esxi/internal/load"
-	"github.com/kav91/nri-vmware-esxi/internal/outputs"
-	"github.com/kav91/nri-vmware-esxi/internal/process"
+	"github.com/newrelic/nri-vmware-vsphere/internal/client"
+	"github.com/newrelic/nri-vmware-vsphere/internal/collect"
+	"github.com/newrelic/nri-vmware-vsphere/internal/integration"
+	"github.com/newrelic/nri-vmware-vsphere/internal/load"
+	"github.com/newrelic/nri-vmware-vsphere/internal/outputs"
+	"github.com/newrelic/nri-vmware-vsphere/internal/process"
 	"github.com/vmware/govmomi/view"
 )
 

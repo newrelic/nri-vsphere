@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/kav91/nri-vmware-esxi/internal/load"
 	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )

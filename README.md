@@ -1,1 +1,1 @@
-# nri-vmware-esxi
+# nri-vmware-vsphere
