@@ -79,6 +79,9 @@ var Networks []mo.Network
 // Hosts VMWare
 var Hosts []mo.HostSystem
 
+// Datacenters VMWare
+var Datacenters []Datacenter
+
 // MakeTimestamp creates timestamp in milliseconds
 func MakeTimestamp() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)

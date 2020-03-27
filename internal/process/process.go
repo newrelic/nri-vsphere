@@ -18,7 +18,7 @@ func Run() {
 
 	// create samples async
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		createVirtualMachineSamples(timestamp)
@@ -26,6 +26,10 @@ func Run() {
 	go func() {
 		defer wg.Done()
 		createHostSamples(timestamp)
+	}()
+	go func() {
+		defer wg.Done()
+		createDatastoreSamples(timestamp)
 	}()
 	wg.Wait()
 }

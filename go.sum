@@ -217,6 +217,7 @@ github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d/go.mod h1:o96d
 github.com/newrelic/infra-integrations-sdk v3.2.0+incompatible/go.mod h1:tMUHRMq6mJS0YyBnbWrTXAnREnQqC1AGO6Lu45u5xAM=
 github.com/newrelic/infra-integrations-sdk v3.6.0+incompatible h1:TpW1XfUj9ANpQb0WN0uuYoR5FmhtpWLrGw1stOvfFQc=
 github.com/newrelic/infra-integrations-sdk v3.6.0+incompatible/go.mod h1:tMUHRMq6mJS0YyBnbWrTXAnREnQqC1AGO6Lu45u5xAM=
+github.com/newrelic/infra-integrations-sdk v3.6.1+incompatible h1:tKCVenJbbNqatqcsZXXK1Omy5mPW7EZF9ezVYoUU2OY=
 github.com/newrelic/nri-flex v1.0.0 h1:TNOdn+ws31Gd2UCXy6rZljpLKKzOBzD0FHg79IRELVQ=
 github.com/newrelic/nri-flex v1.0.0/go.mod h1:ZW0FSdiFPVU2K3XYtD9xyqz3lrdPb06otILSMjr2g/w=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=

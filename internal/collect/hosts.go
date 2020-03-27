@@ -5,6 +5,7 @@ import (
 
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 	"github.com/vmware/govmomi"
+	"github.com/vmware/govmomi/vim25/mo"
 )
 
 // Hosts VMWare
@@ -13,17 +14,27 @@ func Hosts(c *govmomi.Client) {
 	var err error
 	m := load.ViewManager
 
-	load.HostSystemContainerView, err = m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"HostSystem"}, true)
-	if err != nil {
-		load.Logrus.WithError(err).Fatal("failed to create HostSystem container view")
-	}
+	for i, dc := range load.Datacenters {
 
-	defer load.HostSystemContainerView.Destroy(ctx)
+		load.HostSystemContainerView, err = m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"HostSystem"}, true)
+		if err != nil {
+			load.Logrus.WithError(err).Fatal("failed to create HostSystem container view")
+		}
 
-	// Retrieve summary property for all hosts
-	// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html
-	err = load.HostSystemContainerView.Retrieve(ctx, []string{"HostSystem"}, []string{"summary", "config", "network", "vm"}, &load.Hosts)
-	if err != nil {
-		load.Logrus.WithError(err).Fatal("failed to retrieve HostSystems")
+		defer load.HostSystemContainerView.Destroy(ctx)
+
+		var hosts []mo.HostSystem
+		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html
+		err = load.HostSystemContainerView.Retrieve(
+			ctx,
+			[]string{"HostSystem"},
+			[]string{"summary", "config", "network", "vm", "parent", "datastore"},
+			&hosts)
+		if err != nil {
+			load.Logrus.WithError(err).Fatal("failed to retrieve HostSystems")
+		}
+		for j := 0; j < len(hosts); j++ {
+			load.Datacenters[i].Hosts[hosts[j].Self] = &hosts[j]
+		}
 	}
 }
