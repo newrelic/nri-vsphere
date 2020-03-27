@@ -39,9 +39,11 @@ func main() {
 
 	load.ViewManager = view.NewManager(load.VMWareClient.Client)
 
+	collect.Datacenters(load.VMWareClient)
+
 	// fetch vmware data async
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(6)
 	go func() {
 		defer wg.Done()
 		collect.VirtualMachines(load.VMWareClient)
@@ -55,6 +57,19 @@ func main() {
 		defer wg.Done()
 		collect.Hosts(load.VMWareClient)
 
+	}()
+	go func() {
+		defer wg.Done()
+		collect.Datastores(load.VMWareClient)
+
+	}()
+	go func() {
+		defer wg.Done()
+		collect.Clusters(load.VMWareClient)
+	}()
+	go func() {
+		defer wg.Done()
+		collect.ResourcePools(load.VMWareClient)
 	}()
 	wg.Wait()
 
