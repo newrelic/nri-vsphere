@@ -14,21 +14,23 @@ type mor = types.ManagedObjectReference
 
 // Datacenter struct
 type Datacenter struct {
-	Datacenter    *mo.Datacenter
-	Hosts         map[mor]*mo.HostSystem
-	Clusters      map[mor]*mo.ComputeResource
-	ResourcePools map[mor]*mo.ResourcePool
-	Datastores    map[mor]*mo.Datastore
+	Datacenter      *mo.Datacenter
+	Hosts           map[mor]*mo.HostSystem
+	Clusters        map[mor]*mo.ComputeResource
+	ResourcePools   map[mor]*mo.ResourcePool
+	Datastores      map[mor]*mo.Datastore
+	VirtualMachines map[mor]*mo.VirtualMachine
 }
 
 // NewDatacenter Initialize datacenter struct
 func NewDatacenter(datacenter *mo.Datacenter) Datacenter {
 	return Datacenter{
-		Datacenter:    datacenter,
-		Hosts:         make(map[mor]*mo.HostSystem),
-		Clusters:      make(map[mor]*mo.ComputeResource),
-		ResourcePools: make(map[mor]*mo.ResourcePool),
-		Datastores:    make(map[mor]*mo.Datastore),
+		Datacenter:      datacenter,
+		Hosts:           make(map[mor]*mo.HostSystem),
+		Clusters:        make(map[mor]*mo.ComputeResource),
+		ResourcePools:   make(map[mor]*mo.ResourcePool),
+		Datastores:      make(map[mor]*mo.Datastore),
+		VirtualMachines: make(map[mor]*mo.VirtualMachine),
 	}
 }
 

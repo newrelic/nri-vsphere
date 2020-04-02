@@ -8,8 +8,6 @@ import (
 
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
-	"github.com/vmware/govmomi/vim25/mo"
-	"github.com/vmware/govmomi/vim25/types"
 )
 
 // Run process samples
@@ -32,16 +30,6 @@ func Run() {
 		createDatastoreSamples(timestamp)
 	}()
 	wg.Wait()
-}
-
-func findHost(hostReference types.ManagedObjectReference) mo.HostSystem {
-	host := mo.HostSystem{}
-	for _, h := range load.Hosts {
-		if h.Reference() == hostReference {
-			return h
-		}
-	}
-	return host
 }
 
 // determineOS perform best effor to determine the operatingSystem

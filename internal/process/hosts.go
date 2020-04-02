@@ -45,7 +45,7 @@ func createHostSamples(timestamp int64) {
 
 			systemSampleMetricSet := workingEntity.NewMetricSet("VSphereHostSample")
 
-			checkError(systemSampleMetricSet.SetMetric("datacenter", dc.Datacenter.ManagedEntity.Name, metric.ATTRIBUTE))
+			checkError(systemSampleMetricSet.SetMetric("datacenterName", dc.Datacenter.ManagedEntity.Name, metric.ATTRIBUTE))
 
 			// cluster := dc.FindCluster(host.Reference())
 			cluster := dc.Clusters[host.Parent.Reference()]
