@@ -1,17 +1,13 @@
 package process
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
-	"github.com/vmware/govmomi/object"
 )
 
 func createVirtualMachineSamples(timestamp int64) {
-	ctx := context.Background()
-
 	for _, dc := range load.Datacenters {
 		for _, vm := range dc.VirtualMachines {
 			// // resolve hypervisor host
@@ -72,13 +68,11 @@ func createVirtualMachineSamples(timestamp int64) {
 			checkError(systemSampleMetricSet.SetMetric("vmHostname", vmHostname, metric.ATTRIBUTE))
 			checkError(systemSampleMetricSet.SetMetric("vmNumber", vm.Self.Value, metric.ATTRIBUTE))
 
-			for i, nw := range vm.Network {
-				network := object.NewNetwork(load.NetworkContainerView.Client(), nw)
-				vmNetwork, err := network.ObjectName(ctx)
-				if err == nil {
-					checkError(systemSampleMetricSet.SetMetric(fmt.Sprintf("network.%d", i), vmNetwork, metric.ATTRIBUTE))
-				}
+			networkList := ""
+			for _, nw := range vm.Network {
+				networkList += dc.Networks[nw].Name + "|"
 			}
+			checkError(systemSampleMetricSet.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
 
 			operatingSystem := determineOS(vm.Summary.Config.GuestFullName)
 			checkError(systemSampleMetricSet.SetMetric("operatingSystem", operatingSystem, metric.ATTRIBUTE))
