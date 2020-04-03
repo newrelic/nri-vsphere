@@ -22,7 +22,7 @@ func VirtualMachines(c *govmomi.Client) {
 
 		var vms []mo.VirtualMachine
 		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
-		err = cv.Retrieve(ctx, []string{"VirtualMachine"}, []string{"summary", "network", "config", "guest", "runtime"}, &vms)
+		err = cv.Retrieve(ctx, []string{"VirtualMachine"}, []string{"summary", "network", "config", "guest", "runtime", "resourcePool"}, &vms)
 		if err != nil {
 			load.Logrus.WithError(err).Fatal("failed to retrieve VM Summaries")
 		}
