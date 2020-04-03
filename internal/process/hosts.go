@@ -20,9 +20,7 @@ func createHostSamples(timestamp int64) {
 			entityName := hostConfigName + ":host"
 			datacenterName := dc.Datacenter.Name
 			clusterName := dc.Clusters[host.Parent.Reference()].Name
-			//TODO if using vcenter
-			//ha-datacenter is the default name when api is esxi
-			if datacenterName != "ha-datacenter" {
+			if load.IsVcenterAPIType {
 				// to avoid redundant names when the host doesn't belong to any cluster
 				if clusterName == hostConfigName {
 					entityName = datacenterName + ":" + entityName
@@ -48,15 +46,17 @@ func createHostSamples(timestamp int64) {
 
 			systemSampleMetricSet := workingEntity.NewMetricSet("VSphereHostSample")
 
-			//TODO if vcenter
-			checkError(systemSampleMetricSet.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
-			checkError(systemSampleMetricSet.SetMetric("clusterName", clusterName, metric.ATTRIBUTE))
-			resourcePools := dc.FindResourcePool(host.Parent.Reference())
-			resourcePoolList := ""
-			for _, rp := range resourcePools {
-				resourcePoolList += rp.Name + "|"
+			if load.IsVcenterAPIType {
+				checkError(systemSampleMetricSet.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
+				checkError(systemSampleMetricSet.SetMetric("clusterName", clusterName, metric.ATTRIBUTE))
+
+				resourcePools := dc.FindResourcePool(host.Parent.Reference())
+				resourcePoolList := ""
+				for _, rp := range resourcePools {
+					resourcePoolList += rp.Name + "|"
+				}
+				checkError(systemSampleMetricSet.SetMetric("resourcePoolNameList", resourcePoolList, metric.ATTRIBUTE))
 			}
-			checkError(systemSampleMetricSet.SetMetric("resourcePoolNameList", resourcePoolList, metric.ATTRIBUTE))
 			datastoreList := ""
 			for _, ds := range host.Datastore {
 				datastoreList += dc.Datastores[ds].Name + "|"

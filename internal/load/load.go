@@ -76,6 +76,9 @@ var Hosts []mo.HostSystem
 // Datacenters VMWare
 var Datacenters []Datacenter
 
+// IsVcenterAPIType true if connecting to vcenter
+var IsVcenterAPIType = false
+
 // MakeTimestamp creates timestamp in milliseconds
 func MakeTimestamp() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
