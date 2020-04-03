@@ -11,21 +11,20 @@ import (
 // Hosts VMWare
 func Hosts(c *govmomi.Client) {
 	ctx := context.Background()
-	var err error
 	m := load.ViewManager
 
 	for i, dc := range load.Datacenters {
 
-		load.HostSystemContainerView, err = m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"HostSystem"}, true)
+		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"HostSystem"}, true)
 		if err != nil {
 			load.Logrus.WithError(err).Fatal("failed to create HostSystem container view")
 		}
 
-		defer load.HostSystemContainerView.Destroy(ctx)
+		defer cv.Destroy(ctx)
 
 		var hosts []mo.HostSystem
 		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html
-		err = load.HostSystemContainerView.Retrieve(
+		err = cv.Retrieve(
 			ctx,
 			[]string{"HostSystem"},
 			[]string{"summary", "config", "network", "vm", "parent", "datastore"},
