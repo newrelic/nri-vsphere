@@ -64,12 +64,6 @@ var ViewManager *view.Manager
 // HostSystemContainerView x
 var HostSystemContainerView *view.ContainerView
 
-// NetworkContainerView x
-var NetworkContainerView *view.ContainerView
-
-// Networks VMWare
-var Networks []mo.Network
-
 // Hosts VMWare
 var Hosts []mo.HostSystem
 

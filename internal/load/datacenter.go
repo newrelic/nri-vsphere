@@ -19,6 +19,7 @@ type Datacenter struct {
 	Clusters        map[mor]*mo.ComputeResource
 	ResourcePools   map[mor]*mo.ResourcePool
 	Datastores      map[mor]*mo.Datastore
+	Networks        map[mor]*mo.Network
 	VirtualMachines map[mor]*mo.VirtualMachine
 }
 
@@ -30,6 +31,7 @@ func NewDatacenter(datacenter *mo.Datacenter) Datacenter {
 		Clusters:        make(map[mor]*mo.ComputeResource),
 		ResourcePools:   make(map[mor]*mo.ResourcePool),
 		Datastores:      make(map[mor]*mo.Datastore),
+		Networks:        make(map[mor]*mo.Network),
 		VirtualMachines: make(map[mor]*mo.VirtualMachine),
 	}
 }

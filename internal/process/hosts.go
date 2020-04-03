@@ -1,19 +1,14 @@
 package process
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
-	"github.com/vmware/govmomi/object"
 )
 
 func createHostSamples(timestamp int64) {
-	ctx := context.Background()
-
-	// create new entities for each host
 	for _, dc := range load.Datacenters {
 		for _, host := range dc.Hosts {
 			hostConfigName := host.Summary.Config.Name
@@ -69,15 +64,12 @@ func createHostSamples(timestamp int64) {
 
 			checkError(systemSampleMetricSet.SetMetric("vmCount", len(host.Vm), metric.GAUGE))
 
-			//TODO change to list | and add map of networks
-			for i, nw := range host.Network {
-
-				network := object.NewNetwork(load.NetworkContainerView.Client(), nw)
-				hostNetwork, err := network.ObjectName(ctx)
-				if err == nil {
-					checkError(systemSampleMetricSet.SetMetric(fmt.Sprintf("network.%d", i), hostNetwork, metric.ATTRIBUTE))
-				}
+			networkList := ""
+			for _, nw := range host.Network {
+				networkList += dc.Networks[nw].Name + "|"
 			}
+			checkError(systemSampleMetricSet.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
+
 			// memory
 			memoryTotalBytes := float64(host.Summary.Hardware.MemorySize)
 			checkError(systemSampleMetricSet.SetMetric("mem.size", memoryTotalBytes, metric.GAUGE))
