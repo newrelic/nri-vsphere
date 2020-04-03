@@ -13,7 +13,6 @@ import (
 	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/view"
-	"github.com/vmware/govmomi/vim25/mo"
 )
 
 // ArgumentList Available Arguments
@@ -60,12 +59,6 @@ var VMWareClient *govmomi.Client
 
 // ViewManager Client
 var ViewManager *view.Manager
-
-// HostSystemContainerView x
-var HostSystemContainerView *view.ContainerView
-
-// Hosts VMWare
-var Hosts []mo.HostSystem
 
 // Datacenters VMWare
 var Datacenters []Datacenter
