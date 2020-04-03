@@ -4,20 +4,19 @@ import (
 	"context"
 
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
-	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
 // Hosts VMWare
-func Hosts(c *govmomi.Client) {
+func Hosts(config *load.Config) {
 	ctx := context.Background()
-	m := load.ViewManager
+	m := config.ViewManager
 
-	for i, dc := range load.Datacenters {
+	for i, dc := range config.Datacenters {
 
 		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"HostSystem"}, true)
 		if err != nil {
-			load.Logrus.WithError(err).Fatal("failed to create HostSystem container view")
+			config.Logrus.WithError(err).Fatal("failed to create HostSystem container view")
 		}
 
 		defer cv.Destroy(ctx)
@@ -30,10 +29,10 @@ func Hosts(c *govmomi.Client) {
 			[]string{"summary", "config", "network", "vm", "parent", "datastore"},
 			&hosts)
 		if err != nil {
-			load.Logrus.WithError(err).Fatal("failed to retrieve HostSystems")
+			config.Logrus.WithError(err).Fatal("failed to retrieve HostSystems")
 		}
 		for j := 0; j < len(hosts); j++ {
-			load.Datacenters[i].Hosts[hosts[j].Self] = &hosts[j]
+			config.Datacenters[i].Hosts[hosts[j].Self] = &hosts[j]
 		}
 	}
 }

@@ -14,35 +14,35 @@ import (
 )
 
 // InfraIntegration Creates Infrastructure SDK Integration
-func InfraIntegration() error {
+func InfraIntegration(config *load.Config) error {
 	var err error
-	load.Hostname, err = os.Hostname() // set hostname
+	config.Hostname, err = os.Hostname() // set hostname
 	if err != nil {
-		load.Logrus.
+		config.Logrus.
 			WithError(err).
 			Debug("failed to get the hostname while creating integration")
 	}
 
-	load.Integration, err = Integration.New(load.IntegrationName, load.IntegrationVersion, Integration.Args(&load.Args))
+	config.Integration, err = Integration.New(config.IntegrationName, config.IntegrationVersion, Integration.Args(&config.Args))
 	if err != nil {
 		return fmt.Errorf("failed to create integration %v", err)
 	}
 
-	load.Entity, err = createEntity(load.Args.Local, load.Args.Entity)
+	config.Entity, err = createEntity(config,config.Args.Local, config.Args.Entity)
 	if err != nil {
 		return fmt.Errorf("failed create entity: %v", err)
 	}
 	return nil
 }
 
-func createEntity(isLocalEntity bool, entityName string) (*Integration.Entity, error) {
+func createEntity(config *load.Config, isLocalEntity bool, entityName string) (*Integration.Entity, error) {
 	if isLocalEntity {
-		return load.Integration.LocalEntity(), nil
+		return config.Integration.LocalEntity(), nil
 	}
 
 	if entityName == "" {
-		entityName = load.Hostname // default hostname
+		entityName = config.Hostname // default hostname
 	}
 
-	return load.Integration.Entity(entityName, load.IntegrationNameShort)
+	return config.Integration.Entity(entityName, config.IntegrationNameShort)
 }

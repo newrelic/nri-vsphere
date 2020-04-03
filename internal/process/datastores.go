@@ -9,11 +9,11 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
-func createDatastoreSamples(timestamp int64) {
+func createDatastoreSamples(config *load.Config, timestamp int64) {
 	// ctx := context.Background()
 
 	// create new entities for each host
-	for _, dc := range load.Datacenters {
+	for _, dc := range config.Datacenters {
 		for _, ds := range dc.Datastores {
 			// entityName := ds.Summary.Name + ":ds"
 
@@ -28,36 +28,36 @@ func createDatastoreSamples(timestamp int64) {
 			// workingEntity.SetInventoryItem("name", "value", fmt.Sprintf("%v:%d", entityName, timestamp))
 
 			id := integration.IDAttribute{Key: "id", Value: ds.Summary.Datastore.Value}
-			workingEntity, err := load.Integration.Entity(ds.Summary.Name, "datastore", id)
+			workingEntity, err := config.Integration.Entity(ds.Summary.Name, "datastore", id)
 			if err != nil {
-				load.Logrus.WithError(err).Error("failed to create entity")
+				config.Logrus.WithError(err).Error("failed to create entity")
 			}
 
 			// create SystemSample metric set
 			systemSampleMetricSet := workingEntity.NewMetricSet("VSphereDatastoreSample")
 
 			// defaults
-			checkError(systemSampleMetricSet.SetMetric("integration_version", load.IntegrationVersion, metric.ATTRIBUTE))
-			checkError(systemSampleMetricSet.SetMetric("integration_name", load.IntegrationName, metric.ATTRIBUTE))
-			checkError(systemSampleMetricSet.SetMetric("timestamp", timestamp, metric.GAUGE))
-			checkError(systemSampleMetricSet.SetMetric("instanceType", "vmware-datastore", metric.ATTRIBUTE))
-			checkError(systemSampleMetricSet.SetMetric("datacenterLocation", load.Args.DatacenterLocation, metric.ATTRIBUTE))
-			checkError(systemSampleMetricSet.SetMetric("type", "datastore", metric.ATTRIBUTE))
+			checkError(config, systemSampleMetricSet.SetMetric("integration_version", config.IntegrationVersion, metric.ATTRIBUTE))
+			checkError(config, systemSampleMetricSet.SetMetric("integration_name", config.IntegrationName, metric.ATTRIBUTE))
+			checkError(config, systemSampleMetricSet.SetMetric("timestamp", timestamp, metric.GAUGE))
+			checkError(config, systemSampleMetricSet.SetMetric("instanceType", "vmware-datastore", metric.ATTRIBUTE))
+			checkError(config, systemSampleMetricSet.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
+			checkError(config, systemSampleMetricSet.SetMetric("type", "datastore", metric.ATTRIBUTE))
 
 			// Ds metrics
-			checkError(systemSampleMetricSet.SetMetric("overallStatus", string(ds.OverallStatus), metric.ATTRIBUTE))
-			checkError(systemSampleMetricSet.SetMetric("accessible", fmt.Sprintf("%t", ds.Summary.Accessible), metric.ATTRIBUTE))
+			checkError(config, systemSampleMetricSet.SetMetric("overallStatus", string(ds.OverallStatus), metric.ATTRIBUTE))
+			checkError(config, systemSampleMetricSet.SetMetric("accessible", fmt.Sprintf("%t", ds.Summary.Accessible), metric.ATTRIBUTE))
 			// Properties not valid if accessible is false
 			if ds.Summary.Accessible {
-				checkError(systemSampleMetricSet.SetMetric("url", ds.Summary.Url, metric.ATTRIBUTE))
-				checkError(systemSampleMetricSet.SetMetric("capacity", float64(ds.Summary.Capacity)/(1<<30), metric.GAUGE))
-				checkError(systemSampleMetricSet.SetMetric("freespace", float64(ds.Summary.FreeSpace)/(1<<30), metric.GAUGE))
-				checkError(systemSampleMetricSet.SetMetric("uncommitted", float64(ds.Summary.Uncommitted)/(1<<30), metric.GAUGE))
+				checkError(config, systemSampleMetricSet.SetMetric("url", ds.Summary.Url, metric.ATTRIBUTE))
+				checkError(config, systemSampleMetricSet.SetMetric("capacity", float64(ds.Summary.Capacity)/(1<<30), metric.GAUGE))
+				checkError(config, systemSampleMetricSet.SetMetric("freespace", float64(ds.Summary.FreeSpace)/(1<<30), metric.GAUGE))
+				checkError(config, systemSampleMetricSet.SetMetric("uncommitted", float64(ds.Summary.Uncommitted)/(1<<30), metric.GAUGE))
 
 				switch info := ds.Info.(type) {
 				case *types.NasDatastoreInfo:
-					checkError(systemSampleMetricSet.SetMetric("nas.remoteHost", info.Nas.RemoteHost, metric.ATTRIBUTE))
-					checkError(systemSampleMetricSet.SetMetric("nas.remotePath", info.Nas.RemotePath, metric.ATTRIBUTE))
+					checkError(config, systemSampleMetricSet.SetMetric("nas.remoteHost", info.Nas.RemoteHost, metric.ATTRIBUTE))
+					checkError(config, systemSampleMetricSet.SetMetric("nas.remotePath", info.Nas.RemotePath, metric.ATTRIBUTE))
 				}
 			}
 		}

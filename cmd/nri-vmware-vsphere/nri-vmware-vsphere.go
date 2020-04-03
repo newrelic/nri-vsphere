@@ -19,68 +19,68 @@ import (
 )
 
 func main() {
-	load.StartTime = load.MakeTimestamp()
+	config := load.NewConfig()
 
-	err := outputs.InfraIntegration()
+	err := outputs.InfraIntegration(config)
 	if err != nil {
-		load.Logrus.WithError(err).Fatal("failed to initialize integration")
+		config.Logrus.WithError(err).Fatal("failed to initialize integration")
 	}
 
-	if load.Args.URL == "" || load.Args.User == "" || load.Args.Pass == "" {
-		load.Logrus.Fatal("missing argument, please check if URL, User, Pass has been supplied")
+	if config.Args.URL == "" || config.Args.User == "" || config.Args.Pass == "" {
+		config.Logrus.Fatal("missing argument, please check if URL, User, Pass has been supplied")
 	}
-	load.Args.DatacenterLocation = strings.ToLower(load.Args.DatacenterLocation)
+	config.Args.DatacenterLocation = strings.ToLower(config.Args.DatacenterLocation)
+	integration.SetupLogger(config)
 
-	integration.SetDefaults()
-	load.VMWareClient, err = client.New(load.Args.URL, load.Args.User, load.Args.Pass, load.Args.ValidateSSL)
+	config.VMWareClient, err = client.New(config.Args.URL, config.Args.User, config.Args.Pass, config.Args.ValidateSSL)
 	if err != nil {
-		load.Logrus.WithError(err).Fatal("failed to create client")
+		config.Logrus.WithError(err).Fatal("failed to create client")
 	}
 
-	if load.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter" {
-		load.IsVcenterAPIType = true
+	if config.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter" {
+		config.IsVcenterAPIType = true
 	}
 
-	load.ViewManager = view.NewManager(load.VMWareClient.Client)
+	config.ViewManager = view.NewManager(config.VMWareClient.Client)
 
-	collect.Datacenters(load.VMWareClient)
+	collect.Datacenters(config)
 
 	// fetch vmware data async
 	var wg sync.WaitGroup
 	wg.Add(6)
 	go func() {
 		defer wg.Done()
-		collect.VirtualMachines(load.VMWareClient)
+		collect.VirtualMachines(config)
 	}()
 	go func() {
 		defer wg.Done()
-		collect.Networks(load.VMWareClient)
+		collect.Networks(config)
 
 	}()
 	go func() {
 		defer wg.Done()
-		collect.Hosts(load.VMWareClient)
+		collect.Hosts(config)
 
 	}()
 	go func() {
 		defer wg.Done()
-		collect.Datastores(load.VMWareClient)
+		collect.Datastores(config)
 
 	}()
 	go func() {
 		defer wg.Done()
-		collect.Clusters(load.VMWareClient)
+		collect.Clusters(config)
 	}()
 	go func() {
 		defer wg.Done()
-		collect.ResourcePools(load.VMWareClient)
+		collect.ResourcePools(config)
 	}()
 	wg.Wait()
 
-	process.Run()
+	process.Run(config)
 
-	err = load.Integration.Publish()
+	err = config.Integration.Publish()
 	if err != nil {
-		load.Logrus.WithError(err).Fatal("failed to publish")
+		config.Logrus.WithError(err).Fatal("failed to publish")
 	}
 }
