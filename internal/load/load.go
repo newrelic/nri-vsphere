@@ -13,6 +13,7 @@ import (
 	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/view"
+	"github.com/vmware/govmomi/vim25/mo"
 )
 
 // ArgumentList Available Arguments
@@ -27,46 +28,35 @@ type ArgumentList struct {
 	ValidateSSL        bool   `default:"false" help:"Validate SSL"`
 }
 
-// Args Infrastructure SDK Arguments List
-var Args ArgumentList
+type Config struct {
+	Args                        ArgumentList
+	StartTime                   int64                    // StartTime time Flex starts in Nanoseconds
+	Integration                 *integration.Integration // Integration Infrastructure SDK Integration
+	Entity                      *integration.Entity      // Entity Infrastructure SDK Entity
+	Hostname                    string                   // Hostname current host
+	Logrus                      *logrus.Logger           // Logrus create instance of the logger
+	IntegrationName             string                   // IntegrationName name of integration
+	IntegrationNameShort        string                   // IntegrationNameShort Short Name
+	IntegrationVersion          string                   // IntegrationVersion Version
+	VMWareClient                *govmomi.Client          // VMWareClient Client
+	ViewManager                 *view.Manager            // ViewManager Client
+	HostSystemContainerView     *view.ContainerView      // HostSystemContainerView x
+	VirutalMachineContainerView *view.ContainerView      // VirutalMachineContainerView x
+	NetworkContainerView        *view.ContainerView      // NetworkContainerView x
+	VirtualMachines             []mo.VirtualMachine      // VirtualMachines VMWare
+	Networks                    []mo.Network             // Networks VMWare
+	Hosts                       []mo.HostSystem          // Hosts VMWare
+	Datacenters                 []Datacenter             // Datacenters VMWare
+	IsVcenterAPIType            bool                     // IsVcenterAPIType true if connecting to vcenter
+}
 
-// StartTime time Flex starts in Nanoseconds
-var StartTime int64
-
-// Integration Infrastructure SDK Integration
-var Integration *integration.Integration
-
-// Entity Infrastructure SDK Entity
-var Entity *integration.Entity
-
-// Hostname current host
-var Hostname string
-
-// Logrus create instance of the logger
-var Logrus = logrus.New()
-
-// IntegrationName name of integration
-var IntegrationName = "com.newrelic.nri-vmware-vsphere"
-
-// IntegrationNameShort Short Name
-var IntegrationNameShort = "nri-vmware-vsphere"
-
-// IntegrationVersion Version
-var IntegrationVersion = "Unknown-SNAPSHOT"
-
-// VMWareClient Client
-var VMWareClient *govmomi.Client
-
-// ViewManager Client
-var ViewManager *view.Manager
-
-// Datacenters VMWare
-var Datacenters []Datacenter
-
-// IsVcenterAPIType true if connecting to vcenter
-var IsVcenterAPIType = false
-
-// MakeTimestamp creates timestamp in milliseconds
-func MakeTimestamp() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+func NewConfig() *Config {
+	return &Config{
+		Logrus:               logrus.New(),
+		IntegrationName:      "com.newrelic.nri-vmware-vsphere",
+		IntegrationNameShort: "nri-vmware-vsphere",
+		IntegrationVersion:   "Unknown-SNAPSHOT",
+		StartTime:            time.Now().UnixNano() / int64(time.Millisecond),
+		IsVcenterAPIType:     false,
+	}
 }

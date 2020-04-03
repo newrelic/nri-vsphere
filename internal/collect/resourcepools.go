@@ -4,19 +4,18 @@ import (
 	"context"
 
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
-	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
 // ResourcePools VMWare
-func ResourcePools(c *govmomi.Client) {
+func ResourcePools(config *load.Config) {
 	ctx := context.Background()
-	m := load.ViewManager
+	m := config.ViewManager
 
-	for i, dc := range load.Datacenters {
+	for i, dc := range config.Datacenters {
 		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"ResourcePool"}, true)
 		if err != nil {
-			load.Logrus.WithError(err).Fatal("failed to create ResourcePool container view")
+			config.Logrus.WithError(err).Fatal("failed to create ResourcePool container view")
 		}
 		defer cv.Destroy(ctx)
 		var resourcePools []mo.ResourcePool
@@ -26,10 +25,10 @@ func ResourcePools(c *govmomi.Client) {
 			[]string{"summary", "owner", "runtime", "name", "resourcePool"},
 			&resourcePools)
 		if err != nil {
-			load.Logrus.WithError(err).Fatal("failed to retrieve ResourcePools")
+			config.Logrus.WithError(err).Fatal("failed to retrieve ResourcePools")
 		}
 		for j := 0; j < len(resourcePools); j++ {
-			load.Datacenters[i].ResourcePools[resourcePools[j].Self] = &resourcePools[j]
+			config.Datacenters[i].ResourcePools[resourcePools[j].Self] = &resourcePools[j]
 		}
 	}
 }

@@ -5,29 +5,30 @@ import (
 
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 )
 
 // Run process samples
-func Run() {
-	timestamp := load.MakeTimestamp()
+func Run(config *load.Config) {
+	timestamp := time.Now().UnixNano() / int64(time.Millisecond)
 
 	// create samples async
 	var wg sync.WaitGroup
 	wg.Add(3)
 	go func() {
 		defer wg.Done()
-		createVirtualMachineSamples(timestamp)
+		createVirtualMachineSamples(config, timestamp)
 	}()
 	go func() {
 		defer wg.Done()
-		createHostSamples(timestamp)
+		createHostSamples(config, timestamp)
 	}()
 	go func() {
 		defer wg.Done()
-		createDatastoreSamples(timestamp)
+		createDatastoreSamples(config, timestamp)
 	}()
 	wg.Wait()
 }
@@ -73,21 +74,21 @@ func determineOS(guestFullName string) string {
 
 // setEntity sets the entity to be used for the configured API
 // defaults the type aka namespace to instance
-func setEntity(entity string, customNamespace string) *integration.Entity {
+func setEntity(config *load.Config, entity string, customNamespace string) *integration.Entity {
 	if entity != "" {
 		if customNamespace == "" {
 			customNamespace = "instance"
 		}
-		workingEntity, err := load.Integration.Entity(entity, customNamespace)
+		workingEntity, err := config.Integration.Entity(entity, customNamespace)
 		if err == nil {
 			return workingEntity
 		}
 	}
-	return load.Entity
+	return config.Entity
 }
 
-func checkError(err error) {
+func checkError(config *load.Config, err error) {
 	if err != nil {
-		load.Logrus.WithError(err).Error("failed to set")
+		config.Logrus.WithError(err).Error("failed to set")
 	}
 }

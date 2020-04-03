@@ -4,19 +4,18 @@ import (
 	"context"
 
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
-	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
 // Clusters VMWare
-func Clusters(c *govmomi.Client) {
+func Clusters(config *load.Config) {
 	ctx := context.Background()
-	m := load.ViewManager
+	m := config.ViewManager
 
-	for i, dc := range load.Datacenters {
+	for i, dc := range config.Datacenters {
 		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"ComputeResource"}, true)
 		if err != nil {
-			load.Logrus.WithError(err).Fatal("failed to create ComputeResource container view")
+			config.Logrus.WithError(err).Fatal("failed to create ComputeResource container view")
 		}
 		defer cv.Destroy(ctx)
 		var clusters []mo.ComputeResource
@@ -27,10 +26,10 @@ func Clusters(c *govmomi.Client) {
 			[]string{"summary", "host", "resourcePool", "name"},
 			&clusters)
 		if err != nil {
-			load.Logrus.WithError(err).Fatal("failed to retrieve ComputeResource")
+			config.Logrus.WithError(err).Fatal("failed to retrieve ComputeResource")
 		}
 		for j := 0; j < len(clusters); j++ {
-			load.Datacenters[i].Clusters[clusters[j].Self] = &clusters[j]
+			config.Datacenters[i].Clusters[clusters[j].Self] = &clusters[j]
 		}
 	}
 }
