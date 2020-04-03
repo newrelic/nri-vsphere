@@ -33,6 +33,9 @@ func main() {
 
 	integration.SetDefaults()
 	load.VMWareClient, err = client.New(load.Args.URL, load.Args.User, load.Args.Pass, load.Args.ValidateSSL)
+	if load.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter" {
+		load.IsVcenterAPIType = true
+	}
 	if err != nil {
 		load.Logrus.WithError(err).Fatal("failed to create client")
 	}
