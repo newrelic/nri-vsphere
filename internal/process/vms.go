@@ -15,9 +15,6 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			vmHost := dc.Hosts[*vm.Summary.Runtime.Host]
 			hostConfigName := vmHost.Summary.Config.Name
 			vmConfigName := vm.Summary.Config.Name
-			// hostSystem := object.NewHostSystem(load.HostSystemContainerView.Client(), *vmHost)
-			// hypervisorHost, err := hostSystem.ObjectName(ctx)
-			// vmHost := findHost(hostSystem.Reference())
 			datacenterName := dc.Datacenter.Name
 			clusterName := dc.Clusters[*vmHost.Parent].Name
 
@@ -37,13 +34,14 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			entityName = strings.ReplaceAll(entityName, ".", "-")
 
 			// Unique identifier for the vm entity
-			// uuid := integration.IDAttribute{Key: "uuid", Value: vm.Config.instanceUuid}
-			workingEntity, err := config.Integration.Entity(entityName, "vsphere")
+			instanceUuid := vm.Config.InstanceUuid
+			workingEntity, err := config.Integration.Entity(instanceUuid, "vsphere")
 			if err != nil {
 				config.Logrus.WithError(err).Error("failed to create entity")
 			}
 
-			workingEntity.SetInventoryItem("name", "value", fmt.Sprintf("%v:%d", entityName, timestamp))
+			// entity displayName
+			workingEntity.SetInventoryItem("vsphereVm", "name", entityName)
 
 			ms := workingEntity.NewMetricSet("VSphereVmSample")
 
@@ -69,7 +67,7 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			vmHostname := vm.Summary.Guest.HostName
 			checkError(config, ms.SetMetric("vmConfigName", vmConfigName, metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("vmHostname", vmHostname, metric.ATTRIBUTE))
-			checkError(config, ms.SetMetric("instanceUuid", vm.Config.InstanceUuid, metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric("instanceUuid", instanceUuid, metric.ATTRIBUTE))
 
 			networkList := ""
 			for _, nw := range vm.Network {
@@ -84,49 +82,42 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			// SystemSample metrics
 
 			// memory
-			memoryTotalBytes := float64(vm.Summary.Config.MemorySizeMB) * 1e+6
-			checkError(config, ms.SetMetric("memoryTotalBytes", memoryTotalBytes, metric.GAUGE))
-			checkError(config, ms.SetMetric("systemMemoryBytes", memoryTotalBytes, metric.GAUGE))
-			memoryUsedBytes := float64(vm.Summary.QuickStats.GuestMemoryUsage) * 1e+6
-			memoryFreeBytes := memoryTotalBytes - memoryUsedBytes
-			checkError(config, ms.SetMetric("memoryUsedBytes", memoryUsedBytes, metric.GAUGE))
-			checkError(config, ms.SetMetric("memoryFreeBytes", memoryFreeBytes, metric.GAUGE))
+			memorySize := vm.Summary.Config.MemorySizeMB
+			checkError(config, ms.SetMetric("mem.size", memorySize, metric.GAUGE))
+			memoryUsed := vm.Summary.QuickStats.GuestMemoryUsage
+			checkError(config, ms.SetMetric("mem.usage", memoryUsed, metric.GAUGE))
+			memoryFree := memorySize - memoryUsed
+			checkError(config, ms.SetMetric("mem.free", memoryFree, metric.GAUGE))
+			checkError(config, ms.SetMetric("mem.balloned", vm.Summary.QuickStats.BalloonedMemory, metric.GAUGE))
+			checkError(config, ms.SetMetric("mem.swapped", vm.Summary.QuickStats.SwappedMemory, metric.GAUGE))
+			swappedSsd := float64(vm.Summary.QuickStats.SsdSwappedMemory) / 1e+3
+			checkError(config, ms.SetMetric("mem.swappedSsd", swappedSsd, metric.GAUGE))
 
 			// cpu
-			checkError(config, ms.SetMetric("coreCount", vm.Summary.Config.NumCpu, metric.GAUGE))
-			checkError(config, ms.SetMetric("overallCpuUsageMHz", vm.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
+			checkError(config, ms.SetMetric("cpu.cores", vm.Summary.Config.NumCpu, metric.GAUGE))
+			checkError(config, ms.SetMetric("cpu.overallUsage", vm.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
 
 			cpuAllocationLimit := float64(0)
 			if vm.Config.CpuAllocation.Limit != nil {
 				cpuAllocationLimit = float64(*vm.Config.CpuAllocation.Limit)
 			}
+			checkError(config, ms.SetMetric("cpu.allocationLimit", cpuAllocationLimit, metric.GAUGE))
 
-			checkError(config, ms.SetMetric("cpuAllocationLimit", cpuAllocationLimit, metric.GAUGE))
+			CPUMhz := vmHost.Summary.Hardware.CpuMhz
+			CPUCores := vmHost.Summary.Hardware.NumCpuCores
+			TotalMHz := float64(CPUMhz) * float64(CPUCores)
 
-			if vmHost.Self.Value != "" {
-				CPUMhz := vmHost.Summary.Hardware.CpuMhz
-				CPUCores := vmHost.Summary.Hardware.NumCpuCores
-				CPUThreads := vmHost.Summary.Hardware.NumCpuThreads
-				TotalMHz := float64(CPUMhz) * float64(CPUCores)
-				checkError(config, ms.SetMetric("hypervisorCpuThreads", CPUThreads, metric.GAUGE))
-				checkError(config, ms.SetMetric("hypervisorCpuMhz", CPUMhz, metric.GAUGE))
-				checkError(config, ms.SetMetric("hypervisorCpuCores", CPUCores, metric.GAUGE))
-				checkError(config, ms.SetMetric("hypervisorTotalMHz", TotalMHz, metric.GAUGE))
-
-				cpuPercent := float64(0)
-				if cpuAllocationLimit > TotalMHz || cpuAllocationLimit < 0 {
-					cpuPercent = (float64(vm.Summary.QuickStats.OverallCpuUsage) / TotalMHz) * 100
-				} else {
-					cpuPercent = (float64(vm.Summary.QuickStats.OverallCpuUsage) / cpuAllocationLimit) * 100
-				}
-
-				checkError(config, ms.SetMetric("cpuPercent", cpuPercent, metric.GAUGE))
-				checkError(config, ms.SetMetric("hypervisorConfigName", vmHost.Name, metric.ATTRIBUTE))
-
+			cpuPercent := float64(0)
+			if cpuAllocationLimit > TotalMHz || cpuAllocationLimit < 0 {
+				cpuPercent = (float64(vm.Summary.QuickStats.OverallCpuUsage) / TotalMHz) * 100
+			} else {
+				cpuPercent = (float64(vm.Summary.QuickStats.OverallCpuUsage) / cpuAllocationLimit) * 100
 			}
+			checkError(config, ms.SetMetric("cpu.hostUsagePercent", cpuPercent, metric.GAUGE))
 
 			// disk
-			checkError(config, ms.SetMetric("diskTotalBytes", vm.Summary.Storage.Committed, metric.GAUGE))
+			diskTotal := vm.Summary.Storage.Committed / 1e+6
+			checkError(config, ms.SetMetric("disk.totalMB", diskTotal, metric.GAUGE))
 
 			// network
 			checkError(config, ms.SetMetric("ipAddress", vm.Guest.IpAddress, metric.ATTRIBUTE))

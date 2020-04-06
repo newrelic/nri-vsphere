@@ -1,7 +1,6 @@
 package process
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
@@ -31,13 +30,14 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			entityName = strings.ReplaceAll(entityName, ".", "-")
 
 			// bios uuid identifies the host unequivocally and is available from vcenter/host api
-			// uuid := integration.IDAttribute{Key: "uuid", Value: host.Summary.Hardware.Uuid}
-			workingEntity, err := config.Integration.Entity(entityName, "vsphere")
+			uuid := host.Summary.Hardware.Uuid
+			workingEntity, err := config.Integration.Entity(uuid, "vsphere")
 			if err != nil {
 				config.Logrus.WithError(err).Error("failed to create entity")
 			}
 
-			workingEntity.SetInventoryItem("name", "value", fmt.Sprintf("%v:%d", entityName, timestamp))
+			// entity displayName
+			workingEntity.SetInventoryItem("vsphereHost", "name", entityName)
 
 			ms := workingEntity.NewMetricSet("VSphereHostSample")
 
@@ -72,14 +72,14 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			checkError(config, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
 
 			// memory
-			memoryTotalBytes := float64(host.Summary.Hardware.MemorySize)
-			checkError(config, ms.SetMetric("mem.size", memoryTotalBytes, metric.GAUGE))
+			memoryTotal := host.Summary.Hardware.MemorySize / 1e+6
+			checkError(config, ms.SetMetric("mem.size", memoryTotal, metric.GAUGE))
 
-			memoryUsedBytes := float64(host.Summary.QuickStats.OverallMemoryUsage) * 1e+6
-			checkError(config, ms.SetMetric("mem.usage", memoryUsedBytes, metric.GAUGE))
+			memoryUsed := host.Summary.QuickStats.OverallMemoryUsage
+			checkError(config, ms.SetMetric("mem.usage", memoryUsed, metric.GAUGE))
 
-			memoryFreeBytes := memoryTotalBytes - memoryUsedBytes
-			checkError(config, ms.SetMetric("mem.free", memoryFreeBytes, metric.GAUGE))
+			memoryFree := int32(memoryTotal) - memoryUsed
+			checkError(config, ms.SetMetric("mem.free", memoryFree, metric.GAUGE))
 
 			// cpu
 			CPUCores := host.Summary.Hardware.NumCpuCores
@@ -99,16 +99,16 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			checkError(config, ms.SetMetric("cpu.overallUsage", host.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
 
 			// disk
-			diskTotalBytes := int64(0)
+			diskTotalMB := int64(0)
 			if host.Config != nil {
 				if host.Config.FileSystemVolume != nil {
 					for _, mount := range host.Config.FileSystemVolume.MountInfo {
 						capacity := mount.Volume.GetHostFileSystemVolume().Capacity
-						diskTotalBytes += capacity
+						diskTotalMB += capacity / 1024 / 1024
 					}
 				}
 			}
-			checkError(config, ms.SetMetric("disk.TotalBytes", diskTotalBytes, metric.GAUGE))
+			checkError(config, ms.SetMetric("disk.totalMB", diskTotalMB, metric.GAUGE))
 
 		}
 	}
