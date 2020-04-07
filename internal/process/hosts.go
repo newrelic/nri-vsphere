@@ -104,7 +104,7 @@ func createHostSamples(config *load.Config, timestamp int64) {
 				if host.Config.FileSystemVolume != nil {
 					for _, mount := range host.Config.FileSystemVolume.MountInfo {
 						capacity := mount.Volume.GetHostFileSystemVolume().Capacity
-						diskTotalMB += capacity / 1024 / 1024
+						diskTotalMB += capacity / 1e+6
 					}
 				}
 			}
