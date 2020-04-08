@@ -62,6 +62,5 @@ include build/compile.mk
 include build/testing.mk
 include build/util.mk
 include build/document.mk
-include build/docker.mk
 
 .PHONY: all build build-ci
