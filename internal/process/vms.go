@@ -35,7 +35,7 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 
 			// Unique identifier for the vm entity
 			instanceUuid := vm.Config.InstanceUuid
-			workingEntity, err := config.Integration.Entity(instanceUuid, "vsphere")
+			workingEntity, err := config.Integration.Entity(instanceUuid, "vsphere-vm")
 			if err != nil {
 				config.Logrus.WithError(err).Error("failed to create entity")
 			}
