@@ -31,7 +31,7 @@ func createHostSamples(config *load.Config, timestamp int64) {
 
 			// bios uuid identifies the host unequivocally and is available from vcenter/host api
 			uuid := host.Summary.Hardware.Uuid
-			workingEntity, err := config.Integration.Entity(uuid, "vsphere")
+			workingEntity, err := config.Integration.Entity(uuid, "vsphere-host")
 			if err != nil {
 				config.Logrus.WithError(err).Error("failed to create entity")
 			}
