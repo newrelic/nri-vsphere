@@ -48,3 +48,13 @@ func (dc *Datacenter) FindResourcePool(clusterReference mor) (rp []*mo.ResourceP
 	}
 	return
 }
+
+// FindHost returns the child Host for a computeResource
+func (dc *Datacenter) FindHost(computeResourceReference mor) *mo.HostSystem {
+	for _, host := range dc.Hosts {
+		if host.Parent.Reference() == computeResourceReference {
+			return host
+		}
+	}
+	return nil
+}
