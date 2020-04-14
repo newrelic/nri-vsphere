@@ -19,8 +19,9 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			entityName := hostConfigName + ":" + vmConfigName + ":vm"
 
 			if cluster, ok := dc.Clusters[*vmHost.Parent]; ok {
-				entityName = datacenterName + ":" + cluster.Name + ":" + entityName
-			} else{
+				entityName =  cluster.Name + ":" + entityName
+			}
+			if config.IsVcenterAPIType {
 				entityName = datacenterName + ":" + entityName
 			}
 

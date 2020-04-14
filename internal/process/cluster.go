@@ -12,6 +12,7 @@ func createClusterSamples(config *load.Config, timestamp int64) {
 		for _, cluster := range dc.Clusters {
 			// // resolve hypervisor host
 			summary := cluster.Summary.GetComputeResourceSummary()
+			datacenterName := dc.Datacenter.Name
 
 			//Retrieving the list of host belonging to the cluster
 			hostList:=""
@@ -38,8 +39,10 @@ func createClusterSamples(config *load.Config, timestamp int64) {
 			}
 
 			//Creating entity name
-			datacenterName := dc.Datacenter.Name
-			entityName := datacenterName + ":" + cluster.Name + ":cluster"
+			entityName := cluster.Name + ":cluster"
+			if config.IsVcenterAPIType {
+				entityName = datacenterName + ":" + entityName
+			}
 			if config.Args.DatacenterLocation != "" {
 				entityName = config.Args.DatacenterLocation + ":" + entityName
 			}
@@ -66,7 +69,7 @@ func createClusterSamples(config *load.Config, timestamp int64) {
 
 			checkError(config, ms.SetMetric("NetworkList", networkList, metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("HostList", hostList, metric.ATTRIBUTE))
-			checkError(config, ms.SetMetric("DatatoreList", datastoreList, metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric("DatastoreList", datastoreList, metric.ATTRIBUTE))
 
 			checkError(config, ms.SetMetric("OverallStatus", string(summary.OverallStatus), metric.ATTRIBUTE))
 

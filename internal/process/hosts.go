@@ -15,8 +15,9 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			datacenterName := dc.Datacenter.Name
 
 			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
-				entityName = datacenterName + ":" + cluster.Name + ":" + entityName
-			} else{
+				entityName =  cluster.Name + ":" + entityName
+			}
+			if config.IsVcenterAPIType {
 				entityName = datacenterName + ":" + entityName
 			}
 
