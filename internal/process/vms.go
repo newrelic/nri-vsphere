@@ -16,16 +16,15 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			hostConfigName := vmHost.Summary.Config.Name
 			vmConfigName := vm.Summary.Config.Name
 			datacenterName := dc.Datacenter.Name
-			clusterName := dc.Clusters[*vmHost.Parent].Name
-
 			entityName := hostConfigName + ":" + vmConfigName + ":vm"
-			if config.IsVcenterAPIType {
-				if clusterName == hostConfigName {
-					entityName = datacenterName + ":" + entityName
-				} else {
-					entityName = datacenterName + ":" + clusterName + ":" + entityName
-				}
+
+			if cluster, ok := dc.Clusters[*vmHost.Parent]; ok {
+				entityName =  cluster.Name + ":" + entityName
 			}
+			if config.IsVcenterAPIType {
+				entityName = datacenterName + ":" + entityName
+			}
+
 			if config.Args.DatacenterLocation != "" {
 				entityName = config.Args.DatacenterLocation + ":" + entityName
 			}
@@ -48,9 +47,13 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			if config.Args.DatacenterLocation != "" {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
+
+			if cluster, ok := dc.Clusters[*vmHost.Parent]; ok {
+				checkError(config, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
+			}
+
 			if config.IsVcenterAPIType {
 				checkError(config, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
-				checkError(config, ms.SetMetric("clusterName", clusterName, metric.ATTRIBUTE))
 			}
 			checkError(config, ms.SetMetric("hypervisorHostname", hostConfigName, metric.ATTRIBUTE))
 
