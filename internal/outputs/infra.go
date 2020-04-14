@@ -27,22 +27,6 @@ func InfraIntegration(config *load.Config) error {
 	if err != nil {
 		return fmt.Errorf("failed to create integration %v", err)
 	}
-
-	config.Entity, err = createEntity(config,config.Args.Local, config.Args.Entity)
-	if err != nil {
-		return fmt.Errorf("failed create entity: %v", err)
-	}
 	return nil
 }
 
-func createEntity(config *load.Config, isLocalEntity bool, entityName string) (*Integration.Entity, error) {
-	if isLocalEntity {
-		return config.Integration.LocalEntity(), nil
-	}
-
-	if entityName == "" {
-		entityName = config.Hostname // default hostname
-	}
-
-	return config.Integration.Entity(entityName, config.IntegrationNameShort)
-}

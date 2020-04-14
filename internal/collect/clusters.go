@@ -18,15 +18,15 @@ func Clusters(config *load.Config) {
 			config.Logrus.WithError(err).Fatal("failed to create ComputeResource container view")
 		}
 		defer cv.Destroy(ctx)
-		var clusters []mo.ComputeResource
-		// Reference: https://code.vmware.com/apis/704/vsphere/vim.ComputeResource.html
+		var clusters []mo.ClusterComputeResource
+		// Reference: https://code.vmware.com/apis/704/vsphere/vim.ClusterComputeResource.html
 		err = cv.Retrieve(
 			ctx,
-			[]string{"ComputeResource"},
-			[]string{"summary", "host", "resourcePool", "name"},
+			[]string{"ClusterComputeResource"},
+			[]string{"summary", "host", "datastore", "name", "network"},
 			&clusters)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to retrieve ComputeResource")
+			config.Logrus.WithError(err).Fatal("failed to retrieve ClusterComputeResource")
 		}
 		for j := 0; j < len(clusters); j++ {
 			config.Datacenters[i].Clusters[clusters[j].Self] = &clusters[j]
