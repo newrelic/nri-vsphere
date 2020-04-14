@@ -13,14 +13,12 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			hostConfigName := host.Summary.Config.Name
 			entityName := hostConfigName + ":host"
 			datacenterName := dc.Datacenter.Name
-			clusterName := dc.Clusters[host.Parent.Reference()].Name
+
+			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
+				entityName =  cluster.Name + ":" + entityName
+			}
 			if config.IsVcenterAPIType {
-				// to avoid redundant names when the host doesn't belong to any cluster
-				if clusterName == hostConfigName {
-					entityName = datacenterName + ":" + entityName
-				} else {
-					entityName = datacenterName + ":" + clusterName + ":" + entityName
-				}
+				entityName = datacenterName + ":" + entityName
 			}
 
 			if config.Args.DatacenterLocation != "" {
@@ -41,9 +39,12 @@ func createHostSamples(config *load.Config, timestamp int64) {
 
 			ms := workingEntity.NewMetricSet("VSphereHostSample")
 
+			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
+				checkError(config, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
+			}
+
 			if config.IsVcenterAPIType {
 				checkError(config, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
-				checkError(config, ms.SetMetric("clusterName", clusterName, metric.ATTRIBUTE))
 			}
 			resourcePools := dc.FindResourcePool(host.Parent.Reference())
 			resourcePoolList := ""

@@ -17,7 +17,7 @@ func Run(config *load.Config) {
 
 	// create samples async
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(4)
 	go func() {
 		defer wg.Done()
 		createVirtualMachineSamples(config, timestamp)
@@ -29,6 +29,10 @@ func Run(config *load.Config) {
 	go func() {
 		defer wg.Done()
 		createDatastoreSamples(config, timestamp)
+	}()
+	go func() {
+		defer wg.Done()
+		createClusterSamples(config, timestamp)
 	}()
 	wg.Wait()
 }
