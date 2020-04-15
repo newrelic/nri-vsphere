@@ -77,7 +77,7 @@ func createClusterSamples(config *load.Config, timestamp int64) {
 			checkError(config, ms.SetMetric("cpu.threads", summary.NumCpuThreads, metric.GAUGE))
 			checkError(config, ms.SetMetric("cpu.totalEffectiveMHz", summary.EffectiveCpu, metric.GAUGE))
 			checkError(config, ms.SetMetric("cpu.totalMHz", summary.TotalCpu, metric.GAUGE))
-			checkError(config, ms.SetMetric("mem.size", summary.TotalMemory/1e+6, metric.GAUGE))
+			checkError(config, ms.SetMetric("mem.size", summary.TotalMemory/(1<<20), metric.GAUGE))
 			checkError(config, ms.SetMetric("mem.effectiveSize", summary.EffectiveMemory, metric.GAUGE))
 			checkError(config, ms.SetMetric("effectiveHosts", summary.NumEffectiveHosts, metric.GAUGE))
 			checkError(config, ms.SetMetric("hosts", summary.NumHosts, metric.GAUGE))

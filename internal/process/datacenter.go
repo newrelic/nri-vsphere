@@ -34,8 +34,8 @@ func createDatacenterSamples(config *load.Config, timestamp int64) {
 		ms := createNewEntityWithMetricSet(config, "Datacenter", entityName, uniqueIdentifier)
 
 		for _, datastore := range dc.Datastores {
-			totalDatastoreCapacity = totalDatastoreCapacity + datastore.Summary.FreeSpace
-			totalDatastoreFreeSpace = totalDatastoreFreeSpace + datastore.Summary.Capacity
+			totalDatastoreCapacity = totalDatastoreCapacity + datastore.Summary.Capacity
+			totalDatastoreFreeSpace = totalDatastoreFreeSpace + datastore.Summary.FreeSpace
 		}
 
 		for _, resourcePool := range dc.ResourcePools {
@@ -49,7 +49,7 @@ func createDatacenterSamples(config *load.Config, timestamp int64) {
 			totalMHz = totalMHz + (float64(host.Summary.Hardware.CpuMhz) * float64(host.Summary.Hardware.NumCpuCores))
 			cpuOverallUsage = cpuOverallUsage + float64(host.Summary.QuickStats.OverallCpuUsage)
 			totalCpuHost = totalCpuHost + host.Summary.Hardware.NumCpuCores
-			totalMemoryHost = totalMemoryHost + host.Summary.Hardware.MemorySize/1e+6
+			totalMemoryHost = totalMemoryHost + host.Summary.Hardware.MemorySize/(1<<20)
 			totalMemoryUsedHost = totalMemoryUsedHost + host.Summary.QuickStats.OverallMemoryUsage
 		}
 
@@ -64,9 +64,9 @@ func createDatacenterSamples(config *load.Config, timestamp int64) {
 		checkError(config, ms.SetMetric("cpu.overallUsage", cpuOverallUsage, metric.GAUGE))
 		checkError(config, ms.SetMetric("cpu.totalMHz", totalMHz, metric.GAUGE))
 
-		checkError(config, ms.SetMetric("datastore.totalMB", totalDatastoreCapacity/(1<<30), metric.GAUGE))
-		checkError(config, ms.SetMetric("datastore.totalFreeMB", totalDatastoreFreeSpace/(1<<30), metric.GAUGE))
-		checkError(config, ms.SetMetric("datastore.totalUsedMB", (totalDatastoreFreeSpace-totalDatastoreCapacity)/(1<<30), metric.GAUGE))
+		checkError(config, ms.SetMetric("datastore.totalGiB", totalDatastoreCapacity/(1<<30), metric.GAUGE))
+		checkError(config, ms.SetMetric("datastore.totalFreeGiB", totalDatastoreFreeSpace/(1<<30), metric.GAUGE))
+		checkError(config, ms.SetMetric("datastore.totalUsedGiB", (totalDatastoreFreeSpace-totalDatastoreCapacity)/(1<<30), metric.GAUGE))
 
 		checkError(config, ms.SetMetric("overallStatus", string(dc.Datacenter.OverallStatus), metric.ATTRIBUTE))
 		checkError(config, ms.SetMetric("datastores", len(dc.Datastores), metric.GAUGE))
