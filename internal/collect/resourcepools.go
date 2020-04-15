@@ -22,7 +22,7 @@ func ResourcePools(config *load.Config) {
 		err = cv.Retrieve(
 			ctx,
 			[]string{"ResourcePool"},
-			[]string{"summary", "owner", "parent", "runtime", "name", "overallStatus", "vm"},
+			[]string{"summary", "owner", "parent", "runtime", "name", "overallStatus", "vm", "resourcePool"},
 			&resourcePools)
 		if err != nil {
 			config.Logrus.WithError(err).Fatal("failed to retrieve ResourcePools")
