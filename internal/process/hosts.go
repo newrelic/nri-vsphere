@@ -15,7 +15,7 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			datacenterName := dc.Datacenter.Name
 
 			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
-				entityName =  cluster.Name + ":" + entityName
+				entityName = cluster.Name + ":" + entityName
 			}
 			if config.IsVcenterAPIType {
 				entityName = datacenterName + ":" + entityName
@@ -42,6 +42,7 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
 				checkError(config, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
 			}
+			checkError(config, ms.SetMetric("overallStatus", string(host.OverallStatus), metric.ATTRIBUTE))
 
 			if config.IsVcenterAPIType {
 				checkError(config, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))

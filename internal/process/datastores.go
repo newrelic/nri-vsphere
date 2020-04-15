@@ -52,7 +52,7 @@ func createDatastoreSamples(config *load.Config, timestamp int64) {
 			checkError(config, ms.SetMetric("overallStatus", string(ds.OverallStatus), metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("accessible", fmt.Sprintf("%t", ds.Summary.Accessible), metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("vmCount", len(ds.Vm), metric.GAUGE))
-			checkError(config, ms.SetMetric("hostsCount", len(ds.Host), metric.GAUGE))
+			checkError(config, ms.SetMetric("hostCount", len(ds.Host), metric.GAUGE))
 			checkError(config, ms.SetMetric("url", ds.Summary.Url, metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("capacity", float64(ds.Summary.Capacity)/(1<<30), metric.GAUGE))
 			checkError(config, ms.SetMetric("freeSpace", float64(ds.Summary.FreeSpace)/(1<<30), metric.GAUGE))

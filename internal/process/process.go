@@ -3,6 +3,7 @@ package process
 import (
 	// "fmt"
 
+	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"strings"
 	"sync"
 	"time"
@@ -16,7 +17,7 @@ func Run(config *load.Config) {
 
 	// create samples async
 	var wg sync.WaitGroup
-	wg.Add(5)
+	wg.Add(6)
 	go func() {
 		defer wg.Done()
 		createVirtualMachineSamples(config, timestamp)
@@ -87,4 +88,31 @@ func checkError(config *load.Config, err error) {
 	if err != nil {
 		config.Logrus.WithError(err).Error("failed to set")
 	}
+}
+
+func sanitizeEntityName(config *load.Config, entityName string, datacenterName string) string {
+	if config.IsVcenterAPIType {
+		entityName = datacenterName + ":" + entityName
+	}
+
+	if config.Args.DatacenterLocation != "" {
+		entityName = config.Args.DatacenterLocation + ":" + entityName
+	}
+
+	entityName = strings.ToLower(entityName)
+	entityName = strings.ReplaceAll(entityName, ".", "-")
+	return entityName
+}
+
+func createNewEntityWithMetricSet(config *load.Config, typeEntity string, entityName string, uniqueIdentifier string) *metric.Set {
+	// Identifier for cluster entity
+	workingEntity, err := config.Integration.Entity(uniqueIdentifier, "vsphere-"+strings.ToLower(typeEntity))
+	if err != nil {
+		config.Logrus.WithError(err).Error("failed to create entity")
+	}
+
+	// entity displayName
+	workingEntity.SetInventoryItem("vsphere"+typeEntity, "name", entityName)
+	ms := workingEntity.NewMetricSet("VSphere" + typeEntity + "Sample")
+	return ms
 }
