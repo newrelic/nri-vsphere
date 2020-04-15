@@ -23,6 +23,9 @@ func createDatacenterSamples(config *load.Config, timestamp int64) {
 		var totalDatastoreCapacity int64
 		var totalDatastoreFreeSpace int64
 
+		//ResourcePools
+		var countResourcePools int64
+
 		//Creating entity name
 		datacenterName := dc.Datacenter.Name
 		entityName := "datacenter"
@@ -33,6 +36,13 @@ func createDatacenterSamples(config *load.Config, timestamp int64) {
 		for _, datastore := range dc.Datastores {
 			totalDatastoreCapacity = totalDatastoreCapacity + datastore.Summary.FreeSpace
 			totalDatastoreFreeSpace = totalDatastoreFreeSpace + datastore.Summary.Capacity
+		}
+
+		for _, resourcePool := range dc.ResourcePools {
+			if resourcePool.Parent.Type != "ResourcePool" {
+				continue
+			}
+			countResourcePools++
 		}
 
 		for _, host := range dc.Hosts {
@@ -54,16 +64,16 @@ func createDatacenterSamples(config *load.Config, timestamp int64) {
 		checkError(config, ms.SetMetric("cpu.overallUsage", cpuOverallUsage, metric.GAUGE))
 		checkError(config, ms.SetMetric("cpu.totalMHz", totalMHz, metric.GAUGE))
 
-		checkError(config, ms.SetMetric("disk.totalMB", totalDatastoreCapacity/(1<<30), metric.GAUGE))
-		checkError(config, ms.SetMetric("disk.totalFreeMB", totalDatastoreFreeSpace/(1<<30), metric.GAUGE))
-		checkError(config, ms.SetMetric("disk.totalUsedMB", (totalDatastoreFreeSpace-totalDatastoreCapacity)/(1<<30), metric.GAUGE))
+		checkError(config, ms.SetMetric("datastore.totalMB", totalDatastoreCapacity/(1<<30), metric.GAUGE))
+		checkError(config, ms.SetMetric("datastore.totalFreeMB", totalDatastoreFreeSpace/(1<<30), metric.GAUGE))
+		checkError(config, ms.SetMetric("datastore.totalUsedMB", (totalDatastoreFreeSpace-totalDatastoreCapacity)/(1<<30), metric.GAUGE))
 
 		checkError(config, ms.SetMetric("overallStatus", string(dc.Datacenter.OverallStatus), metric.ATTRIBUTE))
 		checkError(config, ms.SetMetric("datastores", len(dc.Datastores), metric.GAUGE))
 		checkError(config, ms.SetMetric("hostCount", len(dc.Hosts), metric.GAUGE))
 		checkError(config, ms.SetMetric("vmCount", len(dc.VirtualMachines), metric.GAUGE))
 		checkError(config, ms.SetMetric("networks", len(dc.Networks), metric.GAUGE))
-		checkError(config, ms.SetMetric("resourcePools", len(dc.ResourcePools), metric.GAUGE))
+		checkError(config, ms.SetMetric("resourcePools", countResourcePools, metric.GAUGE))
 		checkError(config, ms.SetMetric("clusters", len(dc.Clusters), metric.GAUGE))
 
 	}

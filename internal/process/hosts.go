@@ -100,6 +100,9 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			checkError(config, ms.SetMetric("cpu.percent", cpuPercent, metric.GAUGE))
 			checkError(config, ms.SetMetric("cpu.overallUsage", host.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
 
+			CPUAvailable := TotalMHz - float64(host.Summary.QuickStats.OverallCpuUsage)
+			checkError(config, ms.SetMetric("cpu.available", CPUAvailable, metric.GAUGE))
+
 			// disk
 			diskTotalMB := int64(0)
 			if host.Config != nil {
