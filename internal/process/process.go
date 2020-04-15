@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 )
 
@@ -17,7 +16,7 @@ func Run(config *load.Config) {
 
 	// create samples async
 	var wg sync.WaitGroup
-	wg.Add(4)
+	wg.Add(5)
 	go func() {
 		defer wg.Done()
 		createVirtualMachineSamples(config, timestamp)
@@ -33,6 +32,10 @@ func Run(config *load.Config) {
 	go func() {
 		defer wg.Done()
 		createClusterSamples(config, timestamp)
+	}()
+	go func() {
+		defer wg.Done()
+		createResourcePoolSamples(config, timestamp)
 	}()
 	wg.Wait()
 }
@@ -74,21 +77,6 @@ func determineOS(guestFullName string) string {
 	}
 
 	return "unknown"
-}
-
-// setEntity sets the entity to be used for the configured API
-// defaults the type aka namespace to instance
-func setEntity(config *load.Config, entity string, customNamespace string) *integration.Entity {
-	if entity != "" {
-		if customNamespace == "" {
-			customNamespace = "instance"
-		}
-		workingEntity, err := config.Integration.Entity(entity, customNamespace)
-		if err == nil {
-			return workingEntity
-		}
-	}
-	return config.Entity
 }
 
 func checkError(config *load.Config, err error) {
