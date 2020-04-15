@@ -7,7 +7,7 @@ import (
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 )
 
-func createClusterSamples(config *load.Config, timestamp int64) {
+func createDatacenterSamples(config *load.Config, timestamp int64) {
 	for _, dc := range config.Datacenters {
 		for _, cluster := range dc.Clusters {
 			// // resolve hypervisor host

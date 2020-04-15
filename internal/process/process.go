@@ -31,6 +31,10 @@ func Run(config *load.Config) {
 	}()
 	go func() {
 		defer wg.Done()
+		createDatacenterSamples(config, timestamp)
+	}()
+	go func() {
+		defer wg.Done()
 		createClusterSamples(config, timestamp)
 	}()
 	go func() {
