@@ -24,7 +24,7 @@ func VirtualMachines(config *load.Config) {
 		err = cv.Retrieve(
 			ctx,
 			[]string{"VirtualMachine"},
-			[]string{"summary", "network", "config", "guest", "runtime", "resourcePool", "datastore"},
+			[]string{"summary", "network", "config", "guest", "runtime", "resourcePool", "datastore", "overallStatus"},
 			&vms)
 		if err != nil {
 			config.Logrus.WithError(err).Fatal("failed to retrieve VM Summaries")
