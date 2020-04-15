@@ -53,8 +53,8 @@ type Config struct {
 func NewConfig() *Config {
 	return &Config{
 		Logrus:               logrus.New(),
-		IntegrationName:      "com.newrelic.nri-vmware-vsphere",
-		IntegrationNameShort: "nri-vmware-vsphere",
+		IntegrationName:      "com.newrelic.vmware-vsphere",
+		IntegrationNameShort: "vmware-vsphere",
 		IntegrationVersion:   "Unknown-SNAPSHOT",
 		StartTime:            time.Now().UnixNano() / int64(time.Millisecond),
 		IsVcenterAPIType:     false,

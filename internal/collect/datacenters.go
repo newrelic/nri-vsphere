@@ -20,7 +20,7 @@ func Datacenters(config *load.Config) {
 	defer cv.Destroy(ctx)
 
 	var datacenters []mo.Datacenter
-	err = cv.Retrieve(ctx, []string{"Datacenter"}, nil, &datacenters)
+	err = cv.Retrieve(ctx, []string{"Datacenter"}, []string{"name", "overallStatus"}, &datacenters)
 	if err != nil {
 		config.Logrus.WithError(err).Fatal("failed to retrieve Datacenter")
 	}

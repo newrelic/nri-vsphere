@@ -19,7 +19,7 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			entityName := hostConfigName + ":" + vmConfigName + ":vm"
 
 			if cluster, ok := dc.Clusters[*vmHost.Parent]; ok {
-				entityName =  cluster.Name + ":" + entityName
+				entityName = cluster.Name + ":" + entityName
 			}
 			if config.IsVcenterAPIType {
 				entityName = datacenterName + ":" + entityName
@@ -43,6 +43,8 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			workingEntity.SetInventoryItem("vsphereVm", "name", entityName)
 
 			ms := workingEntity.NewMetricSet("VSphereVmSample")
+
+			checkError(config, ms.SetMetric("overallStatus", string(vm.OverallStatus), metric.ATTRIBUTE))
 
 			if config.Args.DatacenterLocation != "" {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))

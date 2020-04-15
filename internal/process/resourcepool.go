@@ -54,7 +54,7 @@ func createResourcePoolSamples(config *load.Config, timestamp int64) {
 			}
 
 			memTotal := (rp.Runtime.Memory.ReservationUsed + rp.Runtime.Memory.UnreservedForPool) / (1e6)
-			checkError(config, ms.SetMetric("mem.total", memTotal, metric.GAUGE))
+			checkError(config, ms.SetMetric("mem.size", memTotal, metric.GAUGE))
 
 			summary := rp.Summary.GetResourcePoolSummary()
 			// esxi api reports nil quickstats
