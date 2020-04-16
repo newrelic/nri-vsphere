@@ -2,7 +2,6 @@ package process
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
@@ -12,33 +11,13 @@ import (
 func createDatastoreSamples(config *load.Config, timestamp int64) {
 	for _, dc := range config.Datacenters {
 		for _, ds := range dc.Datastores {
-			entityName := ds.Summary.Name + ":datastore"
 			datacenterName := dc.Datacenter.Name
-			if config.IsVcenterAPIType {
-				entityName = datacenterName + ":" + entityName
-			}
 
-			if config.Args.DatacenterLocation != "" {
-				entityName = config.Args.DatacenterLocation + ":" + entityName
-			}
-
-			entityName = strings.ToLower(entityName)
-			entityName = strings.ReplaceAll(entityName, ".", "-")
+			entityName := sanitizeEntityName(config, ds.Summary.Name, datacenterName)
 
 			dataStoreID := ds.Summary.Url
 
-			workingEntity, err := config.Integration.Entity(dataStoreID, "vsphere-datastore")
-			if err != nil {
-				config.Logrus.WithError(err).Error("failed to create entity")
-			}
-
-			// entity displayName
-			err = workingEntity.SetInventoryItem("vsphereDatastore", "name", entityName)
-			if err != nil {
-				config.Logrus.WithError(err).Error("failed to set datastore inventory")
-			}
-
-			ms := workingEntity.NewMetricSet("VSphereDatastoreSample")
+			ms := createNewEntityWithMetricSet(config, "Datastore", entityName, dataStoreID)
 
 			if config.Args.DatacenterLocation != "" {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
