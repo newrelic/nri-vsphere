@@ -92,7 +92,7 @@ func checkError(config *load.Config, err error) {
 }
 
 func sanitizeEntityName(config *load.Config, entityName string, datacenterName string) string {
-	if config.IsVcenterAPIType {
+	if config.IsVcenterAPIType && (datacenterName != "") {
 		entityName = datacenterName + ":" + entityName
 	}
 
