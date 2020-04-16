@@ -28,8 +28,7 @@ func createDatacenterSamples(config *load.Config, timestamp int64) {
 
 		//Creating entity name
 		datacenterName := dc.Datacenter.Name
-		entityName := "datacenter"
-		entityName = sanitizeEntityName(config, entityName, datacenterName)
+		entityName := sanitizeEntityName(config, datacenterName, "")
 		uniqueIdentifier := entityName
 		ms := createNewEntityWithMetricSet(config, "Datacenter", entityName, uniqueIdentifier)
 

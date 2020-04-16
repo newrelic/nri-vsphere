@@ -1,8 +1,6 @@
 package process
 
 import (
-	"strings"
-
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 )
@@ -38,26 +36,9 @@ func createClusterSamples(config *load.Config, timestamp int64) {
 				}
 			}
 
-			//Creating entity name
-			entityName := cluster.Name + ":cluster"
-			if config.IsVcenterAPIType {
-				entityName = datacenterName + ":" + entityName
-			}
-			if config.Args.DatacenterLocation != "" {
-				entityName = config.Args.DatacenterLocation + ":" + entityName
-			}
-			entityName = strings.ToLower(entityName)
-			entityName = strings.ReplaceAll(entityName, ".", "-")
+			entityName := sanitizeEntityName(config, cluster.Name, datacenterName)
 
-			// Identifier for cluster entity
-			workingEntity, err := config.Integration.Entity(entityName, "vsphere-cluster")
-			if err != nil {
-				config.Logrus.WithError(err).Error("failed to create entity")
-			}
-
-			// entity displayName
-			workingEntity.SetInventoryItem("vsphereCluster", "name", entityName)
-			ms := workingEntity.NewMetricSet("VSphereClusterSample")
+			ms := createNewEntityWithMetricSet(config, "Cluster", entityName, entityName)
 
 			if config.Args.DatacenterLocation != "" {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))

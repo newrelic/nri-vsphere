@@ -11,4 +11,3 @@ integrations:
       - --url
       - https://192.168.0.210/sdk
       - --validate_ssl
-    inventory_source: metadata/system

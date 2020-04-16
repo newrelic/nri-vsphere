@@ -3,10 +3,11 @@ package process
 import (
 	// "fmt"
 
-	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/newrelic/infra-integrations-sdk/data/metric"
 
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 )
@@ -91,7 +92,7 @@ func checkError(config *load.Config, err error) {
 }
 
 func sanitizeEntityName(config *load.Config, entityName string, datacenterName string) string {
-	if config.IsVcenterAPIType {
+	if config.IsVcenterAPIType && (datacenterName != "") {
 		entityName = datacenterName + ":" + entityName
 	}
 
@@ -105,7 +106,6 @@ func sanitizeEntityName(config *load.Config, entityName string, datacenterName s
 }
 
 func createNewEntityWithMetricSet(config *load.Config, typeEntity string, entityName string, uniqueIdentifier string) *metric.Set {
-	// Identifier for cluster entity
 	workingEntity, err := config.Integration.Entity(uniqueIdentifier, "vsphere-"+strings.ToLower(typeEntity))
 	if err != nil {
 		config.Logrus.WithError(err).Error("failed to create entity")
