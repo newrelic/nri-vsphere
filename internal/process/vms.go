@@ -87,15 +87,17 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			// SystemSample metrics
 
 			// memory
-			memorySize := vm.Summary.Config.MemorySizeMB
+			memorySize := vm.Summary.Config.MemorySizeMiB
 			checkError(config, ms.SetMetric("mem.size", memorySize, metric.GAUGE))
 			memoryUsed := vm.Summary.QuickStats.GuestMemoryUsage
 			checkError(config, ms.SetMetric("mem.usage", memoryUsed, metric.GAUGE))
 			memoryFree := memorySize - memoryUsed
 			checkError(config, ms.SetMetric("mem.free", memoryFree, metric.GAUGE))
+			checkError(config, ms.SetMetric("mem.hostUsage", vm.Summary.QuickStats.HostMemoryUsage, metric.GAUGE))
+
 			checkError(config, ms.SetMetric("mem.balloned", vm.Summary.QuickStats.BalloonedMemory, metric.GAUGE))
 			checkError(config, ms.SetMetric("mem.swapped", vm.Summary.QuickStats.SwappedMemory, metric.GAUGE))
-			swappedSsd := float64(vm.Summary.QuickStats.SsdSwappedMemory) / 1e+3
+			swappedSsd := float64(vm.Summary.QuickStats.SsdSwappedMemory) / (1 << 10)
 			checkError(config, ms.SetMetric("mem.swappedSsd", swappedSsd, metric.GAUGE))
 
 			// cpu
@@ -121,8 +123,8 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			checkError(config, ms.SetMetric("cpu.hostUsagePercent", cpuPercent, metric.GAUGE))
 
 			// disk
-			diskTotal := vm.Summary.Storage.Committed / 1e+6
-			checkError(config, ms.SetMetric("disk.totalMB", diskTotal, metric.GAUGE))
+			diskTotal := vm.Summary.Storage.Committed / (1 << 20)
+			checkError(config, ms.SetMetric("disk.totalMiB", diskTotal, metric.GAUGE))
 
 			// network
 			checkError(config, ms.SetMetric("ipAddress", vm.Guest.IpAddress, metric.ATTRIBUTE))

@@ -74,7 +74,7 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			checkError(config, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
 
 			// memory
-			memoryTotal := host.Summary.Hardware.MemorySize / 1e+6
+			memoryTotal := host.Summary.Hardware.MemorySize / (1 << 20)
 			checkError(config, ms.SetMetric("mem.size", memoryTotal, metric.GAUGE))
 
 			memoryUsed := host.Summary.QuickStats.OverallMemoryUsage
@@ -104,16 +104,16 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			checkError(config, ms.SetMetric("cpu.available", CPUAvailable, metric.GAUGE))
 
 			// disk
-			diskTotalMB := int64(0)
+			diskTotalMiB := int64(0)
 			if host.Config != nil {
 				if host.Config.FileSystemVolume != nil {
 					for _, mount := range host.Config.FileSystemVolume.MountInfo {
 						capacity := mount.Volume.GetHostFileSystemVolume().Capacity
-						diskTotalMB += capacity / 1e+6
+						diskTotalMiB += capacity / (1 << 20)
 					}
 				}
 			}
-			checkError(config, ms.SetMetric("disk.totalMB", diskTotalMB, metric.GAUGE))
+			checkError(config, ms.SetMetric("disk.totalMiB", diskTotalMiB, metric.GAUGE))
 
 		}
 	}
