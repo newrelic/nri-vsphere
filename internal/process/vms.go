@@ -2,7 +2,6 @@ package process
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
@@ -16,33 +15,18 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			hostConfigName := vmHost.Summary.Config.Name
 			vmConfigName := vm.Summary.Config.Name
 			datacenterName := dc.Datacenter.Name
-			entityName := hostConfigName + ":" + vmConfigName + ":vm"
+			entityName := hostConfigName + ":" + vmConfigName
 
 			if cluster, ok := dc.Clusters[*vmHost.Parent]; ok {
 				entityName = cluster.Name + ":" + entityName
 			}
-			if config.IsVcenterAPIType {
-				entityName = datacenterName + ":" + entityName
-			}
 
-			if config.Args.DatacenterLocation != "" {
-				entityName = config.Args.DatacenterLocation + ":" + entityName
-			}
-
-			entityName = strings.ToLower(entityName)
-			entityName = strings.ReplaceAll(entityName, ".", "-")
+			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
 			// Unique identifier for the vm entity
 			instanceUuid := vm.Config.InstanceUuid
-			workingEntity, err := config.Integration.Entity(instanceUuid, "vsphere-vm")
-			if err != nil {
-				config.Logrus.WithError(err).Error("failed to create entity")
-			}
 
-			// entity displayName
-			workingEntity.SetInventoryItem("vsphereVm", "name", entityName)
-
-			ms := workingEntity.NewMetricSet("VSphereVmSample")
+			ms := createNewEntityWithMetricSet(config, "Vm", entityName, instanceUuid)
 
 			checkError(config, ms.SetMetric("overallStatus", string(vm.OverallStatus), metric.ATTRIBUTE))
 
@@ -87,7 +71,7 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			// SystemSample metrics
 
 			// memory
-			memorySize := vm.Summary.Config.MemorySizeMiB
+			memorySize := vm.Summary.Config.MemorySizeMB
 			checkError(config, ms.SetMetric("mem.size", memorySize, metric.GAUGE))
 			memoryUsed := vm.Summary.QuickStats.GuestMemoryUsage
 			checkError(config, ms.SetMetric("mem.usage", memoryUsed, metric.GAUGE))

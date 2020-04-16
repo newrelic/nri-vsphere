@@ -1,8 +1,6 @@
 package process
 
 import (
-	"strings"
-
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 )
@@ -16,31 +14,19 @@ func createResourcePoolSamples(config *load.Config, timestamp int64) {
 			}
 			resourcePoolName := rp.Name
 			datacenterName := dc.Datacenter.Name
+
+			// Resource Pool could be owned by Cluster or a Host
 			ownerName := ""
 			if cluster, ok := dc.Clusters[rp.Owner]; ok {
 				ownerName = cluster.Name
 			} else if host := dc.FindHost(rp.Owner); host != nil {
 				ownerName = host.Summary.Config.Name
 			}
-			entityName := ownerName + ":" + resourcePoolName + ":resourcePool"
-			if config.IsVcenterAPIType {
-				entityName = datacenterName + ":" + entityName
-			}
-			if config.Args.DatacenterLocation != "" {
-				entityName = config.Args.DatacenterLocation + ":" + entityName
-			}
+			entityName := ownerName + ":" + resourcePoolName
 
-			entityName = strings.ToLower(entityName)
-			entityName = strings.ReplaceAll(entityName, ".", "-")
+			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
-			workingEntity, err := config.Integration.Entity(entityName, "vsphere-resourcepool")
-			if err != nil {
-				config.Logrus.WithError(err).Error("failed to create entity")
-			}
-			// entity displayName
-			workingEntity.SetInventoryItem("vsphereResourcePool", "name", entityName)
-
-			ms := workingEntity.NewMetricSet("VSphereResourcePoolSample")
+			ms := createNewEntityWithMetricSet(config, "ResourcePool", entityName, entityName)
 
 			checkError(config, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
 			if config.Args.DatacenterLocation != "" {

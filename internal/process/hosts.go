@@ -1,8 +1,6 @@
 package process
 
 import (
-	"strings"
-
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
 )
@@ -11,33 +9,19 @@ func createHostSamples(config *load.Config, timestamp int64) {
 	for _, dc := range config.Datacenters {
 		for _, host := range dc.Hosts {
 			hostConfigName := host.Summary.Config.Name
-			entityName := hostConfigName + ":host"
+			entityName := hostConfigName
 			datacenterName := dc.Datacenter.Name
 
 			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
 				entityName = cluster.Name + ":" + entityName
 			}
-			if config.IsVcenterAPIType {
-				entityName = datacenterName + ":" + entityName
-			}
 
-			if config.Args.DatacenterLocation != "" {
-				entityName = config.Args.DatacenterLocation + ":" + entityName
-			}
-			entityName = strings.ToLower(entityName)
-			entityName = strings.ReplaceAll(entityName, ".", "-")
+			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
 			// bios uuid identifies the host unequivocally and is available from vcenter/host api
 			uuid := host.Summary.Hardware.Uuid
-			workingEntity, err := config.Integration.Entity(uuid, "vsphere-host")
-			if err != nil {
-				config.Logrus.WithError(err).Error("failed to create entity")
-			}
 
-			// entity displayName
-			workingEntity.SetInventoryItem("vsphereHost", "name", entityName)
-
-			ms := workingEntity.NewMetricSet("VSphereHostSample")
+			ms := createNewEntityWithMetricSet(config, "Host", entityName, uuid)
 
 			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
 				checkError(config, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
