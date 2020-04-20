@@ -1,13 +1,22 @@
 integrations:
-  - name: nri-vmware-vsphere
+  - name: com.newrelic.vmware-vsphere
     exec:
       - /var/db/newrelic-infra/newrelic-integrations/bin/nri-vmware-vsphere
-      # - --datacenter_location
-      # - Wolli Creek
+      # vSphere API connection data (Vcenter or ESXi servers)
+      - --url
+      - https://192.168.0.210/sdk
       - --user
       - administrator@vsphere.local
       - --pass
       - Example!
-      - --url
-      - https://192.168.0.210/sdk
       - --validate_ssl
+      # Datacenter location label can be added to all entities in this vSphere platform
+      # - --datacenter_location
+      # - Wolli Creek
+    env:
+      # Proxy configuration can be set up. More information in:
+      # https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180
+      # HTTP_PROXY: socks5://10.0.2.2:8080
+      # HTTPS_PROXY: socks5://10.0.2.2:8080
+    # Interval execution should be more than 20s since real-time vSphere samples are performed every 20s
+    interval: 60s
