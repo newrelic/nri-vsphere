@@ -19,7 +19,7 @@ test-unit:
 test-integration:
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@docker-compose -f ./integration-test/docker-compose.yml up -d --build
-	@go test -v -tags=integration ./integration-test/. || (ret=$$?; docker-compose -f t./integration-test/docker-compose.yml  down && exit $$ret)
+	@go test -v -tags=integration ./integration-test/. || (ret=$$?; docker-compose -f ./integration-test/docker-compose.yml  down && exit $$ret)
 	@docker-compose -f ./integration-test/docker-compose.yml  down
 
 cover-report:

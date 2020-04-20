@@ -1,3 +1,6 @@
+// Copyright 2020 New Relic Corporation. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 // +build integration
 
 package main
@@ -39,10 +42,10 @@ func TestMainFunction(t *testing.T) {
 			}
 		}
 		if isTheEntityPresentInTheSlice == false {
-			entitiesNotMatchig = append(entitiesNotMatchig, entityActual.Metadata.Namespace+"    "+entityActual.Metadata.IDAttrs[0].Value)
+			entitiesNotMatchig = append(entitiesNotMatchig, entityActual.Metadata.Namespace+"    "+entityActual.Metadata.Name)
 		}
 	}
-	assert.Equal(t, []string{}, entitiesNotMatchig, "Some entities are not matching with the mock")
+	assert.Equal(t, []string{}, entitiesNotMatchig, "Some entities are not matching with the mock:\n\n"+string(actualOutput))
 }
 
 func exectuteIntegration() ([]byte, []byte) {
@@ -72,21 +75,19 @@ func exectuteIntegration() ([]byte, []byte) {
 	return output, error
 }
 
-
-func transformAndSanitizeOutput(expectedOutput string, actualOutput string ) (integration.Integration, integration.Integration){
-	var expected	integration.Integration
-	var actual	integration.Integration
+func transformAndSanitizeOutput(expectedOutput string, actualOutput string) (integration.Integration, integration.Integration) {
+	var expected integration.Integration
+	var actual integration.Integration
 
 	re := regexp.MustCompile(Myregex)
 	actualOutput = re.ReplaceAllString(actualOutput, "")
 	expectedOutput = re.ReplaceAllString(expectedOutput, "")
 
-
-	err:=json.Unmarshal([]byte(actualOutput), &actual)
+	err := json.Unmarshal([]byte(actualOutput), &actual)
 	if err != nil {
 		panic(err)
 	}
-	err=json.Unmarshal([]byte(expectedOutput), &expected)
+	err = json.Unmarshal([]byte(expectedOutput), &expected)
 	if err != nil {
 		panic(err)
 	}
