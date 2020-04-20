@@ -1,7 +1,5 @@
-/*
-* Copyright 2019 New Relic Corporation. All rights reserved.
-* SPDX-License-Identifier: Apache-2.0
- */
+// Copyright 2020 New Relic Corporation. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
 
 package outputs
 
@@ -29,4 +27,3 @@ func InfraIntegration(config *load.Config) error {
 	}
 	return nil
 }
-
