@@ -1,7 +1,5 @@
-/*
-* Copyright 2019 New Relic Corporation. All rights reserved.
-* SPDX-License-Identifier: Apache-2.0
- */
+// Copyright 2020 New Relic Corporation. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
 
 package integration
 
@@ -12,7 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-
 func SetupLogger(config *load.Config) {
 	verboseLogging := os.Getenv("VERBOSE")
 	if config.Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
@@ -20,4 +17,3 @@ func SetupLogger(config *load.Config) {
 	}
 	config.Logrus.Out = os.Stderr
 }
-

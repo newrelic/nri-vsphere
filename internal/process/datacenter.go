@@ -1,3 +1,6 @@
+// Copyright 2020 New Relic Corporation. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 package process
 
 import (
@@ -65,7 +68,7 @@ func createDatacenterSamples(config *load.Config, timestamp int64) {
 
 		checkError(config, ms.SetMetric("datastore.totalGiB", totalDatastoreCapacity/(1<<30), metric.GAUGE))
 		checkError(config, ms.SetMetric("datastore.totalFreeGiB", totalDatastoreFreeSpace/(1<<30), metric.GAUGE))
-		checkError(config, ms.SetMetric("datastore.totalUsedGiB", (totalDatastoreFreeSpace-totalDatastoreCapacity)/(1<<30), metric.GAUGE))
+		checkError(config, ms.SetMetric("datastore.totalUsedGiB", (totalDatastoreCapacity-totalDatastoreFreeSpace)/(1<<30), metric.GAUGE))
 
 		checkError(config, ms.SetMetric("overallStatus", string(dc.Datacenter.OverallStatus), metric.ATTRIBUTE))
 		checkError(config, ms.SetMetric("datastores", len(dc.Datastores), metric.GAUGE))

@@ -1,7 +1,5 @@
-/*
-* Copyright 2019 New Relic Corporation. All rights reserved.
-* SPDX-License-Identifier: Apache-2.0
- */
+// Copyright 2020 New Relic Corporation. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
 
 package load
 
@@ -24,7 +22,7 @@ type ArgumentList struct {
 	URL                string `default:"" help:"Required: ESXi or vCenter SDK URL eg. https://172.16.53.129/sdk"`
 	User               string `default:"" help:"Required: Username"`
 	Pass               string `default:"" help:"Required: Password"`
-	DatacenterLocation string `default:"" help:"Required: Datacenter Location of your vCenter or ESXi Host eg. sydney-ultimo"`
+	DatacenterLocation string `default:"" help:"Datacenter Location of your vCenter or ESXi Host eg. sydney-ultimo"`
 	ValidateSSL        bool   `default:"false" help:"Validate SSL"`
 }
 
