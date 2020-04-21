@@ -296,7 +296,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## sirupsen/logrus
 
-* Web: github.com/sirupsen/logrus
+* Web: github.com/sirupsen/Logrus
 * License: MIT
 
 ```

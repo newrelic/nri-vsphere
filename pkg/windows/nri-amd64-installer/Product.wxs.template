@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <?define Version = "{IntegrationVersion}" ?>
+    <?define ProductId = "*" ?>
+    <?define UpgradeCode = "{27cf7682-b909-4940-8368-ce4719af1b82}" ?>
+
+    <Product Id="$(var.ProductId)"
+             Name="New Relic Infrastructure Integration, nri-{IntegrationName}"
+             Language="1033"
+             Version="$(var.Version)"
+             Manufacturer="New Relic, Inc."
+             UpgradeCode="$(var.UpgradeCode)">
+        <Package Id="*"
+                 InstallerVersion="200"
+                 Compressed="yes"
+                 InstallScope="perMachine"
+                 Platform="x64"
+                 Manufacturer="New Relic, Inc."
+                 Comments="(c) {Year} New Relic, Inc."
+                 Keywords="infrastructure,MSI,on-host,{IntegrationName}"/>
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
+        <MediaTemplate EmbedCab="yes"/>
+
+        <Feature Id="ProductFeature" Title="New Relic Infrastructure Integration, nri-{IntegrationName}" Level="1">
+            <ComponentRef Id="CMP_V1_PLUGIN_CONFIGS"/>
+            <ComponentRef Id="CMP_V1_CUSTOM_PLUGINS"/>
+            <ComponentRef Id="CMP_V1_CUSTOM_PLUGINS_BIN"/>
+            <ComponentGroupRef Id="CustomPluginsBinComponent"/>
+            <ComponentGroupRef Id="PluginConfigsComponent"/>
+        </Feature>
+    </Product>
+
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="CompanyFolder" Name="New Relic">
+                    <Directory Id="AgentBinaryFolder" Name="newrelic-infra">
+                        <Directory Id="PluginConfigsFolder" Name="integrations.d"/>
+                        <Directory Id="CustomPluginsFolder" Name="newrelic-integrations">
+                            <Directory Id="CustomPluginsBinFolder" Name="bin"/>
+                        </Directory>
+                    </Directory>
+                </Directory>
+            </Directory>
+        </Directory>
+    </Fragment>
+
+    <Fragment>
+        <DirectoryRef Id="PluginConfigsFolder">
+            <Component Id="CMP_V1_PLUGIN_CONFIGS" Guid="c8a49272-1537-4e62-99c4-5cd2f5921948" KeyPath="yes">
+                <CreateFolder/>
+            </Component>
+        </DirectoryRef>
+        <DirectoryRef Id="CustomPluginsFolder">
+            <Component Id="CMP_V1_CUSTOM_PLUGINS" Guid="6adb055f-5ce7-4f8a-ba1e-afc1a8f362e3" KeyPath="yes">
+                <CreateFolder/>
+            </Component>
+        </DirectoryRef>
+        <DirectoryRef Id="CustomPluginsBinFolder">
+            <Component Id="CMP_V1_CUSTOM_PLUGINS_BIN" Guid="2244c368-dd8b-404a-bdc0-67c525d7422f" KeyPath="yes">
+                <CreateFolder/>
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+
+    <Fragment>
+        <ComponentGroup Id="CustomPluginsBinComponent" Directory="CustomPluginsBinFolder">
+            <Component Id="CMP_NRI_VSPHERE_EXE" Guid="9466b47b-e692-4366-a9a0-3d3097030c87" Win64="yes">
+                <File Id="FILE_NRI_VSPHERE_EXE"
+                      Source="$(var.BinariesPath){IntegrationExe}"
+                      KeyPath="yes"/>
+            </Component>
+        </ComponentGroup>
+        <ComponentGroup Id="PluginConfigsComponent" Directory="PluginConfigsFolder">
+            <Component Id="CMP_NRI_VSPHERE_CONFIG_YML" Guid="59446879-9e28-4c5d-b10b-35978f7662bf" Win64="yes"
+                       NeverOverwrite="yes" Permanent="yes">
+                <File Id="FILE_NRI_VSPHERE_CONFIG_YML"
+                      Name="vsphere-config.yml.sample"
+                      Source="$(var.ProjectRootPath)config\vsphere-config-win.yml.sample"
+                      KeyPath="yes"/>
+            </Component>
+       </ComponentGroup>
+    </Fragment>
+
+</Wix>

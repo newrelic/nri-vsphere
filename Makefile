@@ -1,66 +1,87 @@
-PROJECT_NAME := $(shell basename $(shell pwd))
+WORKDIR      := $(shell pwd)
 NATIVEOS     := $(shell go version | awk -F '[ /]' '{print $$4}')
 NATIVEARCH   := $(shell go version | awk -F '[ /]' '{print $$5}')
 GO_PKGS      := $(shell go list ./... | grep -v -e "/vendor/" -e "/example")
-SRCDIR       ?= .
-BUILD_DIR    := ./bin/
-COVERAGE_DIR := ./coverage/
-COVERMODE     = atomic
+GO_FILES     := $(shell find cmd -type f -name "*.go")
 
 GO_CMD        = go
-GODOC         = godocdown
 GOLINTER      = golangci-lint
 
-GORELEASER_VERSION := v0.126.0
-GORELEASER_SHA256 := 6c0145df61140ec1bffe4048b9ef3e105e18a89734816e7a64f342d3f9267691
-GORELEASER_BIN ?= bin/goreleaser
+BIN_DIR    = $(WORKDIR)/bin
+TARGET = target
+TARGET_DIR    = $(TARGET)/bin
+INTEGRATION  := vmware-vsphere
+SHORT_INTEGRATION  := vsphere
+BINARY_NAME   = nri-$(INTEGRATION)
 
-# Determine packages by looking into pkg/*
-ifneq ("$(wildcard ${SRCDIR}/pkg/*)","")
-	PACKAGES  = $(wildcard ${SRCDIR}/pkg/*)
-endif
-ifneq ("$(wildcard ${SRCDIR}/internal/*)","")
-	PACKAGES += $(wildcard ${SRCDIR}/internal/*)
-endif
+COVERAGE_DIR := coverage
+GOTOOLS       = github.com/kardianos/govendor \
+		gopkg.in/alecthomas/gometalinter.v2
 
-# Determine commands by looking into cmd/*
-COMMANDS = $(wildcard ${SRCDIR}/cmd/*)
-
-# Determine binary names by stripping out the dir names
-BINS=$(foreach cmd,${COMMANDS},$(notdir ${cmd}))
 
 all: build
+build: clean test coverage compile
 
-# Humans running make:
-build: check-version clean lint test-unit coverage compile document
-
-# Build command for CI tooling
-build-ci: check-version clean lint test-integration compile-only
 
 clean:
-	@echo "=== $(PROJECT_NAME) === [ clean            ]: removing binaries and coverage file..."
-	@rm -rfv $(BUILD_DIR)/* $(COVERAGE_DIR)/*
+	@echo "=== $(INTEGRATION) === [ clean ]: Removing binaries and coverage file..."
+	@rm -rfv bin coverage.xml $(TARGET)
 
-bin:
-	@mkdir -p bin
+compile: compile-only
+compile-only: deps
+	@echo "=== $(PROJECT_NAME) === [ compile          ]: building commands:"
+	@go build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
+compile-linux: deps
+	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
+	@GOOS=linux go  build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
+compile-darwin: deps
+	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
+	@GOOS=darwin go  build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
+compile-windows: deps
+	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
+	@GOOS=windows go  build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
 
-$(GORELEASER_BIN): bin
-	@echo "=== $(PROJECT) === [ release/deps ]: Installing goreleaser"
-	@(wget -qO /tmp/goreleaser.tar.gz https://github.com/goreleaser/goreleaser/releases/download/$(GORELEASER_VERSION)/goreleaser_$(GOOS)_x86_64.tar.gz)
-	@(tar -xf  /tmp/goreleaser.tar.gz -C bin/)
-	@(rm -f /tmp/goreleaser.tar.gz)
 
-release/deps: $(GORELEASER_BIN)
+test: test-unit test-integration
+test-unit:
+	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
+	@mkdir -p $(COVERAGE_DIR)
+	@go test -tags unit -covermode=atomic -coverprofile $(COVERAGE_DIR)/unit.tmp $(GO_PKGS)
+test-integration:
+	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
+	@docker-compose -f ./integration-test/docker-compose.yml up -d --build
+	@go test -v -tags=integration ./integration-test/. || (ret=$$?; docker-compose -f ./integration-test/docker-compose.yml  down && exit $$ret)
+	@docker-compose -f ./integration-test/docker-compose.yml  down
+lint: deps
+	@echo "=== $(PROJECT_NAME) === [ lint             ]: Validating source code running $(GOLINTER)..."
+	@$(GOLINTER) run ./...
 
-release: release/deps
-	@echo "=== $(PROJECT) === [ release ]: Releasing new version..."
-	@$(GORELEASER_BIN) release
+
+deps: tools deps-only
+tools: check-version
+	@echo "=== $(INTEGRATION) === [ tools ]: Installing tools required by the project..."
+	@go get $(GOTOOLS)
+tools-update: check-version
+	@echo "=== $(INTEGRATION) === [ tools-update ]: Updating tools required by the project..."
+	@go get -u $(GOTOOLS)
+deps-only:
+	@echo "=== $(INTEGRATION) === [ deps ]: Installing package dependencies required by the project..."
+	@govendor sync
+
+
+check-version:
+ifdef GOOS
+ifneq "$(GOOS)" "$(NATIVEOS)"
+	$(error GOOS is not $(NATIVEOS). Cross-compiling is only allowed for 'clean', 'deps-only' and 'compile-only' targets)
+endif
+endif
+ifdef GOARCH
+ifneq "$(GOARCH)" "$(NATIVEARCH)"
+	$(error GOARCH variable is not $(NATIVEARCH). Cross-compiling is only allowed for 'clean', 'deps-only' and 'compile-only' targets)
+endif
+endif
 
 # Import fragments
-include build/deps.mk
-include build/compile.mk
-include build/testing.mk
-include build/util.mk
-include build/document.mk
+include package.mk
 
-.PHONY: all build build-ci
+.PHONY: all build

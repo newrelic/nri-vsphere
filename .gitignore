@@ -3,7 +3,6 @@ bin*
 nri-vmwarev*
 nri-vmware_v*
 *.old
-vendor*
 nri-vmware
 coverage*
 .DS_Store
@@ -16,3 +15,14 @@ LATEST
 .idea
 dist
 .vscode
+
+_obj
+obj*
+
+versioninfo.json
+*.exe
+*.test
+*.prof
+*.syso
+*.wxs
+target/

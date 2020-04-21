@@ -104,7 +104,7 @@ func sanitizeEntityName(config *load.Config, entityName string, datacenterName s
 	}
 
 	entityName = strings.ToLower(entityName)
-	entityName = strings.ReplaceAll(entityName, ".", "-")
+	entityName = strings.Replace(entityName, ".", "-", 0)
 	return entityName
 }
 

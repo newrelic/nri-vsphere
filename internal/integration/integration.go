@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
-	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/Logrus"
 )
 
 func SetupLogger(config *load.Config) {
