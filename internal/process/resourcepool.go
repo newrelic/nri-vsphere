@@ -12,7 +12,7 @@ func createResourcePoolSamples(config *load.Config, timestamp int64) {
 	for _, dc := range config.Datacenters {
 		for _, rp := range dc.ResourcePools {
 			// Skip root default ResourcePool (not created by user)
-			if rp.Parent.Type != "ResourcePool" {
+			if dc.IsDefaultResourcePool(rp.Reference()) {
 				continue
 			}
 			resourcePoolName := rp.Name
@@ -29,7 +29,7 @@ func createResourcePoolSamples(config *load.Config, timestamp int64) {
 
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
-			ms := createNewEntityWithMetricSet(config, "ResourcePool", entityName, entityName)
+			ms := createNewEntityWithMetricSet(config, entityTypeResourcePool, entityName, entityName)
 
 			checkError(config, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
 			if config.Args.DatacenterLocation != "" {

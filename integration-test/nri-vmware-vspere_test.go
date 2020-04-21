@@ -8,13 +8,14 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/newrelic/infra-integrations-sdk/integration"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os/exec"
 	"reflect"
 	"regexp"
 	"testing"
+
+	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMainFunction(t *testing.T) {
@@ -27,7 +28,6 @@ func TestMainFunction(t *testing.T) {
 	actualOutput, _ := exectuteIntegration()
 	actual, expected := transformAndSanitizeOutput(string(actualOutput), string(expectedOutput))
 
-	//assert.Equal(t, string(expectedOutput),out,"output different from expected")
 	assert.Equal(t, len(actual.Entities), len(expected.Entities), "The number of entities is different to the one expected")
 
 	entitiesNotMatchig := []string{}

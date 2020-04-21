@@ -41,7 +41,7 @@ func createClusterSamples(config *load.Config, timestamp int64) {
 
 			entityName := sanitizeEntityName(config, cluster.Name, datacenterName)
 
-			ms := createNewEntityWithMetricSet(config, "Cluster", entityName, entityName)
+			ms := createNewEntityWithMetricSet(config, entityTypeCluster, entityName, entityName)
 
 			if config.Args.DatacenterLocation != "" {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))

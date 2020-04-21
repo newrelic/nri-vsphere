@@ -4,15 +4,21 @@
 package process
 
 import (
-	// "fmt"
-
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
-
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
+)
+
+const (
+	entityTypeDatacenter   = "Datacenter"
+	entityTypeCluster      = "Cluster"
+	entityTypeHost         = "Host"
+	entityTypeResourcePool = "ResourcePool"
+	entityTypeVm           = "Vm"
+	entityTypeDatastore    = "Datastore"
 )
 
 // Run process samples

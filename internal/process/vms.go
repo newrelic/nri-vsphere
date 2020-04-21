@@ -29,7 +29,7 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			// Unique identifier for the vm entity
 			instanceUuid := vm.Config.InstanceUuid
 
-			ms := createNewEntityWithMetricSet(config, "Vm", entityName, instanceUuid)
+			ms := createNewEntityWithMetricSet(config, entityTypeVm, entityName, instanceUuid)
 
 			checkError(config, ms.SetMetric("overallStatus", string(vm.OverallStatus), metric.ATTRIBUTE))
 
@@ -46,7 +46,7 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			}
 			checkError(config, ms.SetMetric("hypervisorHostname", hostConfigName, metric.ATTRIBUTE))
 
-			resourcePoolName := dc.ResourcePools[*vm.ResourcePool].Name
+			resourcePoolName := dc.GetResourcePoolName(*vm.ResourcePool)
 			checkError(config, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
 
 			datastoreList := ""

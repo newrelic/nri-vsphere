@@ -24,7 +24,7 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			// bios uuid identifies the host unequivocally and is available from vcenter/host api
 			uuid := host.Summary.Hardware.Uuid
 
-			ms := createNewEntityWithMetricSet(config, "Host", entityName, uuid)
+			ms := createNewEntityWithMetricSet(config, entityTypeHost, entityName, uuid)
 
 			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
 				checkError(config, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
