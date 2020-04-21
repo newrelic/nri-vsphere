@@ -33,7 +33,7 @@ func createDatacenterSamples(config *load.Config, timestamp int64) {
 		datacenterName := dc.Datacenter.Name
 		entityName := sanitizeEntityName(config, datacenterName, "")
 		uniqueIdentifier := entityName
-		ms := createNewEntityWithMetricSet(config, "Datacenter", entityName, uniqueIdentifier)
+		ms := createNewEntityWithMetricSet(config, entityTypeDatacenter, entityName, uniqueIdentifier)
 
 		for _, datastore := range dc.Datastores {
 			totalDatastoreCapacity = totalDatastoreCapacity + datastore.Summary.Capacity
@@ -41,7 +41,7 @@ func createDatacenterSamples(config *load.Config, timestamp int64) {
 		}
 
 		for _, resourcePool := range dc.ResourcePools {
-			if resourcePool.Parent.Type != "ResourcePool" {
+			if dc.IsDefaultResourcePool(resourcePool.Reference()) {
 				continue
 			}
 			countResourcePools++

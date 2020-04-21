@@ -56,3 +56,21 @@ func (dc *Datacenter) FindHost(computeResourceReference mor) *mo.HostSystem {
 	}
 	return nil
 }
+
+// GetResourcePoolName returns the name of the Resource Pool if is not the default
+func (dc *Datacenter) GetResourcePoolName(resourcePoolReference mor) string {
+	if !dc.IsDefaultResourcePool(resourcePoolReference) {
+		return dc.ResourcePools[resourcePoolReference].Name
+	}
+	return ""
+}
+
+// IsDefaultResourcePool returns true if the resource pool is the default
+func (dc *Datacenter) IsDefaultResourcePool(resourcePoolReference mor) bool {
+	if rp, ok := dc.ResourcePools[resourcePoolReference]; ok {
+		if rp.Parent.Type != "ResourcePool" {
+			return true
+		}
+	}
+	return false
+}
