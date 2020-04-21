@@ -20,7 +20,7 @@ func createDatastoreSamples(config *load.Config, timestamp int64) {
 
 			dataStoreID := ds.Summary.Url
 
-			ms := createNewEntityWithMetricSet(config, "Datastore", entityName, dataStoreID)
+			ms := createNewEntityWithMetricSet(config, entityTypeDatastore, entityName, dataStoreID)
 
 			if config.Args.DatacenterLocation != "" {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))

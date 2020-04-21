@@ -11,7 +11,6 @@ import (
 	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/view"
-	"github.com/vmware/govmomi/vim25/mo"
 )
 
 // ArgumentList Available Arguments
@@ -27,25 +26,19 @@ type ArgumentList struct {
 }
 
 type Config struct {
-	Args                        ArgumentList
-	StartTime                   int64                    // StartTime time Flex starts in Nanoseconds
-	Integration                 *integration.Integration // Integration Infrastructure SDK Integration
-	Entity                      *integration.Entity      // Entity Infrastructure SDK Entity
-	Hostname                    string                   // Hostname current host
-	Logrus                      *logrus.Logger           // Logrus create instance of the logger
-	IntegrationName             string                   // IntegrationName name of integration
-	IntegrationNameShort        string                   // IntegrationNameShort Short Name
-	IntegrationVersion          string                   // IntegrationVersion Version
-	VMWareClient                *govmomi.Client          // VMWareClient Client
-	ViewManager                 *view.Manager            // ViewManager Client
-	HostSystemContainerView     *view.ContainerView      // HostSystemContainerView x
-	VirutalMachineContainerView *view.ContainerView      // VirutalMachineContainerView x
-	NetworkContainerView        *view.ContainerView      // NetworkContainerView x
-	VirtualMachines             []mo.VirtualMachine      // VirtualMachines VMWare
-	Networks                    []mo.Network             // Networks VMWare
-	Hosts                       []mo.HostSystem          // Hosts VMWare
-	Datacenters                 []Datacenter             // Datacenters VMWare
-	IsVcenterAPIType            bool                     // IsVcenterAPIType true if connecting to vcenter
+	Args                 ArgumentList
+	StartTime            int64                    // StartTime time Flex starts in Nanoseconds
+	Integration          *integration.Integration // Integration Infrastructure SDK Integration
+	Entity               *integration.Entity      // Entity Infrastructure SDK Entity
+	Hostname             string                   // Hostname current host
+	Logrus               *logrus.Logger           // Logrus create instance of the logger
+	IntegrationName      string                   // IntegrationName name of integration
+	IntegrationNameShort string                   // IntegrationNameShort Short Name
+	IntegrationVersion   string                   // IntegrationVersion Version
+	VMWareClient         *govmomi.Client          // VMWareClient Client
+	ViewManager          *view.Manager            // ViewManager Client
+	Datacenters          []Datacenter             // Datacenters VMWare
+	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
 }
 
 func NewConfig() *Config {
