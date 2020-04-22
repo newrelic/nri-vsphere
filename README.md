@@ -33,7 +33,7 @@ To learn more about the usage of `./bin/darwin/nri-vmware-vsphere`, pass the `-h
 $ ./bin/darwin/nri-vmware-vsphere -help
 ```
 
-External dependencias are managed via Go modules.
+External dependencies are managed via govendor.
 
 ## Contributing code
 
