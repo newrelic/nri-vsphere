@@ -26,3 +26,5 @@ versioninfo.json
 *.syso
 *.wxs
 target/
+
+coverage.xml
