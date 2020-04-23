@@ -29,7 +29,7 @@ func Hosts(config *load.Config) {
 		err = cv.Retrieve(
 			ctx,
 			[]string{"HostSystem"},
-			[]string{"summary", "overallStatus", "config", "network", "vm", "parent", "datastore"},
+			[]string{"summary", "overallStatus", "config", "network", "vm", "runtime", "parent", "datastore"},
 			&hosts)
 		if err != nil {
 			config.Logrus.WithError(err).Fatal("failed to retrieve HostSystems")
