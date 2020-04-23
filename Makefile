@@ -14,7 +14,6 @@ INTEGRATION  := vmware-vsphere
 SHORT_INTEGRATION  := vsphere
 BINARY_NAME   = nri-$(INTEGRATION)
 
-COVERAGE_DIR := coverage
 GOTOOLS       = github.com/kardianos/govendor \
 		gopkg.in/alecthomas/gometalinter.v2
 
@@ -45,8 +44,7 @@ compile-windows: deps
 test: test-unit test-integration
 test-unit:
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
-	@mkdir -p $(COVERAGE_DIR)
-	@go test -tags unit -covermode=atomic -coverprofile $(COVERAGE_DIR)/unit.tmp $(GO_PKGS)
+	@go test -tags unit $(GO_PKGS)
 test-integration:
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@docker-compose -f ./integration-test/docker-compose.yml up -d --build
