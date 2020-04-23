@@ -1,4 +1,4 @@
-bin*
+bin
 *.tar
 nri-vmwarev*
 nri-vmware_v*
@@ -8,7 +8,6 @@ coverage*
 .DS_Store
 examples_*
 CHANGELOG_*
-dump*
 *.serverless
 LATEST
 .vendor-new*
@@ -17,7 +16,8 @@ dist
 .vscode
 
 _obj
-obj*
+pkg/windows/*/obj/
+pkg/windows/*/bin/
 
 versioninfo.json
 *.exe
