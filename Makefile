@@ -19,7 +19,7 @@ GOTOOLS       = github.com/kardianos/govendor \
 
 
 all: build
-build: clean test coverage compile
+build: clean test compile
 
 
 clean:
