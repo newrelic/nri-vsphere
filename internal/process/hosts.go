@@ -6,6 +6,7 @@ package process
 import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vmware-vsphere/internal/load"
+	"strconv"
 )
 
 func createHostSamples(config *load.Config, timestamp int64) {
@@ -53,6 +54,18 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			checkError(config, ms.SetMetric("uuid", host.Summary.Hardware.Uuid, metric.ATTRIBUTE))
 
 			checkError(config, ms.SetMetric("vmCount", len(host.Vm), metric.GAUGE))
+
+			if host.Runtime.InQuarantineMode != nil {
+				checkError(config, ms.SetMetric("inQuarantineMode", strconv.FormatBool(*host.Runtime.InQuarantineMode), metric.ATTRIBUTE))
+			}
+			if host.Runtime.BootTime != nil {
+				checkError(config, ms.SetMetric("bootTime", host.Runtime.BootTime.String(), metric.ATTRIBUTE))
+			}
+			checkError(config, ms.SetMetric("connectionState", string(host.Runtime.ConnectionState), metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric("inMaintenanceMode", strconv.FormatBool(host.Runtime.InMaintenanceMode), metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric("powerState", string(host.Runtime.PowerState), metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric("standbyMode", host.Runtime.StandbyMode, metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric("cryptoState", host.Runtime.CryptoState, metric.ATTRIBUTE))
 
 			networkList := ""
 			for _, nw := range host.Network {
