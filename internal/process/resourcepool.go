@@ -5,7 +5,7 @@ package process
 
 import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
-	"github.com/newrelic/nri-vmware-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/load"
 )
 
 func createResourcePoolSamples(config *load.Config, timestamp int64) {

@@ -7,12 +7,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/newrelic/nri-vmware-vsphere/internal/client"
-	"github.com/newrelic/nri-vmware-vsphere/internal/collect"
-	"github.com/newrelic/nri-vmware-vsphere/internal/integration"
-	"github.com/newrelic/nri-vmware-vsphere/internal/load"
-	"github.com/newrelic/nri-vmware-vsphere/internal/outputs"
-	"github.com/newrelic/nri-vmware-vsphere/internal/process"
+	"github.com/newrelic/nri-vsphere/internal/client"
+	"github.com/newrelic/nri-vsphere/internal/collect"
+	"github.com/newrelic/nri-vsphere/internal/integration"
+	"github.com/newrelic/nri-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/outputs"
+	"github.com/newrelic/nri-vsphere/internal/process"
 	"github.com/vmware/govmomi/view"
 )
 

@@ -1,7 +1,7 @@
 integrations:
-  - name: com.newrelic.vmware-vsphere
+  - name: com.newrelic.vsphere
     exec:
-      - /var/db/newrelic-infra/newrelic-integrations/bin/nri-vmware-vsphere
+      - /var/db/newrelic-infra/newrelic-integrations/bin/nri-vsphere
       # vSphere API connection data (Vcenter or ESXi servers)
       - --url
       - https://192.168.0.210/sdk

@@ -52,7 +52,7 @@ func exectuteIntegration() ([]byte, []byte) {
 	var cmdLine []string
 	cmdLine = append(cmdLine, "exec", "-i")
 	cmdLine = append(cmdLine, "vmware-integration-with-mock")
-	cmdLine = append(cmdLine, "/go/src/github.com/newrelic/nri-vmware-vsphere/bin/nri-vmware-vsphere",
+	cmdLine = append(cmdLine, "/go/src/github.com/newrelic/nri-vsphere/bin/nri-vsphere",
 		"-user", "user",
 		"-pass", "pass",
 		"-url", "127.0.0.1:8989/sdk",

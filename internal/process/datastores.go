@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
-	"github.com/newrelic/nri-vmware-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/types"
 )
 

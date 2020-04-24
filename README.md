@@ -22,22 +22,22 @@ If you have the source code and Go toolchain installed, you can build and run th
 $ make test
 $ make compile-all
 ```
-The command above executes the tests for the vSphere integration and builds an executable file named `nri-vmware-vsphere` under `bin/{architecture}`. 
+The command above executes the tests for the vSphere integration and builds an executable file named `nri-vsphere` under `bin/{architecture}`. 
 
 2. Run the executable with the following arguments:
 ```bash
-$ ./bin/darwin/nri-vmware-vsphere --url 127.0.0.1:8989/sdk --user user --pass pass --validate_ssl false
+$ ./bin/darwin/nri-vsphere --url 127.0.0.1:8989/sdk --user user --pass pass --validate_ssl false
 ```
-To learn more about the usage of `./bin/darwin/nri-vmware-vsphere`, pass the `-help` argument.
+To learn more about the usage of `./bin/darwin/nri-vsphere`, pass the `-help` argument.
 ```bash
-$ ./bin/darwin/nri-vmware-vsphere -help
+$ ./bin/darwin/nri-vsphere -help
 ```
 
 External dependencies are managed via govendor.
 
 ## Contributing code
 
-We welcome code contributions (in the form of pull requests) from our user community. Before submitting a pull request, please review [these guidelines](https://github.com/newrelic/nri-vmware-vsphere/blob/master/CONTRIBUTING.md).
+We welcome code contributions (in the form of pull requests) from our user community. Before submitting a pull request, please review [these guidelines](https://github.com/newrelic/nri-vsphere/blob/master/CONTRIBUTING.md).
 
 Following these helps us efficiently review and incorporate your contribution and avoid breaking your code with future changes to the agent.
 

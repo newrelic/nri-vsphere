@@ -8,7 +8,7 @@ import (
 	"os"
 
 	Integration "github.com/newrelic/infra-integrations-sdk/integration"
-	"github.com/newrelic/nri-vmware-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/load"
 )
 
 // InfraIntegration Creates Infrastructure SDK Integration
