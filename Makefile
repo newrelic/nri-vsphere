@@ -9,13 +9,12 @@ GOLINTER      = golangci-lint
 
 BIN_DIR    = $(WORKDIR)/bin
 TARGET = target
-TARGET_DIR    = $(TARGET)/bin
+TARGET_DIR       = $(WORKDIR)/$(TARGET)
 INTEGRATION  := vmware-vsphere
 SHORT_INTEGRATION  := vsphere
 BINARY_NAME   = nri-$(INTEGRATION)
 
-GOTOOLS       = github.com/kardianos/govendor \
-		gopkg.in/alecthomas/gometalinter.v2
+GOTOOLS       = github.com/kardianos/govendor gopkg.in/alecthomas/gometalinter.v2 github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
 
 all: build
@@ -41,10 +40,11 @@ compile-windows: deps
 	@GOOS=windows go  build -o $(BIN_DIR)/$(BINARY_NAME).exe ./cmd/...
 
 
-test: test-unit test-integration
+test: deps test-unit test-integration
 test-unit:
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
-	@go test -tags unit $(GO_PKGS)
+	@gocov test $(GO_PKGS) | gocov-xml > coverage.xml
+
 test-integration:
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@docker-compose -f ./integration-test/docker-compose.yml up -d --build
