@@ -8,5 +8,5 @@ services:
       dockerfile: ./integration-test/Dockerfile
     ports:
        - "8989:8989"
-    entrypoint: "/go/src/github.com/vmware/govmomi/vcsim/vcsim -l :8989 -load /go/src/github.com/newrelic/nri-vmware-vsphere/integration-test/my-vcenter"
+    entrypoint: "/go/src/github.com/vmware/govmomi/vcsim/vcsim -l :8989 -load /go/src/github.com/newrelic/nri-vsphere/integration-test/my-vcenter"
 

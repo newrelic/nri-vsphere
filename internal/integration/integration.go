@@ -6,7 +6,7 @@ package integration
 import (
 	"os"
 
-	"github.com/newrelic/nri-vmware-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/sirupsen/Logrus"
 )
 

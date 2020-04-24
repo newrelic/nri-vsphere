@@ -5,7 +5,7 @@ package collect
 
 import (
 	"context"
-	"github.com/newrelic/nri-vmware-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
 )
 

@@ -10,7 +10,7 @@ GOLINTER      = golangci-lint
 BIN_DIR    = $(WORKDIR)/bin
 TARGET = target
 TARGET_DIR       = $(WORKDIR)/$(TARGET)
-INTEGRATION  := vmware-vsphere
+INTEGRATION  := vsphere
 SHORT_INTEGRATION  := vsphere
 BINARY_NAME   = nri-$(INTEGRATION)
 
