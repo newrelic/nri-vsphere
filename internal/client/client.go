@@ -26,7 +26,7 @@ func New(vmURL string, vmUsername string, vmPassword string, ValidateSSL bool) (
 	setCredentials(url, vmUsername, vmPassword)
 
 	// Connect and log in to ESX/i or vCenter
-	return govmomi.NewClient(ctx, url, ValidateSSL)
+	return govmomi.NewClient(ctx, url, !ValidateSSL)
 }
 
 func setCredentials(u *url.URL, un string, pw string) {

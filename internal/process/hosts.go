@@ -4,9 +4,10 @@
 package process
 
 import (
+	"strconv"
+
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/load"
-	"strconv"
 )
 
 func createHostSamples(config *load.Config, timestamp int64) {
@@ -50,7 +51,7 @@ func createHostSamples(config *load.Config, timestamp int64) {
 			if config.Args.DatacenterLocation != "" {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
-			checkError(config, ms.SetMetric("hypervisorHostName", hostConfigName, metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric("hypervisorHostname", hostConfigName, metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("uuid", host.Summary.Hardware.Uuid, metric.ATTRIBUTE))
 
 			checkError(config, ms.SetMetric("vmCount", len(host.Vm), metric.GAUGE))

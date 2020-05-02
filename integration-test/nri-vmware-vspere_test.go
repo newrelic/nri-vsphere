@@ -30,7 +30,7 @@ func TestMainFunction(t *testing.T) {
 
 	assert.Equal(t, len(actual.Entities), len(expected.Entities), "The number of entities is different to the one expected")
 
-	entitiesNotMatchig := []string{}
+	entitiesNotMatching := []string{}
 	//We cannot trust the order of the slice, I think that it is caused by a map transformed to a slice
 	for _, entityActual := range expected.Entities {
 		isTheEntityPresentInTheSlice := false
@@ -42,10 +42,10 @@ func TestMainFunction(t *testing.T) {
 			}
 		}
 		if isTheEntityPresentInTheSlice == false {
-			entitiesNotMatchig = append(entitiesNotMatchig, entityActual.Metadata.Namespace+"    "+entityActual.Metadata.Name)
+			entitiesNotMatching = append(entitiesNotMatching, entityActual.Metadata.Namespace+"    "+entityActual.Metadata.Name)
 		}
 	}
-	assert.Equal(t, []string{}, entitiesNotMatchig, "Some entities are not matching with the mock:\n\n"+string(actualOutput))
+	assert.Equal(t, []string{}, entitiesNotMatching, "Some entities are not matching with the mock:\n\n"+string(actualOutput))
 }
 
 func exectuteIntegration() ([]byte, []byte) {
@@ -55,8 +55,7 @@ func exectuteIntegration() ([]byte, []byte) {
 	cmdLine = append(cmdLine, "/go/src/github.com/newrelic/nri-vsphere/bin/nri-vsphere",
 		"-user", "user",
 		"-pass", "pass",
-		"-url", "127.0.0.1:8989/sdk",
-		"-validate_ssl", "false")
+		"-url", "127.0.0.1:8989/sdk")
 
 	cmd := exec.Command("docker", cmdLine...)
 
