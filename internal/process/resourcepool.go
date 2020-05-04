@@ -8,7 +8,7 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/load"
 )
 
-func createResourcePoolSamples(config *load.Config, timestamp int64) {
+func createResourcePoolSamples(config *load.Config) {
 	for _, dc := range config.Datacenters {
 		for _, rp := range dc.ResourcePools {
 			// Skip root default ResourcePool (not created by user)

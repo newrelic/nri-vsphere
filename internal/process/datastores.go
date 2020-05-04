@@ -11,7 +11,7 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
-func createDatastoreSamples(config *load.Config, timestamp int64) {
+func createDatastoreSamples(config *load.Config) {
 	for _, dc := range config.Datacenters {
 		for _, ds := range dc.Datastores {
 			datacenterName := dc.Datacenter.Name
