@@ -68,10 +68,10 @@ func exectuteIntegration() ([]byte, []byte) {
 		panic(err)
 	}
 
-	output := outbuf.Bytes()
-	error := errbuf.Bytes()
+	out := outbuf.Bytes()
+	errOut := errbuf.Bytes()
 
-	return output, error
+	return out, errOut
 }
 
 func transformAndSanitizeOutput(expectedOutput string, actualOutput string) (integration.Integration, integration.Integration) {

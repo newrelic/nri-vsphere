@@ -10,7 +10,7 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/load"
 )
 
-func createHostSamples(config *load.Config, timestamp int64) {
+func createHostSamples(config *load.Config) {
 	for _, dc := range config.Datacenters {
 		for _, host := range dc.Hosts {
 			hostConfigName := host.Summary.Config.Name

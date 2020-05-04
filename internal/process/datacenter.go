@@ -8,7 +8,7 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/load"
 )
 
-func createDatacenterSamples(config *load.Config, timestamp int64) {
+func createDatacenterSamples(config *load.Config) {
 
 	if !config.IsVcenterAPIType {
 		return

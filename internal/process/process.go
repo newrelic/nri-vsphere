@@ -4,12 +4,10 @@
 package process
 
 import (
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/load"
+	"strings"
+	"sync"
 )
 
 const (
@@ -23,34 +21,33 @@ const (
 
 // Run process samples
 func Run(config *load.Config) {
-	timestamp := time.Now().UnixNano() / int64(time.Millisecond)
 
 	// create samples async
 	var wg sync.WaitGroup
 	wg.Add(6)
 	go func() {
 		defer wg.Done()
-		createVirtualMachineSamples(config, timestamp)
+		createVirtualMachineSamples(config)
 	}()
 	go func() {
 		defer wg.Done()
-		createHostSamples(config, timestamp)
+		createHostSamples(config)
 	}()
 	go func() {
 		defer wg.Done()
-		createDatastoreSamples(config, timestamp)
+		createDatastoreSamples(config)
 	}()
 	go func() {
 		defer wg.Done()
-		createDatacenterSamples(config, timestamp)
+		createDatacenterSamples(config)
 	}()
 	go func() {
 		defer wg.Done()
-		createClusterSamples(config, timestamp)
+		createClusterSamples(config)
 	}()
 	go func() {
 		defer wg.Done()
-		createResourcePoolSamples(config, timestamp)
+		createResourcePoolSamples(config)
 	}()
 	wg.Wait()
 }
@@ -110,7 +107,7 @@ func sanitizeEntityName(config *load.Config, entityName string, datacenterName s
 	}
 
 	entityName = strings.ToLower(entityName)
-	entityName = strings.Replace(entityName, ".", "-", 0)
+	entityName = strings.Replace(entityName, ".", "-", -1)
 	return entityName
 }
 

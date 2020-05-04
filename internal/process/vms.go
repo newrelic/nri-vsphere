@@ -10,17 +10,31 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/load"
 )
 
-func createVirtualMachineSamples(config *load.Config, timestamp int64) {
+func createVirtualMachineSamples(config *load.Config) {
 	for _, dc := range config.Datacenters {
 		for _, vm := range dc.VirtualMachines {
-			// // resolve hypervisor host
+
+			if vm.ResourcePool == nil {
+				continue // resourcePool Returns null if the virtual machine is a template or the session has no access to the resource pool.
+			}
+			if vm.Summary.Runtime.Host == nil {
+				continue // This property is null if the virtual machine is not running and is not assigned to run on a particular host.
+			}
+			if _, ok := dc.Hosts[*vm.Summary.Runtime.Host]; !ok {
+				continue
+			}
+			if dc.Hosts[*vm.Summary.Runtime.Host].Parent == nil {
+				continue
+			}
 			vmHost := dc.Hosts[*vm.Summary.Runtime.Host]
+			vmHostParent := *vmHost.Parent
+			vmResourcePool := *vm.ResourcePool
 			hostConfigName := vmHost.Summary.Config.Name
 			vmConfigName := vm.Summary.Config.Name
 			datacenterName := dc.Datacenter.Name
 			entityName := hostConfigName + ":" + vmConfigName
 
-			if cluster, ok := dc.Clusters[*vmHost.Parent]; ok {
+			if cluster, ok := dc.Clusters[vmHostParent]; ok {
 				entityName = cluster.Name + ":" + entityName
 			}
 
@@ -37,7 +51,7 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
 
-			if cluster, ok := dc.Clusters[*vmHost.Parent]; ok {
+			if cluster, ok := dc.Clusters[vmHostParent]; ok {
 				checkError(config, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
 			}
 
@@ -46,7 +60,7 @@ func createVirtualMachineSamples(config *load.Config, timestamp int64) {
 			}
 			checkError(config, ms.SetMetric("hypervisorHostname", hostConfigName, metric.ATTRIBUTE))
 
-			resourcePoolName := dc.GetResourcePoolName(*vm.ResourcePool)
+			resourcePoolName := dc.GetResourcePoolName(vmResourcePool)
 			checkError(config, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
 
 			datastoreList := ""
