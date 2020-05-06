@@ -25,7 +25,7 @@ func Clusters(config *load.Config) {
 		err = cv.Retrieve(
 			ctx,
 			[]string{"ClusterComputeResource"},
-			[]string{"summary", "host", "datastore", "name", "network"},
+			[]string{"summary", "host", "datastore", "name", "network", "configuration"},
 			&clusters)
 		if err != nil {
 			config.Logrus.WithError(err).Fatal("failed to retrieve ClusterComputeResource")

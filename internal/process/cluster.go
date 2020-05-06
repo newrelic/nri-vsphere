@@ -6,6 +6,7 @@ package process
 import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/load"
+	"strconv"
 )
 
 func createClusterSamples(config *load.Config) {
@@ -65,6 +66,33 @@ func createClusterSamples(config *load.Config) {
 			checkError(config, ms.SetMetric("mem.effectiveSize", summary.EffectiveMemory, metric.GAUGE))
 			checkError(config, ms.SetMetric("effectiveHosts", summary.NumEffectiveHosts, metric.GAUGE))
 			checkError(config, ms.SetMetric("hosts", summary.NumHosts, metric.GAUGE))
+
+			//DRS metrics
+			if cluster.Configuration.DrsConfig.Enabled != nil {
+				checkError(config, ms.SetMetric("drsConfig.Enabled", strconv.FormatBool(*cluster.Configuration.DrsConfig.Enabled), metric.ATTRIBUTE))
+			}
+			if cluster.Configuration.DrsConfig.EnableVmBehaviorOverrides != nil {
+				checkError(config, ms.SetMetric("drsConfig.EnableVmBehaviorOverrides", strconv.FormatBool(*cluster.Configuration.DrsConfig.EnableVmBehaviorOverrides), metric.ATTRIBUTE))
+			}
+			checkError(config, ms.SetMetric("drsConfig.VmotionRate", cluster.Configuration.DrsConfig.VmotionRate, metric.GAUGE))
+			checkError(config, ms.SetMetric("drsConfig.DefaultVmBehavior", string(cluster.Configuration.DrsConfig.DefaultVmBehavior), metric.ATTRIBUTE))
+
+			//DAS metrics
+			if cluster.Configuration.DasConfig.Enabled != nil {
+				checkError(config, ms.SetMetric("dasConfig.Enabled", strconv.FormatBool(*cluster.Configuration.DasConfig.Enabled), metric.ATTRIBUTE))
+			}
+			if cluster.Configuration.DasConfig.AdmissionControlEnabled != nil {
+				checkError(config, ms.SetMetric("dasConfig.AdmissionControlEnabled", strconv.FormatBool(*cluster.Configuration.DasConfig.AdmissionControlEnabled), metric.ATTRIBUTE))
+			}
+			if cluster.Configuration.DasConfig.DefaultVmSettings != nil {
+				checkError(config, ms.SetMetric("dasConfig.IsolationResponse", cluster.Configuration.DasConfig.DefaultVmSettings.IsolationResponse, metric.ATTRIBUTE))
+				checkError(config, ms.SetMetric("dasConfig.RestartPriority", cluster.Configuration.DasConfig.DefaultVmSettings.RestartPriority, metric.ATTRIBUTE))
+				checkError(config, ms.SetMetric("dasConfig.RestartPriorityTimeout", cluster.Configuration.DasConfig.DefaultVmSettings.RestartPriorityTimeout, metric.GAUGE))
+			}
+			checkError(config, ms.SetMetric("dasConfig.HostMonitoring", cluster.Configuration.DasConfig.HostMonitoring, metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric("dasConfig.VmMonitoring", cluster.Configuration.DasConfig.VmMonitoring, metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric("dasConfig.VmComponentProtecting", cluster.Configuration.DasConfig.VmComponentProtecting, metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric("dasConfig.HBDatastoreCandidatePolicy", cluster.Configuration.DasConfig.HBDatastoreCandidatePolicy, metric.ATTRIBUTE))
 
 		}
 	}
