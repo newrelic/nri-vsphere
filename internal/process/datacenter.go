@@ -67,14 +67,13 @@ func createDatacenterSamples(config *load.Config) {
 			checkError(config, ms.SetMetric("cpu.overallUsagePercentage", cpuPercentHost, metric.GAUGE))
 		}
 
-		var memoryPercentHost float64
 		if totalMemoryHost != 0 {
-			memoryPercentHost = float64(totalMemoryUsedHost) / float64(totalMemoryHost) * 100
-			checkError(config, ms.SetMetric("mem.size", totalMemoryHost, metric.GAUGE))
+			memoryPercentHost := float64(totalMemoryUsedHost) / float64(totalMemoryHost) * 100
+			checkError(config, ms.SetMetric("mem.usagePercentage", memoryPercentHost, metric.GAUGE))
 		}
 
+		checkError(config, ms.SetMetric("mem.size", totalMemoryHost, metric.GAUGE))
 		checkError(config, ms.SetMetric("mem.usage", totalMemoryUsedHost, metric.GAUGE))
-		checkError(config, ms.SetMetric("mem.usagePercentage", memoryPercentHost, metric.GAUGE))
 		checkError(config, ms.SetMetric("cpu.cores", totalCpuHost, metric.GAUGE))
 		checkError(config, ms.SetMetric("cpu.overallUsage", cpuOverallUsage, metric.GAUGE))
 		checkError(config, ms.SetMetric("cpu.totalMHz", totalMHz, metric.GAUGE))
