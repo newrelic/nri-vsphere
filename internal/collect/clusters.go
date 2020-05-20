@@ -17,7 +17,8 @@ func Clusters(config *load.Config) {
 	for i, dc := range config.Datacenters {
 		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"ComputeResource"}, true)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to create ComputeResource container view")
+			config.Logrus.WithError(err).Error("failed to create ComputeResource container view")
+			continue
 		}
 		defer cv.Destroy(ctx)
 		var clusters []mo.ClusterComputeResource
@@ -28,7 +29,8 @@ func Clusters(config *load.Config) {
 			[]string{"summary", "host", "datastore", "name", "network", "configuration"},
 			&clusters)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to retrieve ClusterComputeResource")
+			config.Logrus.WithError(err).Error("failed to retrieve ClusterComputeResource")
+			continue
 		}
 		for j := 0; j < len(clusters); j++ {
 			config.Datacenters[i].Clusters[clusters[j].Self] = &clusters[j]

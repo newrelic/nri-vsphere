@@ -26,7 +26,11 @@ func createHostSamples(config *load.Config) {
 			// bios uuid identifies the host unequivocally and is available from vcenter/host api
 			uuid := host.Summary.Hardware.Uuid
 
-			ms := createNewEntityWithMetricSet(config, entityTypeHost, entityName, uuid)
+			ms, err := createNewEntityWithMetricSet(config, entityTypeHost, entityName, uuid)
+			if err != nil {
+				config.Logrus.WithError(err).WithField("hostName", entityName).WithField("uuid", uuid).Error("failed to create metricSet")
+				continue
+			}
 
 			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
 				checkError(config, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
@@ -52,8 +56,10 @@ func createHostSamples(config *load.Config) {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
 			checkError(config, ms.SetMetric("hypervisorHostname", hostConfigName, metric.ATTRIBUTE))
-			checkError(config, ms.SetMetric("uuid", host.Summary.Hardware.Uuid, metric.ATTRIBUTE))
 
+			if host.Summary.Hardware != nil {
+				checkError(config, ms.SetMetric("uuid", host.Summary.Hardware.Uuid, metric.ATTRIBUTE))
+			}
 			checkError(config, ms.SetMetric("vmCount", len(host.Vm), metric.GAUGE))
 
 			if host.Runtime.InQuarantineMode != nil {
@@ -75,35 +81,38 @@ func createHostSamples(config *load.Config) {
 			checkError(config, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
 
 			// memory
-			memoryTotal := host.Summary.Hardware.MemorySize / (1 << 20)
-			checkError(config, ms.SetMetric("mem.size", memoryTotal, metric.GAUGE))
+			if host.Summary.Hardware != nil {
+				memoryTotal := host.Summary.Hardware.MemorySize / (1 << 20)
+				checkError(config, ms.SetMetric("mem.size", memoryTotal, metric.GAUGE))
 
-			memoryUsed := host.Summary.QuickStats.OverallMemoryUsage
-			checkError(config, ms.SetMetric("mem.usage", memoryUsed, metric.GAUGE))
+				memoryUsed := host.Summary.QuickStats.OverallMemoryUsage
+				checkError(config, ms.SetMetric("mem.usage", memoryUsed, metric.GAUGE))
 
-			memoryFree := int32(memoryTotal) - memoryUsed
-			checkError(config, ms.SetMetric("mem.free", memoryFree, metric.GAUGE))
-
+				memoryFree := int32(memoryTotal) - memoryUsed
+				checkError(config, ms.SetMetric("mem.free", memoryFree, metric.GAUGE))
+			}
 			// cpu
-			CPUCores := host.Summary.Hardware.NumCpuCores
-			checkError(config, ms.SetMetric("cpu.cores", CPUCores, metric.GAUGE))
+			if host.Summary.Hardware != nil {
 
-			CPUThreads := host.Summary.Hardware.NumCpuThreads
-			checkError(config, ms.SetMetric("cpu.threads", CPUThreads, metric.GAUGE))
+				CPUCores := host.Summary.Hardware.NumCpuCores
+				checkError(config, ms.SetMetric("cpu.cores", CPUCores, metric.GAUGE))
 
-			CPUMhz := host.Summary.Hardware.CpuMhz
-			checkError(config, ms.SetMetric("cpu.coreMHz", CPUMhz, metric.GAUGE))
+				CPUThreads := host.Summary.Hardware.NumCpuThreads
+				checkError(config, ms.SetMetric("cpu.threads", CPUThreads, metric.GAUGE))
 
-			TotalMHz := float64(CPUMhz) * float64(CPUCores)
-			checkError(config, ms.SetMetric("cpu.totalMHz", TotalMHz, metric.GAUGE))
+				CPUMhz := host.Summary.Hardware.CpuMhz
+				checkError(config, ms.SetMetric("cpu.coreMHz", CPUMhz, metric.GAUGE))
 
-			cpuPercent := (float64(host.Summary.QuickStats.OverallCpuUsage) / TotalMHz) * 100
-			checkError(config, ms.SetMetric("cpu.percent", cpuPercent, metric.GAUGE))
-			checkError(config, ms.SetMetric("cpu.overallUsage", host.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
+				TotalMHz := float64(CPUMhz) * float64(CPUCores)
+				checkError(config, ms.SetMetric("cpu.totalMHz", TotalMHz, metric.GAUGE))
 
-			CPUAvailable := TotalMHz - float64(host.Summary.QuickStats.OverallCpuUsage)
-			checkError(config, ms.SetMetric("cpu.available", CPUAvailable, metric.GAUGE))
+				cpuPercent := (float64(host.Summary.QuickStats.OverallCpuUsage) / TotalMHz) * 100
+				checkError(config, ms.SetMetric("cpu.percent", cpuPercent, metric.GAUGE))
+				checkError(config, ms.SetMetric("cpu.overallUsage", host.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
 
+				CPUAvailable := TotalMHz - float64(host.Summary.QuickStats.OverallCpuUsage)
+				checkError(config, ms.SetMetric("cpu.available", CPUAvailable, metric.GAUGE))
+			}
 			// disk
 			diskTotalMiB := int64(0)
 			if host.Config != nil {

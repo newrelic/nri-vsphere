@@ -20,7 +20,11 @@ func createDatastoreSamples(config *load.Config) {
 
 			dataStoreID := ds.Summary.Url
 
-			ms := createNewEntityWithMetricSet(config, entityTypeDatastore, entityName, dataStoreID)
+			ms, err := createNewEntityWithMetricSet(config, entityTypeDatastore, entityName, dataStoreID)
+			if err != nil {
+				config.Logrus.WithError(err).WithField("datastoreName", entityName).WithField("dataStoreID", dataStoreID).Error("failed to create metricSet")
+				continue
+			}
 
 			if config.Args.DatacenterLocation != "" {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
@@ -42,8 +46,11 @@ func createDatastoreSamples(config *load.Config) {
 
 			switch info := ds.Info.(type) {
 			case *types.NasDatastoreInfo:
-				checkError(config, ms.SetMetric("nas.remoteHost", info.Nas.RemoteHost, metric.ATTRIBUTE))
-				checkError(config, ms.SetMetric("nas.remotePath", info.Nas.RemotePath, metric.ATTRIBUTE))
+				if info.Nas != nil {
+					checkError(config, ms.SetMetric("nas.remoteHost", info.Nas.RemoteHost, metric.ATTRIBUTE))
+					checkError(config, ms.SetMetric("nas.remotePath", info.Nas.RemotePath, metric.ATTRIBUTE))
+
+				}
 			}
 		}
 	}

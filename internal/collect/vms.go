@@ -18,7 +18,8 @@ func VirtualMachines(config *load.Config) {
 	for i, dc := range config.Datacenters {
 		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"VirtualMachine"}, true)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to create VirtualMachine container view")
+			config.Logrus.WithError(err).Error("failed to create VirtualMachine container view")
+			continue
 		}
 		defer cv.Destroy(ctx)
 
@@ -30,7 +31,8 @@ func VirtualMachines(config *load.Config) {
 			[]string{"summary", "network", "config", "guest", "runtime", "resourcePool", "datastore", "overallStatus"},
 			&vms)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to retrieve VM Summaries")
+			config.Logrus.WithError(err).Error("failed to retrieve VM Summaries")
+			continue
 		}
 		for j := 0; j < len(vms); j++ {
 			config.Datacenters[i].VirtualMachines[vms[j].Self] = &vms[j]

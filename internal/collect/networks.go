@@ -18,7 +18,8 @@ func Networks(config *load.Config) {
 	for i, dc := range config.Datacenters {
 		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"Network"}, true)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to create Network container view")
+			config.Logrus.WithError(err).Error("failed to create Network container view")
+			continue
 		}
 		defer cv.Destroy(ctx)
 
@@ -26,7 +27,8 @@ func Networks(config *load.Config) {
 		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.Network.html
 		err = cv.Retrieve(ctx, []string{"Network"}, nil, &networks)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to retrieve Networks")
+			config.Logrus.WithError(err).Error("failed to retrieve Networks")
+			continue
 		}
 		for j := 0; j < len(networks); j++ {
 			config.Datacenters[i].Networks[networks[j].Self] = &networks[j]
