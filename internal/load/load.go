@@ -27,6 +27,7 @@ type ArgumentList struct {
 	AgentDir            string `default:"" help:"Agent Directory, injected by agent to save cache in Linux environments, es: /var/db/newrelic-infra" os:"linux"`
 	AppDataDir          string `default:"" help:"Agent Data Directory, injected by agent to save cache in Windows environments, es: %PROGRAMDATA%\\New Relic\\newrelic-infra" os:"windows"`
 	ValidateSSL         bool   `default:"false" help:"Validate SSL"`
+	Version             bool   `default:"false" help:"If set prints version and exit"`
 }
 
 type Config struct {
@@ -46,15 +47,13 @@ type Config struct {
 	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
 }
 
-func NewConfig() *Config {
-
-	config := Config{
+func NewConfig(buildVersion string) *Config {
+	return &Config{
 		Logrus:               logrus.New(),
 		IntegrationName:      "com.newrelic.vsphere",
 		IntegrationNameShort: "vsphere",
-		IntegrationVersion:   "Unknown-SNAPSHOT",
+		IntegrationVersion:   buildVersion,
 		StartTime:            time.Now().UnixNano() / int64(time.Millisecond),
 		IsVcenterAPIType:     false,
 	}
-	return &config
 }
