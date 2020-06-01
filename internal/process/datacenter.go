@@ -52,14 +52,13 @@ func createDatacenterSamples(config *load.Config) {
 		}
 
 		for _, host := range dc.Hosts {
-			if host.Summary.Hardware == nil {
-				continue
+			if host.Summary.Hardware != nil {
+				totalMHz = totalMHz + (float64(host.Summary.Hardware.CpuMhz) * float64(host.Summary.Hardware.NumCpuCores))
+				cpuOverallUsage = cpuOverallUsage + float64(host.Summary.QuickStats.OverallCpuUsage)
+				totalCpuHost = totalCpuHost + host.Summary.Hardware.NumCpuCores
+				totalMemoryHost = totalMemoryHost + host.Summary.Hardware.MemorySize/(1<<20)
+				totalMemoryUsedHost = totalMemoryUsedHost + host.Summary.QuickStats.OverallMemoryUsage
 			}
-			totalMHz = totalMHz + (float64(host.Summary.Hardware.CpuMhz) * float64(host.Summary.Hardware.NumCpuCores))
-			cpuOverallUsage = cpuOverallUsage + float64(host.Summary.QuickStats.OverallCpuUsage)
-			totalCpuHost = totalCpuHost + host.Summary.Hardware.NumCpuCores
-			totalMemoryHost = totalMemoryHost + host.Summary.Hardware.MemorySize/(1<<20)
-			totalMemoryUsedHost = totalMemoryUsedHost + host.Summary.QuickStats.OverallMemoryUsage
 		}
 
 		if totalMHz != 0 {

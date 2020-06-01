@@ -78,8 +78,7 @@ func createVirtualMachineSamples(config *load.Config) {
 			// vm
 			// not available if VM is offline
 			if vm.Summary.Guest != nil {
-				vmHostname := vm.Summary.Guest.HostName
-				checkError(config, ms.SetMetric("vmHostname", vmHostname, metric.ATTRIBUTE))
+				checkError(config, ms.SetMetric("vmHostname", vm.Summary.Guest.HostName, metric.ATTRIBUTE))
 			}
 			checkError(config, ms.SetMetric("vmConfigName", vmConfigName, metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("instanceUuid", instanceUuid, metric.ATTRIBUTE))
@@ -114,7 +113,7 @@ func createVirtualMachineSamples(config *load.Config) {
 			checkError(config, ms.SetMetric("cpu.cores", vm.Summary.Config.NumCpu, metric.GAUGE))
 			checkError(config, ms.SetMetric("cpu.overallUsage", vm.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
 
-			cpuAllocationLimit := float64(0)
+			var cpuAllocationLimit float64
 			if vm.Config.CpuAllocation != nil {
 				if vm.Config.CpuAllocation.Limit != nil {
 					cpuAllocationLimit = float64(*vm.Config.CpuAllocation.Limit)
@@ -125,20 +124,21 @@ func createVirtualMachineSamples(config *load.Config) {
 			if vmHost.Summary.Hardware != nil {
 				CPUMhz := vmHost.Summary.Hardware.CpuMhz
 				CPUCores := vmHost.Summary.Hardware.NumCpuCores
+				OverallCpuUsage := vm.Summary.QuickStats.OverallCpuUsage
+				var cpuPercent float64
+
 				TotalMHz := float64(CPUMhz) * float64(CPUCores)
-				cpuPercent := float64(0)
-				if cpuAllocationLimit > TotalMHz || cpuAllocationLimit < 0 {
-					cpuPercent = (float64(vm.Summary.QuickStats.OverallCpuUsage) / TotalMHz) * 100
-				} else {
-					cpuPercent = (float64(vm.Summary.QuickStats.OverallCpuUsage) / cpuAllocationLimit) * 100
+				if (cpuAllocationLimit > TotalMHz || cpuAllocationLimit < 0) && TotalMHz != 0 {
+					cpuPercent = float64(OverallCpuUsage) / TotalMHz * 100
+				} else if cpuAllocationLimit != 0 {
+					cpuPercent = float64(OverallCpuUsage) / cpuAllocationLimit * 100
 				}
 				checkError(config, ms.SetMetric("cpu.hostUsagePercent", cpuPercent, metric.GAUGE))
 			}
 
 			// disk
 			if vm.Summary.Storage != nil {
-				diskTotal := vm.Summary.Storage.Committed / (1 << 20)
-				checkError(config, ms.SetMetric("disk.totalMiB", diskTotal, metric.GAUGE))
+				checkError(config, ms.SetMetric("disk.totalMiB", vm.Summary.Storage.Committed/(1<<20), metric.GAUGE))
 			}
 
 			// network

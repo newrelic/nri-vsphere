@@ -46,7 +46,7 @@ func createResourcePoolSamples(config *load.Config) {
 				}
 			}
 
-			memTotal := (rp.Runtime.Memory.ReservationUsed + rp.Runtime.Memory.UnreservedForPool) / (1e6)
+			memTotal := (rp.Runtime.Memory.ReservationUsed + rp.Runtime.Memory.UnreservedForPool) / (1 << 20)
 			checkError(config, ms.SetMetric("mem.size", memTotal, metric.GAUGE))
 
 			summary := rp.Summary.GetResourcePoolSummary()
