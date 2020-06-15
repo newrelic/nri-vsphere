@@ -123,6 +123,24 @@
 			"revisionTime": "2020-02-13T16:48:48Z"
 		},
 		{
+			"checksumSHA1": "t/yE+nFeLvyTd0+Bt8pLRkNx1C8=",
+			"path": "github.com/vmware/govmomi/vapi/internal",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
+			"checksumSHA1": "eHxUefLxkmkl/Ut/9kqG0oitmnI=",
+			"path": "github.com/vmware/govmomi/vapi/rest",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
+			"checksumSHA1": "mimokaUyx21+Iiy36BnUQmkYWBI=",
+			"path": "github.com/vmware/govmomi/vapi/tags",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
 			"checksumSHA1": "hL0ZdFA43lqfSKo7nbYgH5PxFo0=",
 			"path": "github.com/vmware/govmomi/view",
 			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
@@ -189,5 +207,5 @@
 			"revisionTime": "2019-11-19T21:27:36Z"
 		}
 	],
-	"rootPath": "github.com/newrelic/nri-vmware-vsphere"
+	"rootPath": "github.com/newrelic/nri-vsphere"
 }

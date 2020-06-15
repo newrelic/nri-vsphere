@@ -4,6 +4,8 @@
 package load
 
 import (
+	"github.com/vmware/govmomi/vapi/rest"
+	"github.com/vmware/govmomi/vapi/tags"
 	"time"
 
 	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
@@ -36,7 +38,9 @@ type Config struct {
 	IntegrationNameShort string                   // IntegrationNameShort Short Name
 	IntegrationVersion   string                   // IntegrationVersion Version
 	VMWareClient         *govmomi.Client          // VMWareClient Client
+	VMWareClientRest     *rest.Client             // VMWareClient Client
 	ViewManager          *view.Manager            // ViewManager Client
+	TagsManager          *tags.Manager            // ViewManager Client
 	Datacenters          []Datacenter             // Datacenters VMWare
 	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
 }

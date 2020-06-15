@@ -5,6 +5,8 @@ package client
 
 import (
 	"context"
+	"github.com/vmware/govmomi/vapi/rest"
+	"log"
 	"net/url"
 
 	"github.com/vmware/govmomi"
@@ -27,6 +29,27 @@ func New(vmURL string, vmUsername string, vmPassword string, ValidateSSL bool) (
 
 	// Connect and log in to ESX/i or vCenter
 	return govmomi.NewClient(ctx, urlParsed, !ValidateSSL)
+}
+
+// New create new VMWare rest client
+func NewRest(clientvim25 *govmomi.Client, vmUsername string, vmPassword string) (*rest.Client, error) {
+	ctx := context.Background()
+
+	re := rest.NewClient(clientvim25.Client)
+	_, err := re.Session(ctx)
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+	userInfo := url.UserPassword(vmUsername, vmPassword)
+	//fmt.Println(userInfo.Username())
+	//fmt.Println(userInfo.Password())
+	err = re.Login(ctx, userInfo)
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+	return re, nil
 }
 
 func setCredentials(u *url.URL, un string, pw string) {

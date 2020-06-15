@@ -4,6 +4,7 @@
 package main
 
 import (
+	"github.com/vmware/govmomi/vapi/tags"
 	"strings"
 	"sync"
 
@@ -35,12 +36,17 @@ func main() {
 		config.Logrus.WithError(err).Fatal("failed to create client")
 	}
 
+	config.VMWareClientRest, err = client.NewRest(config.VMWareClient, config.Args.User, config.Args.Pass)
+	if err != nil {
+		config.Logrus.WithError(err).Fatal("failed to create client rest")
+	}
+
 	if config.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter" {
 		config.IsVcenterAPIType = true
 	}
 
 	config.ViewManager = view.NewManager(config.VMWareClient.Client)
-
+	config.TagsManager = tags.NewManager(config.VMWareClientRest)
 	collect.Datacenters(config)
 
 	// fetch vmware data async
