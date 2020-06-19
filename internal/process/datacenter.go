@@ -4,8 +4,14 @@
 package process
 
 import (
+	"fmt"
+	eventSDK "github.com/newrelic/infra-integrations-sdk/data/event"
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
+	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/load"
+	logrus "github.com/sirupsen/Logrus"
+	"time"
 )
 
 func createDatacenterSamples(config *load.Config) {
@@ -33,10 +39,17 @@ func createDatacenterSamples(config *load.Config) {
 		datacenterName := dc.Datacenter.Name
 		entityName := sanitizeEntityName(config, datacenterName, "")
 		uniqueIdentifier := entityName
-		ms, err := createNewEntityWithMetricSet(config, entityTypeDatacenter, entityName, uniqueIdentifier)
+		dcEntity, ms, err := createNewEntityWithMetricSet(config, entityTypeDatacenter, entityName, uniqueIdentifier)
 		if err != nil {
 			config.Logrus.WithError(err).WithField("datacenterName", entityName).WithField("uniqueIdentifier", uniqueIdentifier).Error("failed to create metricSet")
 			continue
+		}
+
+		if config.IsVcenterAPIType && config.Args.EnableVsphereEvents {
+			err = processEvent(dc.EventDispacher, dcEntity)
+			if err != nil {
+				config.Logrus.WithError(err).WithField("datacenterName", entityName).WithField("uniqueIdentifier", uniqueIdentifier).Error("failed to create metricSet")
+			}
 		}
 
 		for _, datastore := range dc.Datastores {
@@ -90,4 +103,44 @@ func createDatacenterSamples(config *load.Config) {
 		checkError(config, ms.SetMetric("clusters", len(dc.Clusters), metric.GAUGE))
 
 	}
+}
+
+func processEvent(ed *events.EventDispacher, entity *integration.Entity) error {
+
+	if ed == nil {
+		return fmt.Errorf("not expecting empty EventDispacher")
+	}
+	for _, be := range ed.Events {
+		e := be.GetEvent()
+
+		ev := &eventSDK.Event{
+			Summary:  e.FullFormattedMessage,
+			Category: "vSphereEvent",
+			Attributes: map[string]interface{}{
+				"vSphereEvent.userName": e.UserName,
+				"vSphereEvent.date":     e.CreatedTime.Format(time.RFC1123),
+			},
+		}
+		if e.Vm != nil {
+			ev.Attributes["vSphereEvent.vm"] = e.Vm.Name
+		}
+		if e.Host != nil {
+			ev.Attributes["vSphereEvent.host"] = e.Host.Name
+		}
+		if e.Datacenter != nil {
+			ev.Attributes["vSphereEvent.datacenter"] = e.Datacenter.Name
+		}
+		if e.ComputeResource != nil {
+			ev.Attributes["vSphereEvent.computeResource"] = e.ComputeResource.Name
+		}
+		if e.Ds != nil {
+			ev.Attributes["vSphereEvent.datastore"] = e.Ds.Name
+		}
+		err := entity.AddEvent(ev)
+
+		if err != nil {
+			logrus.Error()
+		}
+	}
+	return nil
 }

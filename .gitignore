@@ -13,6 +13,8 @@ LATEST
 .vendor-new*
 .idea
 dist
+data
+
 .vscode
 
 _obj

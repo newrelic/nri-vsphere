@@ -46,7 +46,7 @@ func createVirtualMachineSamples(config *load.Config) {
 			// Unique identifier for the vm entity
 			instanceUuid := vm.Config.InstanceUuid
 
-			ms, err := createNewEntityWithMetricSet(config, entityTypeVm, entityName, instanceUuid)
+			_, ms, err := createNewEntityWithMetricSet(config, entityTypeVm, entityName, instanceUuid)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("vmName", entityName).WithField("instanceUuid", instanceUuid).Error("failed to create metricSet")
 				continue

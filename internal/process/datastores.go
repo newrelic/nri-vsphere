@@ -20,7 +20,7 @@ func createDatastoreSamples(config *load.Config) {
 
 			dataStoreID := ds.Summary.Url
 
-			ms, err := createNewEntityWithMetricSet(config, entityTypeDatastore, entityName, dataStoreID)
+			_, ms, err := createNewEntityWithMetricSet(config, entityTypeDatastore, entityName, dataStoreID)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("datastoreName", entityName).WithField("dataStoreID", dataStoreID).Error("failed to create metricSet")
 				continue

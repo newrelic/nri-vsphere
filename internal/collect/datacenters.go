@@ -5,7 +5,7 @@ package collect
 
 import (
 	"context"
-
+	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
 )
@@ -28,7 +28,25 @@ func Datacenters(config *load.Config) {
 		config.Logrus.WithError(err).Fatal("failed to retrieve Datacenter")
 	}
 
-	for i := range datacenters {
-		config.Datacenters = append(config.Datacenters, load.NewDatacenter(&datacenters[i]))
+	for i, d := range datacenters {
+		newDatacenter := load.NewDatacenter(&datacenters[i])
+		if config.IsVcenterAPIType && config.Args.EnableVsphereEvents {
+			collectEvents(config, d, &newDatacenter)
+		}
+		config.Datacenters = append(config.Datacenters, newDatacenter)
 	}
+}
+
+func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Datacenter) {
+	//https://pubs.vmware.com/vsphere-51/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.HistoryCollector.html
+
+	ed, err := events.NewEventDispacher(config.VMWareClient.Client, d.Self, config.Logrus, d.Name, config.CachePath)
+	if err != nil {
+		config.Logrus.WithError(err).Error("error while creating event Dispatcher")
+		return
+	}
+	defer ed.Cancel()
+
+	newDatacenter.EventDispacher = ed
+	ed.CollectEvents(config.Args.EventsPageSize)
 }

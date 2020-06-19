@@ -9,6 +9,7 @@ integrations:
       - administrator@vsphere.local
       - --pass
       - Example!
+      - enable_vsphere_events
       # - --validate_ssl # if you require SSL validation enable
       # Datacenter location label can be added to all entities in this vSphere platform
       # - --datacenter_location
@@ -18,5 +19,5 @@ integrations:
       # https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180
       # HTTP_PROXY: socks5://10.0.2.2:8080
       # HTTPS_PROXY: socks5://10.0.2.2:8080
-      # Interval execution should be more than 20s since real-time vSphere samples are performed every 20s
+    # Interval execution should be more than 20s since real-time vSphere samples are performed every 20s
     interval: 60s
