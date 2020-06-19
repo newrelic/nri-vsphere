@@ -20,7 +20,7 @@ const (
 )
 
 // Run process samples
-func Run(config *load.Config) {
+func ProcessData(config *load.Config) {
 	// create samples async
 	var wg sync.WaitGroup
 	wg.Add(6)

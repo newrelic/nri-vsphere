@@ -4,12 +4,15 @@
 package main
 
 import (
+	"fmt"
+	"github.com/newrelic/infra-integrations-sdk/log"
+	logrus "github.com/sirupsen/Logrus"
+	"os"
 	"strings"
-	"sync"
+	"time"
 
 	"github.com/newrelic/nri-vsphere/internal/client"
 	"github.com/newrelic/nri-vsphere/internal/collect"
-	"github.com/newrelic/nri-vsphere/internal/integration"
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/newrelic/nri-vsphere/internal/outputs"
 	"github.com/newrelic/nri-vsphere/internal/process"
@@ -28,7 +31,8 @@ func main() {
 		config.Logrus.Fatal("missing argument, please check if URL, User, Pass has been supplied")
 	}
 	config.Args.DatacenterLocation = strings.ToLower(config.Args.DatacenterLocation)
-	integration.SetupLogger(config)
+
+	setupLogger(config)
 
 	config.VMWareClient, err = client.New(config.Args.URL, config.Args.User, config.Args.Pass, config.Args.ValidateSSL)
 	if err != nil {
@@ -41,44 +45,47 @@ func main() {
 
 	config.ViewManager = view.NewManager(config.VMWareClient.Client)
 
-	collect.Datacenters(config)
+	runIntegration(config)
+}
 
-	// fetch vmware data async
-	var wg sync.WaitGroup
-	wg.Add(6)
-	go func() {
-		defer wg.Done()
-		collect.VirtualMachines(config)
-	}()
-	go func() {
-		defer wg.Done()
-		collect.Networks(config)
+func setupLogger(config *load.Config) {
+	verboseLogging := os.Getenv("VERBOSE")
+	if config.Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
+		config.Logrus.SetLevel(logrus.TraceLevel)
+	}
+	config.Logrus.Out = os.Stderr
+}
 
-	}()
-	go func() {
-		defer wg.Done()
-		collect.Hosts(config)
+func runIntegration(config *load.Config) {
 
-	}()
-	go func() {
-		defer wg.Done()
-		collect.Datastores(config)
+	heartBeat := time.NewTicker(config.HeartBeatPeriod)
+	metricInterval := time.NewTicker(config.ScrapeInterval)
+	eventDispacher := collect.NewEventDispacher()
 
-	}()
-	go func() {
-		defer wg.Done()
-		collect.Clusters(config)
-	}()
-	go func() {
-		defer wg.Done()
-		collect.ResourcePools(config)
-	}()
-	wg.Wait()
+	eventDispacher.Events(config.VMWareClient.Client, config.Integration) //this never ends if no error or connection issue occurs
+	for {
+		select {
+		case <-heartBeat.C:
+			log.Debug("Sending heartBeat")
+			// hart beat signal for long running integrations
+			// https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/host-integrations-newer-configuration-format#timeout
+			fmt.Println("{}")
 
-	process.Run(config)
+		case <-metricInterval.C:
+			collect.CollectData(config)
+			process.ProcessData(config)
 
-	err = config.Integration.Publish()
-	if err != nil {
-		config.Logrus.WithError(err).Fatal("failed to publish")
+			err := config.Integration.Publish()
+			if err != nil {
+				config.Logrus.WithError(err).Fatal("failed to publish")
+			}
+
+		case err := <-eventDispacher.ErrorEvent:
+			if err != nil {
+				config.Logrus.WithError(err).Error("The event dispatcher returned")
+			}
+			eventDispacher.Events(config.VMWareClient.Client, config.Integration) //this never ends if no error or connection issue occurs
+
+		}
 	}
 }
