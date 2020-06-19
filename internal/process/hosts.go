@@ -13,6 +13,13 @@ import (
 func createHostSamples(config *load.Config) {
 	for _, dc := range config.Datacenters {
 		for _, host := range dc.Hosts {
+
+			if host.Summary.Hardware == nil {
+				continue
+			}
+			// bios uuid identifies the host unequivocally and is available from vcenter/host api
+			uuid := host.Summary.Hardware.Uuid
+
 			hostConfigName := host.Summary.Config.Name
 			entityName := hostConfigName
 			datacenterName := dc.Datacenter.Name
@@ -23,10 +30,11 @@ func createHostSamples(config *load.Config) {
 
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
-			// bios uuid identifies the host unequivocally and is available from vcenter/host api
-			uuid := host.Summary.Hardware.Uuid
-
-			ms := createNewEntityWithMetricSet(config, entityTypeHost, entityName, uuid)
+			ms, err := createNewEntityWithMetricSet(config, entityTypeHost, entityName, uuid)
+			if err != nil {
+				config.Logrus.WithError(err).WithField("hostName", entityName).WithField("uuid", uuid).Error("failed to create metricSet")
+				continue
+			}
 
 			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
 				checkError(config, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
@@ -52,7 +60,6 @@ func createHostSamples(config *load.Config) {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
 			checkError(config, ms.SetMetric("hypervisorHostname", hostConfigName, metric.ATTRIBUTE))
-			checkError(config, ms.SetMetric("uuid", host.Summary.Hardware.Uuid, metric.ATTRIBUTE))
 
 			checkError(config, ms.SetMetric("vmCount", len(host.Vm), metric.GAUGE))
 
@@ -73,6 +80,8 @@ func createHostSamples(config *load.Config) {
 				networkList += dc.Networks[nw].Name + "|"
 			}
 			checkError(config, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
+
+			checkError(config, ms.SetMetric("uuid", host.Summary.Hardware.Uuid, metric.ATTRIBUTE))
 
 			// memory
 			memoryTotal := host.Summary.Hardware.MemorySize / (1 << 20)
@@ -97,8 +106,11 @@ func createHostSamples(config *load.Config) {
 			TotalMHz := float64(CPUMhz) * float64(CPUCores)
 			checkError(config, ms.SetMetric("cpu.totalMHz", TotalMHz, metric.GAUGE))
 
-			cpuPercent := (float64(host.Summary.QuickStats.OverallCpuUsage) / TotalMHz) * 100
-			checkError(config, ms.SetMetric("cpu.percent", cpuPercent, metric.GAUGE))
+			if TotalMHz != 0 {
+				cpuPercent := (float64(host.Summary.QuickStats.OverallCpuUsage) / TotalMHz) * 100
+				checkError(config, ms.SetMetric("cpu.percent", cpuPercent, metric.GAUGE))
+			}
+
 			checkError(config, ms.SetMetric("cpu.overallUsage", host.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
 
 			CPUAvailable := TotalMHz - float64(host.Summary.QuickStats.OverallCpuUsage)
@@ -109,8 +121,10 @@ func createHostSamples(config *load.Config) {
 			if host.Config != nil {
 				if host.Config.FileSystemVolume != nil {
 					for _, mount := range host.Config.FileSystemVolume.MountInfo {
-						capacity := mount.Volume.GetHostFileSystemVolume().Capacity
-						diskTotalMiB += capacity / (1 << 20)
+						hostFileSystemVolume := mount.Volume.GetHostFileSystemVolume()
+						if hostFileSystemVolume != nil {
+							diskTotalMiB += hostFileSystemVolume.Capacity / (1 << 20)
+						}
 					}
 				}
 			}

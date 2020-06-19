@@ -18,7 +18,8 @@ func ResourcePools(config *load.Config) {
 	for i, dc := range config.Datacenters {
 		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"ResourcePool"}, true)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to create ResourcePool container view")
+			config.Logrus.WithError(err).Error("failed to create ResourcePool container view")
+			continue
 		}
 		defer cv.Destroy(ctx)
 		var resourcePools []mo.ResourcePool
@@ -28,7 +29,8 @@ func ResourcePools(config *load.Config) {
 			[]string{"summary", "owner", "parent", "runtime", "name", "overallStatus", "vm", "resourcePool"},
 			&resourcePools)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to retrieve ResourcePools")
+			config.Logrus.WithError(err).Error("failed to retrieve ResourcePools")
+			continue
 		}
 		for j := 0; j < len(resourcePools); j++ {
 			config.Datacenters[i].ResourcePools[resourcePools[j].Self] = &resourcePools[j]

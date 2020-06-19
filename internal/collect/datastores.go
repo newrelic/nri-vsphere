@@ -18,7 +18,8 @@ func Datastores(config *load.Config) {
 	for i, dc := range config.Datacenters {
 		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"Datastore"}, true)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to create Datastore container view")
+			config.Logrus.WithError(err).Error("failed to create Datastore container view")
+			continue
 		}
 		defer cv.Destroy(ctx)
 
@@ -26,7 +27,8 @@ func Datastores(config *load.Config) {
 		// Reference: https://code.vmware.com/apis/42/vsphere/doc/vim.Datastore.html
 		err = cv.Retrieve(ctx, []string{"Datastore"}, nil, &datastores)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to retrieve Datastore")
+			config.Logrus.WithError(err).Error("failed to retrieve Datastore")
+			continue
 		}
 		for j := 0; j < len(datastores); j++ {
 			config.Datacenters[i].Datastores[datastores[j].Self] = &datastores[j]

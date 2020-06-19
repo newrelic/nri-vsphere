@@ -19,7 +19,8 @@ func Hosts(config *load.Config) {
 
 		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"HostSystem"}, true)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to create HostSystem container view")
+			config.Logrus.WithError(err).Error("failed to create HostSystem container view")
+			continue
 		}
 
 		defer cv.Destroy(ctx)
@@ -32,7 +33,8 @@ func Hosts(config *load.Config) {
 			[]string{"summary", "overallStatus", "config", "network", "vm", "runtime", "parent", "datastore"},
 			&hosts)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to retrieve HostSystems")
+			config.Logrus.WithError(err).Error("failed to retrieve HostSystems")
+			continue
 		}
 		for j := 0; j < len(hosts); j++ {
 			config.Datacenters[i].Hosts[hosts[j].Self] = &hosts[j]

@@ -14,6 +14,9 @@ func createVirtualMachineSamples(config *load.Config) {
 	for _, dc := range config.Datacenters {
 		for _, vm := range dc.VirtualMachines {
 
+			if vm.Config == nil {
+				continue // The virtual machine configuration is not guaranteed to be available. For example, the configuration information would be unavailable if the server is unable to access the virtual machine files on disk, and is often also unavailable during the initial phases of virtual machine creation.
+			}
 			if vm.ResourcePool == nil {
 				continue // resourcePool Returns null if the virtual machine is a template or the session has no access to the resource pool.
 			}
@@ -43,7 +46,11 @@ func createVirtualMachineSamples(config *load.Config) {
 			// Unique identifier for the vm entity
 			instanceUuid := vm.Config.InstanceUuid
 
-			ms := createNewEntityWithMetricSet(config, entityTypeVm, entityName, instanceUuid)
+			ms, err := createNewEntityWithMetricSet(config, entityTypeVm, entityName, instanceUuid)
+			if err != nil {
+				config.Logrus.WithError(err).WithField("vmName", entityName).WithField("instanceUuid", instanceUuid).Error("failed to create metricSet")
+				continue
+			}
 
 			checkError(config, ms.SetMetric("overallStatus", string(vm.OverallStatus), metric.ATTRIBUTE))
 
@@ -70,9 +77,10 @@ func createVirtualMachineSamples(config *load.Config) {
 			checkError(config, ms.SetMetric("datastoreNameList", datastoreList, metric.ATTRIBUTE))
 			// vm
 			// not available if VM is offline
-			vmHostname := vm.Summary.Guest.HostName
+			if vm.Summary.Guest != nil {
+				checkError(config, ms.SetMetric("vmHostname", vm.Summary.Guest.HostName, metric.ATTRIBUTE))
+			}
 			checkError(config, ms.SetMetric("vmConfigName", vmConfigName, metric.ATTRIBUTE))
-			checkError(config, ms.SetMetric("vmHostname", vmHostname, metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("instanceUuid", instanceUuid, metric.ATTRIBUTE))
 
 			networkList := ""
@@ -105,31 +113,38 @@ func createVirtualMachineSamples(config *load.Config) {
 			checkError(config, ms.SetMetric("cpu.cores", vm.Summary.Config.NumCpu, metric.GAUGE))
 			checkError(config, ms.SetMetric("cpu.overallUsage", vm.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
 
-			cpuAllocationLimit := float64(0)
-			if vm.Config.CpuAllocation.Limit != nil {
-				cpuAllocationLimit = float64(*vm.Config.CpuAllocation.Limit)
+			var cpuAllocationLimit float64
+			if vm.Config.CpuAllocation != nil {
+				if vm.Config.CpuAllocation.Limit != nil {
+					cpuAllocationLimit = float64(*vm.Config.CpuAllocation.Limit)
+				}
 			}
 			checkError(config, ms.SetMetric("cpu.allocationLimit", cpuAllocationLimit, metric.GAUGE))
 
-			CPUMhz := vmHost.Summary.Hardware.CpuMhz
-			CPUCores := vmHost.Summary.Hardware.NumCpuCores
-			TotalMHz := float64(CPUMhz) * float64(CPUCores)
+			if vmHost.Summary.Hardware != nil {
+				CPUMhz := vmHost.Summary.Hardware.CpuMhz
+				CPUCores := vmHost.Summary.Hardware.NumCpuCores
+				OverallCpuUsage := vm.Summary.QuickStats.OverallCpuUsage
+				var cpuPercent float64
 
-			cpuPercent := float64(0)
-			if cpuAllocationLimit > TotalMHz || cpuAllocationLimit < 0 {
-				cpuPercent = (float64(vm.Summary.QuickStats.OverallCpuUsage) / TotalMHz) * 100
-			} else {
-				cpuPercent = (float64(vm.Summary.QuickStats.OverallCpuUsage) / cpuAllocationLimit) * 100
+				TotalMHz := float64(CPUMhz) * float64(CPUCores)
+				if (cpuAllocationLimit > TotalMHz || cpuAllocationLimit < 0) && TotalMHz != 0 {
+					cpuPercent = float64(OverallCpuUsage) / TotalMHz * 100
+				} else if cpuAllocationLimit != 0 {
+					cpuPercent = float64(OverallCpuUsage) / cpuAllocationLimit * 100
+				}
+				checkError(config, ms.SetMetric("cpu.hostUsagePercent", cpuPercent, metric.GAUGE))
 			}
-			checkError(config, ms.SetMetric("cpu.hostUsagePercent", cpuPercent, metric.GAUGE))
 
 			// disk
-			diskTotal := vm.Summary.Storage.Committed / (1 << 20)
-			checkError(config, ms.SetMetric("disk.totalMiB", diskTotal, metric.GAUGE))
+			if vm.Summary.Storage != nil {
+				checkError(config, ms.SetMetric("disk.totalMiB", vm.Summary.Storage.Committed/(1<<20), metric.GAUGE))
+			}
 
 			// network
-			checkError(config, ms.SetMetric("ipAddress", vm.Guest.IpAddress, metric.ATTRIBUTE))
-
+			if vm.Guest != nil {
+				checkError(config, ms.SetMetric("ipAddress", vm.Guest.IpAddress, metric.ATTRIBUTE))
+			}
 			// vm state
 			checkError(config, ms.SetMetric("connectionState", fmt.Sprintf("%v", vm.Runtime.ConnectionState), metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("powerState", fmt.Sprintf("%v", vm.Runtime.PowerState), metric.ATTRIBUTE))

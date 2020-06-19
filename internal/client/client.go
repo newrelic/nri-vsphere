@@ -17,16 +17,16 @@ func New(vmURL string, vmUsername string, vmPassword string, ValidateSSL bool) (
 	defer cancel()
 
 	// // Parse URL from string
-	url, err := soap.ParseURL(vmURL)
+	urlParsed, err := soap.ParseURL(vmURL)
 	if err != nil {
 		return nil, err
 	}
 
 	// Override username and/or password as required
-	setCredentials(url, vmUsername, vmPassword)
+	setCredentials(urlParsed, vmUsername, vmPassword)
 
 	// Connect and log in to ESX/i or vCenter
-	return govmomi.NewClient(ctx, url, !ValidateSSL)
+	return govmomi.NewClient(ctx, urlParsed, !ValidateSSL)
 }
 
 func setCredentials(u *url.URL, un string, pw string) {

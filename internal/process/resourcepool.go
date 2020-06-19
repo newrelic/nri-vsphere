@@ -29,7 +29,11 @@ func createResourcePoolSamples(config *load.Config) {
 
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
-			ms := createNewEntityWithMetricSet(config, entityTypeResourcePool, entityName, entityName)
+			ms, err := createNewEntityWithMetricSet(config, entityTypeResourcePool, entityName, entityName)
+			if err != nil {
+				config.Logrus.WithError(err).WithField("resourcePoolName", entityName).Error("failed to create metricSet")
+				continue
+			}
 
 			checkError(config, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
 			if config.Args.DatacenterLocation != "" {
@@ -42,7 +46,7 @@ func createResourcePoolSamples(config *load.Config) {
 				}
 			}
 
-			memTotal := (rp.Runtime.Memory.ReservationUsed + rp.Runtime.Memory.UnreservedForPool) / (1e6)
+			memTotal := (rp.Runtime.Memory.ReservationUsed + rp.Runtime.Memory.UnreservedForPool) / (1 << 20)
 			checkError(config, ms.SetMetric("mem.size", memTotal, metric.GAUGE))
 
 			summary := rp.Summary.GetResourcePoolSummary()

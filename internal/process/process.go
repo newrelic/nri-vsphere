@@ -21,7 +21,6 @@ const (
 
 // Run process samples
 func Run(config *load.Config) {
-
 	// create samples async
 	var wg sync.WaitGroup
 	wg.Add(6)
@@ -111,14 +110,15 @@ func sanitizeEntityName(config *load.Config, entityName string, datacenterName s
 	return entityName
 }
 
-func createNewEntityWithMetricSet(config *load.Config, typeEntity string, entityName string, uniqueIdentifier string) *metric.Set {
+func createNewEntityWithMetricSet(config *load.Config, typeEntity string, entityName string, uniqueIdentifier string) (*metric.Set, error) {
 	workingEntity, err := config.Integration.Entity(uniqueIdentifier, "vsphere-"+strings.ToLower(typeEntity))
 	if err != nil {
 		config.Logrus.WithError(err).Error("failed to create entity")
+		return nil, err
 	}
 
 	// entity displayName
-	workingEntity.SetInventoryItem("vsphere"+typeEntity, "name", entityName)
+	checkError(config, workingEntity.SetInventoryItem("vsphere"+typeEntity, "name", entityName))
 	ms := workingEntity.NewMetricSet("VSphere" + typeEntity + "Sample")
-	return ms
+	return ms, nil
 }

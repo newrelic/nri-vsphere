@@ -33,7 +33,11 @@ func createDatacenterSamples(config *load.Config) {
 		datacenterName := dc.Datacenter.Name
 		entityName := sanitizeEntityName(config, datacenterName, "")
 		uniqueIdentifier := entityName
-		ms := createNewEntityWithMetricSet(config, entityTypeDatacenter, entityName, uniqueIdentifier)
+		ms, err := createNewEntityWithMetricSet(config, entityTypeDatacenter, entityName, uniqueIdentifier)
+		if err != nil {
+			config.Logrus.WithError(err).WithField("datacenterName", entityName).WithField("uniqueIdentifier", uniqueIdentifier).Error("failed to create metricSet")
+			continue
+		}
 
 		for _, datastore := range dc.Datastores {
 			totalDatastoreCapacity = totalDatastoreCapacity + datastore.Summary.Capacity
@@ -48,21 +52,28 @@ func createDatacenterSamples(config *load.Config) {
 		}
 
 		for _, host := range dc.Hosts {
-			totalMHz = totalMHz + (float64(host.Summary.Hardware.CpuMhz) * float64(host.Summary.Hardware.NumCpuCores))
-			cpuOverallUsage = cpuOverallUsage + float64(host.Summary.QuickStats.OverallCpuUsage)
-			totalCpuHost = totalCpuHost + host.Summary.Hardware.NumCpuCores
-			totalMemoryHost = totalMemoryHost + host.Summary.Hardware.MemorySize/(1<<20)
-			totalMemoryUsedHost = totalMemoryUsedHost + host.Summary.QuickStats.OverallMemoryUsage
+			if host.Summary.Hardware != nil {
+				totalMHz = totalMHz + (float64(host.Summary.Hardware.CpuMhz) * float64(host.Summary.Hardware.NumCpuCores))
+				cpuOverallUsage = cpuOverallUsage + float64(host.Summary.QuickStats.OverallCpuUsage)
+				totalCpuHost = totalCpuHost + host.Summary.Hardware.NumCpuCores
+				totalMemoryHost = totalMemoryHost + host.Summary.Hardware.MemorySize/(1<<20)
+				totalMemoryUsedHost = totalMemoryUsedHost + host.Summary.QuickStats.OverallMemoryUsage
+			}
 		}
 
-		cpuPercentHost := cpuOverallUsage / totalMHz * 100
-		memoryPercentHost := float64(totalMemoryUsedHost) / float64(totalMemoryHost) * 100
+		if totalMHz != 0 {
+			cpuPercentHost := cpuOverallUsage / totalMHz * 100
+			checkError(config, ms.SetMetric("cpu.overallUsagePercentage", cpuPercentHost, metric.GAUGE))
+		}
 
-		checkError(config, ms.SetMetric("mem.usage", totalMemoryUsedHost, metric.GAUGE))
+		if totalMemoryHost != 0 {
+			memoryPercentHost := float64(totalMemoryUsedHost) / float64(totalMemoryHost) * 100
+			checkError(config, ms.SetMetric("mem.usagePercentage", memoryPercentHost, metric.GAUGE))
+		}
+
 		checkError(config, ms.SetMetric("mem.size", totalMemoryHost, metric.GAUGE))
-		checkError(config, ms.SetMetric("mem.usagePercentage", memoryPercentHost, metric.GAUGE))
+		checkError(config, ms.SetMetric("mem.usage", totalMemoryUsedHost, metric.GAUGE))
 		checkError(config, ms.SetMetric("cpu.cores", totalCpuHost, metric.GAUGE))
-		checkError(config, ms.SetMetric("cpu.overallUsagePercentage", cpuPercentHost, metric.GAUGE))
 		checkError(config, ms.SetMetric("cpu.overallUsage", cpuOverallUsage, metric.GAUGE))
 		checkError(config, ms.SetMetric("cpu.totalMHz", totalMHz, metric.GAUGE))
 

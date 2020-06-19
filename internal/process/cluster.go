@@ -13,7 +13,6 @@ func createClusterSamples(config *load.Config) {
 	for _, dc := range config.Datacenters {
 		for _, cluster := range dc.Clusters {
 			// // resolve hypervisor host
-			summary := cluster.Summary.GetComputeResourceSummary()
 			datacenterName := dc.Datacenter.Name
 
 			//Retrieving the list of host belonging to the cluster
@@ -42,7 +41,11 @@ func createClusterSamples(config *load.Config) {
 
 			entityName := sanitizeEntityName(config, cluster.Name, datacenterName)
 
-			ms := createNewEntityWithMetricSet(config, entityTypeCluster, entityName, entityName)
+			ms, err := createNewEntityWithMetricSet(config, entityTypeCluster, entityName, entityName)
+			if err != nil {
+				config.Logrus.WithError(err).WithField("clusterName", entityName).Error("failed to create metricSet")
+				continue
+			}
 
 			if config.Args.DatacenterLocation != "" {
 				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
@@ -56,16 +59,18 @@ func createClusterSamples(config *load.Config) {
 			checkError(config, ms.SetMetric("hostList", hostList, metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("datastoreList", datastoreList, metric.ATTRIBUTE))
 
-			checkError(config, ms.SetMetric("overallStatus", string(summary.OverallStatus), metric.ATTRIBUTE))
-
-			checkError(config, ms.SetMetric("cpu.cores", summary.NumCpuCores, metric.GAUGE))
-			checkError(config, ms.SetMetric("cpu.threads", summary.NumCpuThreads, metric.GAUGE))
-			checkError(config, ms.SetMetric("cpu.totalEffectiveMHz", summary.EffectiveCpu, metric.GAUGE))
-			checkError(config, ms.SetMetric("cpu.totalMHz", summary.TotalCpu, metric.GAUGE))
-			checkError(config, ms.SetMetric("mem.size", summary.TotalMemory/(1<<20), metric.GAUGE))
-			checkError(config, ms.SetMetric("mem.effectiveSize", summary.EffectiveMemory, metric.GAUGE))
-			checkError(config, ms.SetMetric("effectiveHosts", summary.NumEffectiveHosts, metric.GAUGE))
-			checkError(config, ms.SetMetric("hosts", summary.NumHosts, metric.GAUGE))
+			summary := cluster.Summary.GetComputeResourceSummary()
+			if summary != nil {
+				checkError(config, ms.SetMetric("overallStatus", string(summary.OverallStatus), metric.ATTRIBUTE))
+				checkError(config, ms.SetMetric("cpu.cores", summary.NumCpuCores, metric.GAUGE))
+				checkError(config, ms.SetMetric("cpu.threads", summary.NumCpuThreads, metric.GAUGE))
+				checkError(config, ms.SetMetric("cpu.totalEffectiveMHz", summary.EffectiveCpu, metric.GAUGE))
+				checkError(config, ms.SetMetric("cpu.totalMHz", summary.TotalCpu, metric.GAUGE))
+				checkError(config, ms.SetMetric("mem.size", summary.TotalMemory/(1<<20), metric.GAUGE))
+				checkError(config, ms.SetMetric("mem.effectiveSize", summary.EffectiveMemory, metric.GAUGE))
+				checkError(config, ms.SetMetric("effectiveHosts", summary.NumEffectiveHosts, metric.GAUGE))
+				checkError(config, ms.SetMetric("hosts", summary.NumHosts, metric.GAUGE))
+			}
 
 			//DRS metrics
 			if cluster.Configuration.DrsConfig.Enabled != nil {
