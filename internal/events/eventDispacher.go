@@ -25,7 +25,7 @@ type EventDispacher struct {
 }
 
 const (
-	maxEventCountDefault = 200
+	pageSizeDefault = 200
 )
 
 func NewEventDispacher(client *vim25.Client, mo types.ManagedObjectReference, log *logrus.Logger, resourceName string, cachePath string) (*EventDispacher, error) {
@@ -116,14 +116,14 @@ func (ed *EventDispacher) Cancel() {
 func (ed *EventDispacher) CollectEvents(eventsPageSize string) {
 	ed.log.WithField("timestamp", ed.LastTimestamp.String()).Debug("using as starting event")
 
-	for {
-		maxEventCount, err := strconv.Atoi(eventsPageSize)
-		if err != nil {
-			ed.log.WithError(err).Error("error while parsing EventsPageSize, using default value")
-			maxEventCount = maxEventCountDefault
-		}
+	pageSize, err := strconv.Atoi(eventsPageSize)
+	if err != nil {
+		ed.log.WithError(err).Error("error while parsing EventsPageSize, using default value")
+		pageSize = pageSizeDefault
+	}
 
-		eventsCollected, err := ed.collector.ReadNextEvents(*ed.ctx, int32(maxEventCount))
+	for {
+		eventsCollected, err := ed.collector.ReadNextEvents(*ed.ctx, int32(pageSize))
 		if err != nil {
 			ed.log.WithError(err).Error("error while fetching events")
 			break
@@ -131,7 +131,8 @@ func (ed *EventDispacher) CollectEvents(eventsPageSize string) {
 		ed.Events = append(ed.Events, eventsCollected...)
 		ed.log.WithField("number", len(eventsCollected)).Debug("readNextEventsExecuted")
 
-		if len(eventsCollected) == 0 || len(eventsCollected) != maxEventCount {
+		//There are no events left if: no events has been collected or if the number of events is smaller than the pagSize
+		if len(eventsCollected) == 0 || len(eventsCollected) != pageSize {
 			break
 		}
 	}
