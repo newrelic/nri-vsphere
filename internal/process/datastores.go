@@ -52,6 +52,12 @@ func createDatastoreSamples(config *load.Config) {
 
 				}
 			}
+
+			// Tags
+			tagsByCategory := dc.GetTagsByCategories(ds.Self)
+			for k, v := range tagsByCategory {
+				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+			}
 		}
 	}
 }

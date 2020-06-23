@@ -129,6 +129,12 @@ func createHostSamples(config *load.Config) {
 			}
 			checkError(config, ms.SetMetric("disk.totalMiB", diskTotalMiB, metric.GAUGE))
 
+			// Tags
+			tagsByCategory := dc.GetTagsByCategories(host.Self)
+			for k, v := range tagsByCategory {
+				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+			}
+
 		}
 	}
 }

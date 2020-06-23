@@ -4,12 +4,23 @@
 package load
 
 import (
+	"sync"
+
 	"github.com/newrelic/nri-vsphere/internal/events"
+
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
 type mor = types.ManagedObjectReference
+
+type Tag struct {
+	Name     string
+	Category string
+}
+
+// TagCategories maps the category ID with category name
+type TagCategories map[string]string
 
 // Datacenter struct
 type Datacenter struct {
@@ -21,6 +32,8 @@ type Datacenter struct {
 	Datastores      map[mor]*mo.Datastore
 	Networks        map[mor]*mo.Network
 	VirtualMachines map[mor]*mo.VirtualMachine
+	Tags            map[mor][]Tag
+	tagMux          sync.Mutex
 }
 
 // NewDatacenter Initialize datacenter struct
@@ -33,6 +46,7 @@ func NewDatacenter(datacenter *mo.Datacenter) Datacenter {
 		Datastores:      make(map[mor]*mo.Datastore),
 		Networks:        make(map[mor]*mo.Network),
 		VirtualMachines: make(map[mor]*mo.VirtualMachine),
+		Tags:            make(map[mor][]Tag),
 	}
 }
 
@@ -75,4 +89,30 @@ func (dc *Datacenter) IsDefaultResourcePool(resourcePoolReference mor) bool {
 		}
 	}
 	return false
+}
+
+// AddTags appends a tag batch to dc Tags map
+func (dc *Datacenter) AddTags(tagsByObject map[mor][]Tag) {
+	dc.tagMux.Lock()
+	defer dc.tagMux.Unlock()
+	for mor, tags := range tagsByObject {
+		for _, t := range tags {
+			dc.Tags[mor] = append(dc.Tags[mor], t)
+		}
+	}
+}
+
+// GetTagsByCategories return a map of tags categories and the corresponding tags associated to the mor
+func (dc *Datacenter) GetTagsByCategories(ref mor) map[string]string {
+	tagsByCategory := make(map[string]string)
+	if tags, ok := dc.Tags[ref]; ok {
+		for _, t := range tags {
+			if _, ok := tagsByCategory[t.Category]; ok {
+				tagsByCategory[t.Category] = tagsByCategory[t.Category] + "|" + t.Name
+			} else {
+				tagsByCategory[t.Category] = t.Name
+			}
+		}
+	}
+	return tagsByCategory
 }

@@ -149,6 +149,12 @@ func createVirtualMachineSamples(config *load.Config) {
 			checkError(config, ms.SetMetric("connectionState", fmt.Sprintf("%v", vm.Runtime.ConnectionState), metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("powerState", fmt.Sprintf("%v", vm.Runtime.PowerState), metric.ATTRIBUTE))
 
+			tagsByCategory := dc.GetTagsByCategories(vm.Self)
+
+			for k, v := range tagsByCategory {
+				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+			}
+
 		}
 	}
 }

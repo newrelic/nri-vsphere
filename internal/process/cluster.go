@@ -4,9 +4,10 @@
 package process
 
 import (
+	"strconv"
+
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/load"
-	"strconv"
 )
 
 func createClusterSamples(config *load.Config) {
@@ -99,6 +100,11 @@ func createClusterSamples(config *load.Config) {
 			checkError(config, ms.SetMetric("dasConfig.vmComponentProtecting", cluster.Configuration.DasConfig.VmComponentProtecting, metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("dasConfig.hbDatastoreCandidatePolicy", cluster.Configuration.DasConfig.HBDatastoreCandidatePolicy, metric.ATTRIBUTE))
 
+			// Tags
+			tagsByCategory := dc.GetTagsByCategories(cluster.Self)
+			for k, v := range tagsByCategory {
+				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+			}
 		}
 	}
 }

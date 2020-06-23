@@ -102,6 +102,11 @@ func createDatacenterSamples(config *load.Config) {
 		checkError(config, ms.SetMetric("resourcePools", countResourcePools, metric.GAUGE))
 		checkError(config, ms.SetMetric("clusters", len(dc.Clusters), metric.GAUGE))
 
+		// Tags
+		tagsByCategory := dc.GetTagsByCategories(dc.Datacenter.Self)
+		for k, v := range tagsByCategory {
+			checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+		}
 	}
 }
 

@@ -30,6 +30,9 @@ func Networks(config *load.Config) {
 			config.Logrus.WithError(err).Error("failed to retrieve Networks")
 			continue
 		}
+		if err := collectTags(config, networks, &config.Datacenters[i]); err != nil {
+			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
+		}
 		for j := 0; j < len(networks); j++ {
 			config.Datacenters[i].Networks[networks[j].Self] = &networks[j]
 		}

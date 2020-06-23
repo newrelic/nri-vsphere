@@ -5,6 +5,7 @@ package collect
 
 import (
 	"context"
+
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
 )
@@ -31,6 +32,9 @@ func Clusters(config *load.Config) {
 		if err != nil {
 			config.Logrus.WithError(err).Error("failed to retrieve ClusterComputeResource")
 			continue
+		}
+		if err := collectTags(config, clusters, &config.Datacenters[i]); err != nil {
+			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
 		}
 		for j := 0; j < len(clusters); j++ {
 			config.Datacenters[i].Clusters[clusters[j].Self] = &clusters[j]
