@@ -46,7 +46,7 @@ func createDatacenterSamples(config *load.Config) {
 		}
 
 		if config.IsVcenterAPIType && config.Args.EnableVsphereEvents {
-			err = processEvent(dc.EventDispacher, dcEntity)
+			err = processEvent(config, dc.EventDispacher, dcEntity)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("datacenterName", entityName).WithField("uniqueIdentifier", uniqueIdentifier).Error("failed to create metricSet")
 			}
@@ -105,12 +105,16 @@ func createDatacenterSamples(config *load.Config) {
 	}
 }
 
-func processEvent(ed *events.EventDispacher, entity *integration.Entity) error {
+func processEvent(config *load.Config, ed *events.EventDispacher, entity *integration.Entity) error {
 
 	if ed == nil {
 		return fmt.Errorf("not expecting empty EventDispacher")
 	}
 	for _, be := range ed.Events {
+		if be == nil {
+			config.Logrus.Warn("not expecting null event pointer")
+			continue
+		}
 		e := be.GetEvent()
 
 		ev := &eventSDK.Event{
@@ -135,6 +139,9 @@ func processEvent(ed *events.EventDispacher, entity *integration.Entity) error {
 		}
 		if e.Ds != nil {
 			ev.Attributes["vSphereEvent.datastore"] = e.Ds.Name
+		}
+		if e.Net != nil {
+			ev.Attributes["vSphereEvent.network"] = e.Net.Name
 		}
 		err := entity.AddEvent(ev)
 

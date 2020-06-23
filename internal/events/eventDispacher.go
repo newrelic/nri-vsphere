@@ -20,21 +20,20 @@ type EventDispacher struct {
 	LastTimestamp *time.Time
 	Events        []types.BaseEvent
 	log           *logrus.Logger
-	cacheResource string
-	cachePath     string
+	c             cache.CacheInterface
 }
 
 const (
 	pageSizeDefault = 200
 )
 
-func NewEventDispacher(client *vim25.Client, mo types.ManagedObjectReference, log *logrus.Logger, resourceName string, cachePath string) (*EventDispacher, error) {
+func NewEventDispacher(client *vim25.Client, mo types.ManagedObjectReference, log *logrus.Logger, c cache.CacheInterface) (*EventDispacher, error) {
 
 	manager := event.NewManager(client)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	now := time.Now()
-	lastTimestamp, err := cache.ReadTimestampCache(cachePath, resourceName)
+	lastTimestamp, err := c.ReadTimestampCache()
 	lastTimestamp = sanitizeTimestamp(err, log, lastTimestamp, now)
 
 	log.WithField("lastTimestamp", lastTimestamp.String()).Debug("Creating collector for events")
@@ -61,8 +60,7 @@ func NewEventDispacher(client *vim25.Client, mo types.ManagedObjectReference, lo
 		ctx:           &ctx,
 		Events:        []types.BaseEvent{},
 		log:           log,
-		cachePath:     cachePath,
-		cacheResource: resourceName,
+		c:             c,
 	}
 	return &ed, nil
 }
@@ -99,18 +97,21 @@ func sanitizeTimestamp(err error, log *logrus.Logger, lastTimestamp time.Time, n
 
 func (ed *EventDispacher) Cancel() {
 	ed.cancelCtx()
-	ed.log.WithField("date", ed.LastTimestamp).Debug("saving in cache last read message ")
+	t := ed.LastTimestamp
 
+	//computing last timestamp processed
 	for _, e := range ed.Events {
-		if ed.LastTimestamp.Before(e.GetEvent().CreatedTime) {
-			ed.LastTimestamp = &e.GetEvent().CreatedTime
+		if t.Before(e.GetEvent().CreatedTime) {
+			t = &e.GetEvent().CreatedTime
 		}
 	}
 
-	err := cache.WriteTimestampCache(ed.cachePath, ed.cacheResource, *ed.LastTimestamp)
+	ed.log.WithField("date", t).Debug("saving in cache last read message")
+	err := ed.c.WriteTimestampCache(*t)
 	if err != nil {
 		ed.log.WithError(err).Error("error while saving cache")
 	}
+	ed.LastTimestamp = t
 }
 
 func (ed *EventDispacher) CollectEvents(eventsPageSize string) {

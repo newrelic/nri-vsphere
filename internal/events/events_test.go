@@ -3,8 +3,6 @@ package events
 import (
 	"context"
 	"fmt"
-	"github.com/newrelic/nri-vsphere/internal/cache"
-
 	logrus "github.com/sirupsen/Logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmware/govmomi"
@@ -19,10 +17,6 @@ func TestEvents(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	//SettingUp integration
-	cache.ReadTimestampCache = readTimestampCacheMock
-	cache.WriteTimestampCache = writeTimestampCacheMock
 
 	//SettingUp Simulator
 	model := simulator.VPX()
@@ -45,22 +39,23 @@ func TestEvents(t *testing.T) {
 		logrus.WithError(err).Fatal("failed to create Datacenter container view")
 	}
 	err = cv.Retrieve(ctx, []string{"Datacenter"}, []string{"name", "overallStatus"}, &datacenters)
+	ca := NewCacheMock{}
 
 	//https://pubs.vmware.com/vsphere-51/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.HistoryCollector.html
-	ed, err := NewEventDispacher(c.Client, datacenters[0].Reference(), logrus.New(), datacenters[0].Name, "notwritingCacheInTests")
+	ed, err := NewEventDispacher(c.Client, datacenters[0].Reference(), logrus.New(), &ca)
 	assert.NoError(t, err)
 
 	ed.CollectEvents("5")
 	assert.Equal(t, 10, len(ed.Events), "We were expecting 10 events")
 	ed.Cancel()
 
-	ed2, err := NewEventDispacher(c.Client, datacenters[0].Reference(), logrus.New(), datacenters[0].Name, "notwritingCacheInTests")
+	ed2, err := NewEventDispacher(c.Client, datacenters[0].Reference(), logrus.New(), &ca)
 	assert.NoError(t, err)
 	ed2.CollectEvents("noParsable")
 	assert.Equal(t, 10, len(ed2.Events), "We were expecting 10 events")
 	ed2.Cancel()
 
-	ed3, err := NewEventDispacher(c.Client, datacenters[0].Reference(), logrus.New(), datacenters[0].Name, "notwritingCacheInTests")
+	ed3, err := NewEventDispacher(c.Client, datacenters[0].Reference(), logrus.New(), &ca)
 	assert.NoError(t, err)
 	ed3.CollectEvents("3")
 	assert.Equal(t, 10, len(ed.Events), "We were expecting 10 events")
@@ -89,6 +84,8 @@ func TestEvents(t *testing.T) {
 
 }
 
+type NewCacheMock struct{}
+
 func TestSanitizeTimestamp(t *testing.T) {
 	now := time.Now()
 	log := logrus.New()
@@ -112,10 +109,10 @@ func TestSanitizeTimestamp(t *testing.T) {
 
 }
 
-func readTimestampCacheMock(c string, v string) (time.Time, error) {
+func (*NewCacheMock) ReadTimestampCache() (time.Time, error) {
 	return time.Now(), nil
 }
 
-func writeTimestampCacheMock(c string, v string, t time.Time) error {
+func (*NewCacheMock) WriteTimestampCache(t time.Time) error {
 	return nil
 }

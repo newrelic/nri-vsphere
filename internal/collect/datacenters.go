@@ -5,6 +5,7 @@ package collect
 
 import (
 	"context"
+	"github.com/newrelic/nri-vsphere/internal/cache"
 	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -40,7 +41,8 @@ func Datacenters(config *load.Config) {
 func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Datacenter) {
 	//https://pubs.vmware.com/vsphere-51/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.HistoryCollector.html
 
-	ed, err := events.NewEventDispacher(config.VMWareClient.Client, d.Self, config.Logrus, d.Name, config.CachePath)
+	c := cache.NewCache(d.Name, config.CachePath)
+	ed, err := events.NewEventDispacher(config.VMWareClient.Client, d.Self, config.Logrus, c)
 	if err != nil {
 		config.Logrus.WithError(err).Error("error while creating event Dispatcher")
 		return

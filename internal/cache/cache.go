@@ -11,13 +11,24 @@ import (
 
 type Cache struct {
 	LastTimestamp string `json:"lastTimestamp"`
+	resourceName  string
+	cachePath     string
 }
 
-var ReadTimestampCache = readTimestampCache
-var WriteTimestampCache = writeTimestampCache
+type CacheInterface interface {
+	ReadTimestampCache() (time.Time, error)
+	WriteTimestampCache(lastTimestamp time.Time) error
+}
 
-func readTimestampCache(directoryPath string, resourceName string) (time.Time, error) {
-	filePath := path.Join(directoryPath, getName(resourceName))
+func NewCache(resourceName string, cachePath string) *Cache {
+	return &Cache{
+		resourceName: resourceName,
+		cachePath:    cachePath,
+	}
+}
+
+func (c *Cache) ReadTimestampCache() (time.Time, error) {
+	filePath := path.Join(c.cachePath, getName(c.resourceName))
 
 	jsonFile, err := os.Open(filePath)
 	if err != nil {
@@ -29,22 +40,23 @@ func readTimestampCache(directoryPath string, resourceName string) (time.Time, e
 	if err != nil {
 		return time.Time{}, fmt.Errorf("error while reading cache file: %s, ", err.Error())
 	}
-	var c Cache
-	err = json.Unmarshal(byteValue, &c)
+	var tmpC Cache
+	err = json.Unmarshal(byteValue, &tmpC)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("error while unmashalling cache file content: %s, ", err.Error())
 	}
+	c.LastTimestamp = tmpC.LastTimestamp
 
 	timestamp, err := time.Parse(time.RFC1123, c.LastTimestamp)
 	return timestamp, err
 }
 
-func writeTimestampCache(directoryPath string, resourceName string, lastTimestamp time.Time) error {
-	filePath := path.Join(directoryPath, getName(resourceName))
+func (c *Cache) WriteTimestampCache(lastTimestamp time.Time) error {
+	filePath := path.Join(c.cachePath, getName(c.resourceName))
 
-	err := os.Mkdir(directoryPath, 0755)
+	err := os.Mkdir(c.cachePath, 0755)
 	if err != nil && !os.IsExist(err) {
-		return fmt.Errorf("error whilecreating directory: %s, %s ", err.Error(), directoryPath)
+		return fmt.Errorf("error whilecreating directory: %s, %s ", err.Error(), c.cachePath)
 	}
 
 	jsonFile, err := os.OpenFile(filePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
@@ -53,14 +65,12 @@ func writeTimestampCache(directoryPath string, resourceName string, lastTimestam
 	}
 	defer jsonFile.Close()
 
-	c := Cache{
-		LastTimestamp: lastTimestamp.Format(time.RFC1123),
-	}
+	c.LastTimestamp = lastTimestamp.Format(time.RFC1123)
 	s, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
-	_, err = jsonFile.WriteAt([]byte(s), 0)
+	_, err = jsonFile.WriteAt(s, 0)
 	return err
 }
 
