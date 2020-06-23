@@ -4,6 +4,7 @@
 package load
 
 import (
+	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
@@ -13,6 +14,7 @@ type mor = types.ManagedObjectReference
 // Datacenter struct
 type Datacenter struct {
 	Datacenter      *mo.Datacenter
+	EventDispacher  *events.EventDispacher
 	Hosts           map[mor]*mo.HostSystem
 	Clusters        map[mor]*mo.ClusterComputeResource
 	ResourcePools   map[mor]*mo.ResourcePool

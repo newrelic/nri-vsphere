@@ -8,6 +8,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"reflect"
@@ -19,7 +20,6 @@ import (
 )
 
 func TestMainFunction(t *testing.T) {
-
 	expectedOutput, err := ioutil.ReadFile("./expectedOutput/default")
 	if err != nil {
 		panic(err)
@@ -55,7 +55,10 @@ func exectuteIntegration() ([]byte, []byte) {
 	cmdLine = append(cmdLine, "/go/src/github.com/newrelic/nri-vsphere/bin/nri-vsphere",
 		"-user", "user",
 		"-pass", "pass",
-		"-url", "127.0.0.1:8989/sdk")
+		"-url", "127.0.0.1:8989/sdk",
+		//"-agent_dir", "./testDir", //Since the datacenter is loaded in vcsim, no event is available
+		//"-enable_vsphere_events",
+	)
 
 	cmd := exec.Command("docker", cmdLine...)
 
@@ -65,6 +68,8 @@ func exectuteIntegration() ([]byte, []byte) {
 
 	err := cmd.Run()
 	if err != nil {
+		errOut := errbuf.Bytes()
+		fmt.Println(string(errOut))
 		panic(err)
 	}
 

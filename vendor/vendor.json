@@ -9,6 +9,13 @@
 			"revisionTime": "2018-08-30T19:11:22Z"
 		},
 		{
+			"checksumSHA1": "WMTjT/WhwABW0CP22n1KeXxb96w=",
+			"origin": "github.com/vmware/govmomi/vendor/github.com/google/uuid",
+			"path": "github.com/google/uuid",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
 			"checksumSHA1": "Aulh7C5SVOA4Jzt5eHNH6197Mbk=",
 			"path": "github.com/konsorten/go-windows-terminal-sequences",
 			"revision": "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e",
@@ -93,6 +100,24 @@
 			"revisionTime": "2020-02-13T16:48:48Z"
 		},
 		{
+			"checksumSHA1": "hltH0xc9tSkPRhQKx4Ho8iNcWn0=",
+			"path": "github.com/vmware/govmomi/event",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
+			"checksumSHA1": "l7IzLaacLABFRC4aXE7Nus+mjOQ=",
+			"path": "github.com/vmware/govmomi/find",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
+			"checksumSHA1": "J3JrwZagGYMX6oNMkdsUFf8hHo8=",
+			"path": "github.com/vmware/govmomi/list",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
 			"checksumSHA1": "EUDBxovQmAgVOoB1TAQbLX1HQ7I=",
 			"path": "github.com/vmware/govmomi/nfc",
 			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
@@ -105,6 +130,12 @@
 			"revisionTime": "2020-02-13T16:48:48Z"
 		},
 		{
+			"checksumSHA1": "42MZorvY3Q3k2BwqTEIvJ/9irO8=",
+			"path": "github.com/vmware/govmomi/ovf",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
 			"checksumSHA1": "sZU1R8HGyHxwGj4vY7oOYvYLHaA=",
 			"path": "github.com/vmware/govmomi/property",
 			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
@@ -113,6 +144,30 @@
 		{
 			"checksumSHA1": "ofUKVSYkXDvZexumWMAL1v0TnWM=",
 			"path": "github.com/vmware/govmomi/session",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
+			"checksumSHA1": "ociiGScuMzoXOmUQToRafOAvu78=",
+			"path": "github.com/vmware/govmomi/simulator",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
+			"checksumSHA1": "tPUy5ckuRcNSroe+kj8PH/edRuo=",
+			"path": "github.com/vmware/govmomi/simulator/esx",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
+			"checksumSHA1": "W63fE4115rnJfTI9mWcFbYg0yVQ=",
+			"path": "github.com/vmware/govmomi/simulator/internal",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
+			"checksumSHA1": "N7/PU8k8V+TLmvR84KxedhLPswQ=",
+			"path": "github.com/vmware/govmomi/simulator/vpx",
 			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
 			"revisionTime": "2020-02-13T16:48:48Z"
 		},
@@ -189,5 +244,5 @@
 			"revisionTime": "2019-11-19T21:27:36Z"
 		}
 	],
-	"rootPath": "github.com/newrelic/nri-vmware-vsphere"
+	"rootPath": "github.com/newrelic/nri-vsphere"
 }

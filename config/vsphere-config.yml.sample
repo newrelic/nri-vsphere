@@ -9,6 +9,7 @@ integrations:
       - administrator@vsphere.local
       - --pass
       - Example!
+      - enable_vsphere_events
       # - --validate_ssl # if you require SSL validation enable
       # Datacenter location label can be added to all entities in this vSphere platform
       # - --datacenter_location

@@ -41,7 +41,7 @@ func createClusterSamples(config *load.Config) {
 
 			entityName := sanitizeEntityName(config, cluster.Name, datacenterName)
 
-			ms, err := createNewEntityWithMetricSet(config, entityTypeCluster, entityName, entityName)
+			_, ms, err := createNewEntityWithMetricSet(config, entityTypeCluster, entityName, entityName)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("clusterName", entityName).Error("failed to create metricSet")
 				continue

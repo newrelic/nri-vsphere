@@ -14,7 +14,7 @@ INTEGRATION  := vsphere
 SHORT_INTEGRATION  := vsphere
 BINARY_NAME   = nri-$(INTEGRATION)
 
-GOTOOLS       = github.com/kardianos/govendor gopkg.in/alecthomas/gometalinter.v2 github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
+GOTOOLS       = github.com/kardianos/govendor  github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
 
 all: build

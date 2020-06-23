@@ -4,10 +4,9 @@
 package process
 
 import (
-	"strconv"
-
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/load"
+	"strconv"
 )
 
 func createHostSamples(config *load.Config) {
@@ -30,7 +29,7 @@ func createHostSamples(config *load.Config) {
 
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
-			ms, err := createNewEntityWithMetricSet(config, entityTypeHost, entityName, uuid)
+			_, ms, err := createNewEntityWithMetricSet(config, entityTypeHost, entityName, uuid)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("hostName", entityName).WithField("uuid", uuid).Error("failed to create metricSet")
 				continue

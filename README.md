@@ -49,7 +49,7 @@ Refer to [our docs site](https://docs.newrelic.com/docs/infrastructure/integrati
 
 ## Support
 
-Need help? See our [troubleshooting page](troubleshooting.md). You can find more detailed documentation [on the New Relic docs site](http://newrelic.com/docs).
+You can find more detailed documentation [on the New Relic docs site](http://newrelic.com/docs).
 
 If you can't find what you're looking for there, reach out to us on our [support site](http://support.newrelic.com/) or our [community forum](http://forum.newrelic.com) and we'll be happy to help you.
 

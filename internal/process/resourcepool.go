@@ -29,7 +29,7 @@ func createResourcePoolSamples(config *load.Config) {
 
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
-			ms, err := createNewEntityWithMetricSet(config, entityTypeResourcePool, entityName, entityName)
+			_, ms, err := createNewEntityWithMetricSet(config, entityTypeResourcePool, entityName, entityName)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("resourcePoolName", entityName).Error("failed to create metricSet")
 				continue
