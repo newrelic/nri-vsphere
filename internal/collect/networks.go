@@ -25,7 +25,7 @@ func Networks(config *load.Config) {
 
 		var networks []mo.Network
 		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.Network.html
-		err = cv.Retrieve(ctx, []string{"Network"}, nil, &networks)
+		err = cv.Retrieve(ctx, []string{"Network"}, []string{"name"}, &networks)
 		if err != nil {
 			config.Logrus.WithError(err).Error("failed to retrieve Networks")
 			continue

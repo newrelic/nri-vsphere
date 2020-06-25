@@ -25,7 +25,7 @@ func Datastores(config *load.Config) {
 
 		var datastores []mo.Datastore
 		// Reference: https://code.vmware.com/apis/42/vsphere/doc/vim.Datastore.html
-		err = cv.Retrieve(ctx, []string{"Datastore"}, nil, &datastores)
+		err = cv.Retrieve(ctx, []string{"Datastore"}, []string{"name", "summary", "overallStatus", "vm", "host", "info"}, &datastores)
 		if err != nil {
 			config.Logrus.WithError(err).Error("failed to retrieve Datastore")
 			continue
