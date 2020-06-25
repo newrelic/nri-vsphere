@@ -4,11 +4,12 @@
 package process
 
 import (
+	"strings"
+	"sync"
+
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vsphere/internal/load"
-	"strings"
-	"sync"
 )
 
 const (

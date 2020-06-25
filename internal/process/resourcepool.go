@@ -66,6 +66,12 @@ func createResourcePoolSamples(config *load.Config) {
 
 			checkError(config, ms.SetMetric("overallStatus", string(rp.OverallStatus), metric.ATTRIBUTE))
 
+			// Tags
+			tagsByCategory := dc.GetTagsByCategories(rp.Self)
+			for k, v := range tagsByCategory {
+				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+			}
+
 		}
 	}
 }

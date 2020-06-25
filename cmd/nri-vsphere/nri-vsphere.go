@@ -16,6 +16,7 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/newrelic/nri-vsphere/internal/process"
 	logrus "github.com/sirupsen/Logrus"
+	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/view"
 )
 
@@ -50,7 +51,19 @@ func main() {
 	}
 
 	if !config.IsVcenterAPIType && config.Args.EnableVsphereEvents {
-		config.Logrus.Fatal("It is not possible to fetch events from the vCenter if the integration is pointing to an host")
+		config.Logrus.Warn("It is not possible to fetch events from the vCenter if the integration is pointing to an host")
+	}
+
+	if !config.IsVcenterAPIType && config.Args.EnableVsphereTags {
+		config.Logrus.Warn("It is not possible to fetch Tags from the vCenter if the integration is pointing to an host")
+	}
+
+	if config.IsVcenterAPIType && config.Args.EnableVsphereTags {
+		config.VMWareClientRest, err = client.NewRest(config.VMWareClient, config.Args.User, config.Args.Pass)
+		if err != nil {
+			config.Logrus.WithError(err).Fatal("failed to create client rest")
+		}
+		config.TagsManager = tags.NewManager(config.VMWareClientRest)
 	}
 
 	config.ViewManager = view.NewManager(config.VMWareClient.Client)

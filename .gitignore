@@ -30,3 +30,5 @@ versioninfo.json
 target/
 
 coverage.xml
+vendor/*
+!vendor/vendor.json

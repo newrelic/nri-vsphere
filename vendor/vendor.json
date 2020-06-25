@@ -12,8 +12,8 @@
 			"checksumSHA1": "WMTjT/WhwABW0CP22n1KeXxb96w=",
 			"origin": "github.com/vmware/govmomi/vendor/github.com/google/uuid",
 			"path": "github.com/google/uuid",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
 			"checksumSHA1": "Aulh7C5SVOA4Jzt5eHNH6197Mbk=",
@@ -94,10 +94,10 @@
 			"revisionTime": "2019-12-08T04:46:47Z"
 		},
 		{
-			"checksumSHA1": "x/dhyB+Oj9+Th86jKJCjZvHnmjU=",
+			"checksumSHA1": "c/ciaqvbsrPsZWW1xVU2hMxqhPo=",
 			"path": "github.com/vmware/govmomi",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
 			"checksumSHA1": "hltH0xc9tSkPRhQKx4Ho8iNcWn0=",
@@ -108,8 +108,20 @@
 		{
 			"checksumSHA1": "l7IzLaacLABFRC4aXE7Nus+mjOQ=",
 			"path": "github.com/vmware/govmomi/find",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "l7IzLaacLABFRC4aXE7Nus+mjOQ=",
+			"path": "github.com/vmware/govmomi/find",
 			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
 			"revisionTime": "2020-02-13T16:48:48Z"
+		},
+		{
+			"checksumSHA1": "J3JrwZagGYMX6oNMkdsUFf8hHo8=",
+			"path": "github.com/vmware/govmomi/list",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
 			"checksumSHA1": "J3JrwZagGYMX6oNMkdsUFf8hHo8=",
@@ -120,14 +132,20 @@
 		{
 			"checksumSHA1": "EUDBxovQmAgVOoB1TAQbLX1HQ7I=",
 			"path": "github.com/vmware/govmomi/nfc",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
-			"checksumSHA1": "wjPTZS8MzNm3PqDnvnNrKgk+hxU=",
+			"checksumSHA1": "bgqS2X5c434kevkgIdWNJNMB7Mw=",
 			"path": "github.com/vmware/govmomi/object",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "42MZorvY3Q3k2BwqTEIvJ/9irO8=",
+			"path": "github.com/vmware/govmomi/ovf",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
 			"checksumSHA1": "42MZorvY3Q3k2BwqTEIvJ/9irO8=",
@@ -138,14 +156,20 @@
 		{
 			"checksumSHA1": "sZU1R8HGyHxwGj4vY7oOYvYLHaA=",
 			"path": "github.com/vmware/govmomi/property",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
-			"checksumSHA1": "ofUKVSYkXDvZexumWMAL1v0TnWM=",
+			"checksumSHA1": "BRnJtAqZcQhJjLTA1aK1xUVJSLg=",
 			"path": "github.com/vmware/govmomi/session",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "ekW82uyVqULSyj2kt1NFmA1VV7I=",
+			"path": "github.com/vmware/govmomi/simulator",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
 			"checksumSHA1": "ociiGScuMzoXOmUQToRafOAvu78=",
@@ -160,6 +184,18 @@
 			"revisionTime": "2020-02-13T16:48:48Z"
 		},
 		{
+			"checksumSHA1": "C7bv0/X53d+oCrRtezDcBt1DMN0=",
+			"path": "github.com/vmware/govmomi/simulator/esx",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "W63fE4115rnJfTI9mWcFbYg0yVQ=",
+			"path": "github.com/vmware/govmomi/simulator/internal",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
 			"checksumSHA1": "W63fE4115rnJfTI9mWcFbYg0yVQ=",
 			"path": "github.com/vmware/govmomi/simulator/internal",
 			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
@@ -172,67 +208,109 @@
 			"revisionTime": "2020-02-13T16:48:48Z"
 		},
 		{
+			"checksumSHA1": "N7/PU8k8V+TLmvR84KxedhLPswQ=",
+			"path": "github.com/vmware/govmomi/simulator/vpx",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
 			"checksumSHA1": "coQkwTxOsoRpFXJazCARceKBO2g=",
 			"path": "github.com/vmware/govmomi/task",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "bSy7EI4y5ghjnEbp2psbKh4ue0Y=",
+			"path": "github.com/vmware/govmomi/vapi/internal",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "hNFQR648elhOUdw2ZFMOn+6/uxo=",
+			"path": "github.com/vmware/govmomi/vapi/library",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "eHxUefLxkmkl/Ut/9kqG0oitmnI=",
+			"path": "github.com/vmware/govmomi/vapi/rest",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "LKyIg0xawlf6oCV3qFj9UT/XdBE=",
+			"path": "github.com/vmware/govmomi/vapi/simulator",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "mimokaUyx21+Iiy36BnUQmkYWBI=",
+			"path": "github.com/vmware/govmomi/vapi/tags",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "8weVs+KEHNDipm2sqfvsZiIFM8E=",
+			"path": "github.com/vmware/govmomi/vapi/vcenter",
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
 			"checksumSHA1": "hL0ZdFA43lqfSKo7nbYgH5PxFo0=",
 			"path": "github.com/vmware/govmomi/view",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
-			"checksumSHA1": "XckNp4HjO4Ex57OrwfEJuV2g55s=",
+			"checksumSHA1": "O3cuu7r9A6CYc/sE2ibXt5QlRqs=",
 			"path": "github.com/vmware/govmomi/vim25",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
 			"checksumSHA1": "ZmoqIbWy19dUnMpr5v9fpCAOssI=",
 			"path": "github.com/vmware/govmomi/vim25/debug",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
 			"checksumSHA1": "dokEARJm/4jSgdaR5q+sU0j1L80=",
 			"path": "github.com/vmware/govmomi/vim25/methods",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
 			"checksumSHA1": "K/P/dTHH5OELqtUv3zsS/aGXRyw=",
 			"path": "github.com/vmware/govmomi/vim25/mo",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
 			"checksumSHA1": "xRDnDr6TJa+3oM1eaW3korXftXM=",
 			"path": "github.com/vmware/govmomi/vim25/progress",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
-			"checksumSHA1": "MHhFn/8jRn/XPuo9thD8WacaAjY=",
+			"checksumSHA1": "0E35Y6WtXxUBBYPAK+kefXTGXF8=",
 			"path": "github.com/vmware/govmomi/vim25/soap",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
-			"checksumSHA1": "IscW/+qq8sDb5gs1wXe2IfD6dmE=",
+			"checksumSHA1": "Ovu7DVIaQHcMZ51IVsTR+04ka5s=",
 			"path": "github.com/vmware/govmomi/vim25/types",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
-			"checksumSHA1": "6XLRzLEvncx5ORtvBjp41KfRTjc=",
+			"checksumSHA1": "SXtg3E/mkfP8JqEpbuvhPhQHNzA=",
 			"path": "github.com/vmware/govmomi/vim25/xml",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
+			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
+			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
-			"checksumSHA1": "vCpO3bbmJGdMlbvHIwz8CJ8SimI=",
+			"checksumSHA1": "Du5Dm7trh+tM907aW9eQXj2Jvgs=",
 			"path": "golang.org/x/sys/unix",
 			"revision": "ac6580df4449443a05718fd7858c1f91ad5f8d20",
 			"revisionTime": "2019-12-09T02:16:22Z"

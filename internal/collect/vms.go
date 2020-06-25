@@ -34,6 +34,11 @@ func VirtualMachines(config *load.Config) {
 			config.Logrus.WithError(err).Error("failed to retrieve VM Summaries")
 			continue
 		}
+
+		if err := collectTags(config, vms, &config.Datacenters[i]); err != nil {
+			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
+		}
+
 		for j := 0; j < len(vms); j++ {
 			config.Datacenters[i].VirtualMachines[vms[j].Self] = &vms[j]
 		}

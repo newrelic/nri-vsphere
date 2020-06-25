@@ -10,6 +10,8 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	logrus "github.com/sirupsen/Logrus"
 	"github.com/vmware/govmomi"
+	"github.com/vmware/govmomi/vapi/rest"
+	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/view"
 )
 
@@ -24,6 +26,7 @@ type ArgumentList struct {
 	DatacenterLocation  string `default:"" help:"Datacenter Location of your vCenter or ESXi Host eg. sydney-ultimo"`
 	EventsPageSize      string `default:"100" help:"Number of events fetched from the vCenter for each page"`
 	EnableVsphereEvents bool   `default:"false" help:"If set the integration will collect as well vSphere events at datacenter level"`
+	EnableVsphereTags   bool   `default:"false" help:"If true tags will be collected. Tags are available when connecting to vcenter"`
 	AgentDir            string `default:"" help:"Agent Directory, injected by agent to save cache in Linux environments, es: /var/db/newrelic-infra" os:"linux"`
 	AppDataDir          string `default:"" help:"Agent Data Directory, injected by agent to save cache in Windows environments, es: %PROGRAMDATA%\\New Relic\\newrelic-infra" os:"windows"`
 	ValidateSSL         bool   `default:"false" help:"Validate SSL"`
@@ -42,8 +45,11 @@ type Config struct {
 	IntegrationNameShort string                   // IntegrationNameShort Short Name
 	IntegrationVersion   string                   // IntegrationVersion Version
 	VMWareClient         *govmomi.Client          // VMWareClient Client
+	VMWareClientRest     *rest.Client             // VMWareClientRest Client
 	ViewManager          *view.Manager            // ViewManager Client
+	TagsManager          *tags.Manager            // TagsManager Client
 	Datacenters          []Datacenter             // Datacenters VMWare
+	TagsByID             TagsByID                 // Lists of tags by id
 	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
 }
 
@@ -55,5 +61,6 @@ func NewConfig(buildVersion string) *Config {
 		IntegrationVersion:   buildVersion,
 		StartTime:            time.Now().UnixNano() / int64(time.Millisecond),
 		IsVcenterAPIType:     false,
+		TagsByID:             make(map[string]Tag),
 	}
 }
