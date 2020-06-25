@@ -19,26 +19,16 @@ import (
 	"github.com/vmware/govmomi/view"
 )
 
-var (
-	buildVersion = "0.0.0" // set by -ldflags on build
-)
-
 func main() {
-
-	config := load.NewConfig(buildVersion)
+	config := load.NewConfig()
 
 	err := infraIntegration(config)
 	if err != nil {
 		config.Logrus.WithError(err).Fatal("failed to initialize integration")
 	}
-	setupLogger(config)
-	if config.Args.Version == true {
-		config.Logrus.Infof("integration version: %s", buildVersion)
-		return
-	}
-	config.Logrus.Debugf("integration version: %s", buildVersion)
 
 	checkAndSanitizeConfig(config)
+	setupLogger(config)
 
 	config.VMWareClient, err = client.New(config.Args.URL, config.Args.User, config.Args.Pass, config.Args.ValidateSSL)
 	if err != nil {
