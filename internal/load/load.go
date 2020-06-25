@@ -49,7 +49,7 @@ type Config struct {
 	ViewManager          *view.Manager            // ViewManager Client
 	TagsManager          *tags.Manager            // TagsManager Client
 	Datacenters          []Datacenter             // Datacenters VMWare
-	TagCategories        TagCategories            // Tags categories
+	TagsByID             TagsByID                 // Lists of tags by id
 	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
 }
 
@@ -61,6 +61,6 @@ func NewConfig(buildVersion string) *Config {
 		IntegrationVersion:   buildVersion,
 		StartTime:            time.Now().UnixNano() / int64(time.Millisecond),
 		IsVcenterAPIType:     false,
-		TagCategories:        make(map[string]string),
+		TagsByID:             make(map[string]Tag),
 	}
 }

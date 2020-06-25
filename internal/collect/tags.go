@@ -15,15 +15,27 @@ import (
 // https://www.vmware.com/content/dam/digitalmarketing/vmware/en/pdf/techpaper/performance/tagging-vsphere67-perf.pdf
 const maxBatchSize = 2000
 
-// TagCategories retreive all tag categories from vcenter and store them for future use
-func collectTagCategories(tc load.TagCategories, tm *tags.Manager) error {
+// collectTagAndCategories retreive all tag and categories from vcenter and store them for future un-map from id
+func collectTagsByID(t load.TagsByID, tm *tags.Manager) error {
 	ctx := context.Background()
+
 	categories, err := tm.GetCategories(ctx)
 	if err != nil {
 		return err
 	}
+	categoriesByID := make(map[string]string)
 	for _, c := range categories {
-		tc[c.ID] = c.Name
+		categoriesByID[c.ID] = c.Name
+	}
+
+	tags, err := tm.GetTags(ctx)
+	if err != nil {
+		return err
+	}
+	for _, tag := range tags {
+		if category, ok := categoriesByID[tag.CategoryID]; ok {
+			t[tag.ID] = load.Tag{Name: tag.Name, Category: category}
+		}
 	}
 	return nil
 }
@@ -72,7 +84,7 @@ func collectTags(config *load.Config, managedObjectsSlice interface{}, dc *load.
 		return nil
 	}
 
-	tagsByObject, err := getTags(ref, config.TagsManager, config.TagCategories)
+	tagsByObject, err := getTags(ref, config.TagsManager, config.TagsByID)
 	if err != nil {
 		return fmt.Errorf("failed to collect tags:%v", err)
 	}
@@ -82,14 +94,15 @@ func collectTags(config *load.Config, managedObjectsSlice interface{}, dc *load.
 	return nil
 }
 
-func getTags(ref []mo.Reference, tm *tags.Manager, tc load.TagCategories) (map[types.ManagedObjectReference][]load.Tag, error) {
+// getTags returns all tags attached to objects in ref grouped bye the object reference
+func getTags(ref []mo.Reference, tm *tags.Manager, tagsByID load.TagsByID) (map[types.ManagedObjectReference][]load.Tag, error) {
 	ctx := context.Background()
 
 	var attachedTags []tags.AttachedTags
 	for i := 0; i < len(ref); i += maxBatchSize {
 		batch := ref[i:min(i+maxBatchSize, len(ref))]
 
-		tags, err := tm.GetAttachedTagsOnObjects(ctx, batch)
+		tags, err := tm.ListAttachedTagsOnObjects(ctx, batch)
 		if err != nil {
 			return nil, fmt.Errorf("fail to get tags:%v", err)
 		}
@@ -100,10 +113,9 @@ func getTags(ref []mo.Reference, tm *tags.Manager, tc load.TagCategories) (map[t
 	tagsByObject := make(map[types.ManagedObjectReference][]load.Tag)
 	for _, object := range attachedTags {
 		r := object.ObjectID.Reference()
-		for _, tag := range object.Tags {
-			if category, ok := tc[tag.CategoryID]; ok {
-				t := load.Tag{Name: tag.Name, Category: category}
-				tagsByObject[r] = append(tagsByObject[r], t)
+		for _, tagID := range object.TagIDs {
+			if tag, ok := tagsByID[tagID]; ok {
+				tagsByObject[r] = append(tagsByObject[r], tag)
 			}
 		}
 	}

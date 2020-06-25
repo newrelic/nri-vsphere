@@ -31,7 +31,7 @@ func Datacenters(config *load.Config) {
 	}
 
 	if config.Args.EnableVsphereTags && config.IsVcenterAPIType {
-		collectTagCategories(config.TagCategories, config.TagsManager)
+		collectTagsByID(config.TagsByID, config.TagsManager)
 	}
 
 	for i, d := range datacenters {

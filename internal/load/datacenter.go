@@ -19,8 +19,8 @@ type Tag struct {
 	Category string
 }
 
-// TagCategories maps the category ID with category name
-type TagCategories map[string]string
+// TagsByID maps the tag ID with the Tag
+type TagsByID map[string]Tag
 
 // Datacenter struct
 type Datacenter struct {
