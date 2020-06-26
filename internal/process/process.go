@@ -19,6 +19,7 @@ const (
 	entityTypeResourcePool = "ResourcePool"
 	entityTypeVm           = "Vm"
 	entityTypeDatastore    = "Datastore"
+	entityTypeSnapshotVm   = "SnapshotVm"
 )
 
 // Run process samples
