@@ -67,7 +67,7 @@ func findSnapshotAndUpdateInfoMemory(snapshostFiles []types.VirtualMachineFileLa
 // It adds a new sample for each snapshot following the whole tree in a recursive way
 func traverseSnapshotList(e *integration.Entity, config *load.Config, tree types.VirtualMachineSnapshotTree, treeInfo string, info map[types.ManagedObjectReference]*infoSnapshot) {
 
-	ms := e.NewMetricSet("VSphere" + entityTypeSnapshotVm + "Sample")
+	ms := e.NewMetricSet("VSphere" + sampleTypeSnapshotVm + "Sample")
 	treeInfo = treeInfo + ":" + tree.Name
 	createMetricsCurrentSnapshot(treeInfo, tree, config, ms, info)
 
