@@ -5,6 +5,7 @@ package process
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/load"
@@ -46,7 +47,7 @@ func createVirtualMachineSamples(config *load.Config) {
 			// Unique identifier for the vm entity
 			instanceUuid := vm.Config.InstanceUuid
 
-			_, ms, err := createNewEntityWithMetricSet(config, entityTypeVm, entityName, instanceUuid)
+			e, ms, err := createNewEntityWithMetricSet(config, entityTypeVm, entityName, instanceUuid)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("vmName", entityName).WithField("instanceUuid", instanceUuid).Error("failed to create metricSet")
 				continue
@@ -138,7 +139,9 @@ func createVirtualMachineSamples(config *load.Config) {
 
 			// disk
 			if vm.Summary.Storage != nil {
+				checkError(config, ms.SetMetric("disk.totalUncommittedMiB", vm.Summary.Storage.Uncommitted/(1<<20), metric.GAUGE))
 				checkError(config, ms.SetMetric("disk.totalMiB", vm.Summary.Storage.Committed/(1<<20), metric.GAUGE))
+				checkError(config, ms.SetMetric("disk.totalUnsharedMiB", vm.Summary.Storage.Unshared/(1<<20), metric.GAUGE))
 			}
 
 			// network
@@ -155,6 +158,15 @@ func createVirtualMachineSamples(config *load.Config) {
 				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
 			}
 
+			if vm.Snapshot != nil && config.Args.EnableVsphereSnapshots {
+				infoSnapshot, suspendMemory, suspendMemoryUnique := processLayoutEx(vm.LayoutEx)
+				checkError(config, ms.SetMetric("disk.suspendMemory", strconv.FormatInt(suspendMemory, 10), metric.GAUGE))
+				checkError(config, ms.SetMetric("disk.suspendMemoryUnique", strconv.FormatInt(suspendMemoryUnique, 10), metric.GAUGE))
+
+				for _, t := range vm.Snapshot.RootSnapshotList {
+					traverseSnapshotList(e, config, t, entityName, infoSnapshot)
+				}
+			}
 		}
 	}
 }

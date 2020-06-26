@@ -24,16 +24,21 @@ func VirtualMachines(config *load.Config) {
 		defer cv.Destroy(ctx)
 
 		var vms []mo.VirtualMachine
+
+		propertiesToRetrieve := []string{"summary", "network", "config", "guest", "runtime", "resourcePool", "datastore", "overallStatus"}
+		if config.Args.EnableVsphereSnapshots {
+			config.Logrus.Debug("collecting as well snapshot and layoutEx properties")
+			propertiesToRetrieve = append(propertiesToRetrieve, "snapshot", "layoutEx.file", "layoutEx.snapshot")
+		}
+
 		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
-		err = cv.Retrieve(
-			ctx,
-			[]string{"VirtualMachine"},
-			[]string{"summary", "network", "config", "guest", "runtime", "resourcePool", "datastore", "overallStatus"},
-			&vms)
+		err = cv.Retrieve(ctx, []string{"VirtualMachine"}, propertiesToRetrieve, &vms)
 		if err != nil {
 			config.Logrus.WithError(err).Error("failed to retrieve VM Summaries")
 			continue
 		}
+
+		config.Logrus.WithField("collected in dc", len(vms)).Debug("vm data collected")
 
 		if err := collectTags(config, vms, &config.Datacenters[i]); err != nil {
 			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)

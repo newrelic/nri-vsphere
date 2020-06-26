@@ -32,17 +32,27 @@ func TestMainFunction(t *testing.T) {
 
 	entitiesNotMatching := []string{}
 	//We cannot trust the order of the slice, I think that it is caused by a map transformed to a slice
-	for _, entityActual := range expected.Entities {
+	for _, entityExpected := range expected.Entities {
 		isTheEntityPresentInTheSlice := false
 		for _, entity := range actual.Entities {
-			test := reflect.DeepEqual(entityActual, entity)
-			if test {
-				isTheEntityPresentInTheSlice = true
-				break
+			if entity.SameAs(entityExpected) {
+				test := reflect.DeepEqual(entityExpected, entity)
+				if test {
+					isTheEntityPresentInTheSlice = true
+					break
+				} else {
+					fmt.Println("ENTITY EXPECTED")
+					a, _ := json.Marshal(entityExpected)
+					fmt.Println(string(a))
+					fmt.Println("ENTITY ACTUAL")
+					b, _ := json.Marshal(entity)
+					fmt.Println(string(b))
+
+				}
 			}
 		}
 		if isTheEntityPresentInTheSlice == false {
-			entitiesNotMatching = append(entitiesNotMatching, entityActual.Metadata.Namespace+"    "+entityActual.Metadata.Name)
+			entitiesNotMatching = append(entitiesNotMatching, entityExpected.Metadata.Namespace+"    "+entityExpected.Metadata.Name)
 		}
 	}
 	assert.Equal(t, []string{}, entitiesNotMatching, "Some entities are not matching with the mock:\n\n"+string(actualOutput))
@@ -58,6 +68,7 @@ func exectuteIntegration() ([]byte, []byte) {
 		"-url", "127.0.0.1:8989/sdk",
 		//"-agent_dir", "./testDir", //Since the datacenter is loaded in vcsim, no event is available
 		//"-enable_vsphere_events",
+		"enable_vsphere_snapshots",
 	)
 
 	cmd := exec.Command("docker", cmdLine...)

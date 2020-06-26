@@ -19,6 +19,9 @@ const (
 	entityTypeResourcePool = "ResourcePool"
 	entityTypeVm           = "Vm"
 	entityTypeDatastore    = "Datastore"
+	//The sampleTypeSnapshotVm is used to create a sample, however it does not have a corresponding entity
+	//sampleTypeSnapshotVm is attached to a vm entity.
+	sampleTypeSnapshotVm = "SnapshotVm"
 )
 
 // Run process samples
