@@ -29,7 +29,7 @@ func createResourcePoolSamples(config *load.Config) {
 
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
-			_, ms, err := createNewEntityWithMetricSet(config, entityTypeResourcePool, entityName, entityName)
+			e, ms, err := createNewEntityWithMetricSet(config, entityTypeResourcePool, entityName, entityName)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("resourcePoolName", entityName).Error("failed to create metricSet")
 				continue
@@ -70,6 +70,8 @@ func createResourcePoolSamples(config *load.Config) {
 			tagsByCategory := dc.GetTagsByCategories(rp.Self)
 			for k, v := range tagsByCategory {
 				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+				// add tags to inventory due to the inventory workaround
+				checkError(config, e.SetInventoryItem("tags", "tags."+k, v))
 			}
 
 		}

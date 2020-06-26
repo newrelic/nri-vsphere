@@ -5,13 +5,14 @@ package process
 
 import (
 	"fmt"
+	"time"
+
 	eventSDK "github.com/newrelic/infra-integrations-sdk/data/event"
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/load"
 	logrus "github.com/sirupsen/Logrus"
-	"time"
 )
 
 func createDatacenterSamples(config *load.Config) {
@@ -106,6 +107,8 @@ func createDatacenterSamples(config *load.Config) {
 		tagsByCategory := dc.GetTagsByCategories(dc.Datacenter.Self)
 		for k, v := range tagsByCategory {
 			checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+			// add tags to inventory due to the inventory workaround
+			checkError(config, dcEntity.SetInventoryItem("tags", "tags."+k, v))
 		}
 	}
 }
