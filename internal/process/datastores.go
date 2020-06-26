@@ -20,7 +20,7 @@ func createDatastoreSamples(config *load.Config) {
 
 			dataStoreID := ds.Summary.Url
 
-			_, ms, err := createNewEntityWithMetricSet(config, entityTypeDatastore, entityName, dataStoreID)
+			e, ms, err := createNewEntityWithMetricSet(config, entityTypeDatastore, entityName, dataStoreID)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("datastoreName", entityName).WithField("dataStoreID", dataStoreID).Error("failed to create metricSet")
 				continue
@@ -57,6 +57,8 @@ func createDatastoreSamples(config *load.Config) {
 			tagsByCategory := dc.GetTagsByCategories(ds.Self)
 			for k, v := range tagsByCategory {
 				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+				// add tags to inventory due to the inventory workaround
+				checkError(config, e.SetInventoryItem("tags", "tags."+k, v))
 			}
 		}
 	}

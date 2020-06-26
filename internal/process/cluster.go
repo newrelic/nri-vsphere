@@ -42,7 +42,7 @@ func createClusterSamples(config *load.Config) {
 
 			entityName := sanitizeEntityName(config, cluster.Name, datacenterName)
 
-			_, ms, err := createNewEntityWithMetricSet(config, entityTypeCluster, entityName, entityName)
+			e, ms, err := createNewEntityWithMetricSet(config, entityTypeCluster, entityName, entityName)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("clusterName", entityName).Error("failed to create metricSet")
 				continue
@@ -104,6 +104,8 @@ func createClusterSamples(config *load.Config) {
 			tagsByCategory := dc.GetTagsByCategories(cluster.Self)
 			for k, v := range tagsByCategory {
 				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+				// add tags to inventory due to the inventory workaround
+				checkError(config, e.SetInventoryItem("tags", "tags."+k, v))
 			}
 		}
 	}

@@ -156,6 +156,8 @@ func createVirtualMachineSamples(config *load.Config) {
 
 			for k, v := range tagsByCategory {
 				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+				// add tags to inventory due to the inventory workaround
+				checkError(config, e.SetInventoryItem("tags", "tags."+k, v))
 			}
 
 			if vm.Snapshot != nil && config.Args.EnableVsphereSnapshots {

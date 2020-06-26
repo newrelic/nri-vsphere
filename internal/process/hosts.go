@@ -4,9 +4,10 @@
 package process
 
 import (
+	"strconv"
+
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/load"
-	"strconv"
 )
 
 func createHostSamples(config *load.Config) {
@@ -29,7 +30,7 @@ func createHostSamples(config *load.Config) {
 
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
-			_, ms, err := createNewEntityWithMetricSet(config, entityTypeHost, entityName, uuid)
+			e, ms, err := createNewEntityWithMetricSet(config, entityTypeHost, entityName, uuid)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("hostName", entityName).WithField("uuid", uuid).Error("failed to create metricSet")
 				continue
@@ -133,6 +134,8 @@ func createHostSamples(config *load.Config) {
 			tagsByCategory := dc.GetTagsByCategories(host.Self)
 			for k, v := range tagsByCategory {
 				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+				// add tags to inventory due to the inventory workaround
+				checkError(config, e.SetInventoryItem("tags", "tags."+k, v))
 			}
 
 		}
