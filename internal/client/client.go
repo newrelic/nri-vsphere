@@ -13,10 +13,32 @@ import (
 	"github.com/vmware/govmomi/vim25/soap"
 )
 
+func LogoutRest(restClient *rest.Client) error {
+	ctx := context.Background()
+	if restClient != nil {
+		err := restClient.Logout(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func Logout(client *govmomi.Client) error {
+	ctx := context.Background()
+
+	if client != nil {
+		err := client.Logout(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // New create new VMWare client
 func New(vmURL string, vmUsername string, vmPassword string, ValidateSSL bool) (*govmomi.Client, error) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := context.Background()
 
 	// // Parse URL from string
 	urlParsed, err := soap.ParseURL(vmURL)
@@ -34,7 +56,6 @@ func New(vmURL string, vmUsername string, vmPassword string, ValidateSSL bool) (
 // New create new VMWare rest client
 func NewRest(clientvim25 *govmomi.Client, vmUsername string, vmPassword string) (*rest.Client, error) {
 	ctx := context.Background()
-
 	re := rest.NewClient(clientvim25.Client)
 
 	userInfo := url.UserPassword(vmUsername, vmPassword)

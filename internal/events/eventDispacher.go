@@ -13,7 +13,6 @@ import (
 )
 
 type EventDispacher struct {
-	cancelCtx context.CancelFunc
 	collector *event.HistoryCollector
 	ctx       *context.Context
 
@@ -30,7 +29,7 @@ const (
 func NewEventDispacher(client *vim25.Client, mo types.ManagedObjectReference, log *logrus.Logger, c cache.CacheInterface) (*EventDispacher, error) {
 
 	manager := event.NewManager(client)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx := context.Background()
 
 	now := time.Now()
 	lastTimestamp, err := c.ReadTimestampCache()
@@ -54,7 +53,6 @@ func NewEventDispacher(client *vim25.Client, mo types.ManagedObjectReference, lo
 	}
 
 	ed := EventDispacher{
-		cancelCtx:     cancel,
 		LastTimestamp: &lastTimestamp,
 		collector:     collector,
 		ctx:           &ctx,
@@ -96,7 +94,10 @@ func sanitizeTimestamp(err error, log *logrus.Logger, lastTimestamp time.Time, n
 }
 
 func (ed *EventDispacher) Cancel() {
-	ed.cancelCtx()
+	err := ed.collector.Destroy(*ed.ctx)
+	if err != nil {
+		ed.log.WithError(err).Error("error while saving cache")
+	}
 	t := ed.LastTimestamp
 
 	//computing last timestamp processed
@@ -107,7 +108,7 @@ func (ed *EventDispacher) Cancel() {
 	}
 
 	ed.log.WithField("date", t).Debug("saving in cache last read message")
-	err := ed.c.WriteTimestampCache(*t)
+	err = ed.c.WriteTimestampCache(*t)
 	if err != nil {
 		ed.log.WithError(err).Error("error while saving cache")
 	}

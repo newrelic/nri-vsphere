@@ -44,6 +44,12 @@ func VirtualMachines(config *load.Config) {
 			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
 		}
 
+		perfCollector, err := newPerfCollector(config)
+		if err != nil {
+			config.Logrus.Error(err)
+			continue
+		}
+
 		for j := 0; j < len(vms); j++ {
 			config.Datacenters[i].VirtualMachines[vms[j].Self] = &vms[j]
 		}
