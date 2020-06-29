@@ -45,6 +45,7 @@ func main() {
 	if err != nil {
 		config.Logrus.WithError(err).Fatal("failed to create client")
 	}
+	defer client.Logout(config.VMWareClient)
 
 	if config.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter" {
 		config.IsVcenterAPIType = true
@@ -63,12 +64,119 @@ func main() {
 		if err != nil {
 			config.Logrus.WithError(err).Fatal("failed to create client rest")
 		}
+		defer client.LogoutRest(config.VMWareClientRest)
+
 		config.TagsManager = tags.NewManager(config.VMWareClientRest)
 	}
 
 	config.ViewManager = view.NewManager(config.VMWareClient.Client)
 
 	runIntegration(config)
+	/**
+		ctx:=context.Background()
+		c := config.VMWareClient.Client
+		// Get virtual machines references
+		m := view.NewManager(c)
+
+		v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"Network"}, false)
+		if err != nil {
+			config.Logrus.WithError(err).Fatal("failed to publish")
+		}
+
+		defer v.Destroy(ctx)
+
+		// Create a PerfManager
+		perfManager := performance.NewManager(c)
+		// Retrieve counters name list
+		counters, err := perfManager.CounterInfoByName(ctx)
+		if err != nil {
+			config.Logrus.WithError(err).Fatal("2")
+		}
+		f, err := os.Create("./tmp")
+
+		var names []string
+		for name, c := range counters {
+			names = append(names, strconv.Itoa(int(c.Level))+" "+name+": "+c.NameInfo.GetElementDescription().Description.Summary)
+			f.Write([]byte(strconv.Itoa(int(c.Level)) + " " + name + ": \t\t\t\t" + c.NameInfo.GetElementDescription().Description.Summary + "\n"))
+		}
+		f.Close()
+
+		for _, c := range config.Datacenters[0].Clusters {
+			f, _ := os.Create("./tmpCluster")
+			s, _ := perfManager.ProviderSummary(ctx, c.Self)
+			metrics, _ := perfManager.AvailableMetric(ctx, c.Self, s.RefreshRate)
+			for _, m := range metrics {
+				f.Write([]byte(strconv.Itoa(int(m.CounterId)) + " " + m.Instance + "\n"))
+			}
+			f.Close()
+			break
+		}
+
+		for _, c := range config.Datacenters[0].VirtualMachines {
+			f, _ := os.Create("./tmpVM")
+			s, _ := perfManager.ProviderSummary(ctx, c.Self)
+			metrics, _ := perfManager.AvailableMetric(ctx, c.Self, s.RefreshRate)
+			for _, m := range metrics {
+				f.Write([]byte(strconv.Itoa(int(m.CounterId)) + " " + m.Instance + "\n"))
+			}
+			f.Close()
+
+			break
+		}
+		for _, c := range config.Datacenters[0].Datastores {
+			f, _ := os.Create("./tmpDatastores")
+			s, _ := perfManager.ProviderSummary(ctx, c.Self)
+			metrics, _ := perfManager.AvailableMetric(ctx, c.Self, s.RefreshRate)
+			for _, m := range metrics {
+				f.Write([]byte(strconv.Itoa(int(m.CounterId)) + " " + m.Instance + "\n"))
+			}
+			f.Close()
+
+			break
+		}
+
+		for _, c := range config.Datacenters[0].Hosts {
+			f, _ := os.Create("./tmpHosts")
+			s, _ := perfManager.ProviderSummary(ctx, c.Self)
+			metrics, _ := perfManager.AvailableMetric(ctx, c.Self, s.RefreshRate)
+			for _, m := range metrics {
+				f.Write([]byte(strconv.Itoa(int(m.CounterId)) + " " + m.Instance + "\n"))
+			}
+			f.Close()
+
+			break
+		}
+
+		for _, c := range config.Datacenters[0].ResourcePools {
+			f, _ := os.Create("./tmpResourcePools")
+			s, _ := perfManager.ProviderSummary(ctx, c.Self)
+			metrics, _ := perfManager.AvailableMetric(ctx, c.Self, s.RefreshRate)
+			for _, m := range metrics {
+				f.Write([]byte(strconv.Itoa(int(m.CounterId)) + " " + m.Instance + "\n"))
+			}
+			f.Close()
+
+			break
+		}
+		for _, c := range config.Datacenters[0].Networks {
+			f, _ := os.Create("./tmpNetworks")
+			metrics, _ := perfManager.AvailableMetric(ctx, c.Self, 20)
+			for _, m := range metrics {
+				f.Write([]byte(strconv.Itoa(int(m.CounterId)) + " " + m.Instance + "\n"))
+			}
+			f.Close()
+			break
+		}
+
+		f2, _ := os.Create("./tmpDatacenter")
+		s, _ := perfManager.ProviderSummary(ctx, config.Datacenters[0].Datacenter.Self)
+		metrics, _ := perfManager.AvailableMetric(ctx, config.Datacenters[0].Datacenter.Self, s.RefreshRate)
+		for _, m := range metrics {
+			f2.Write([]byte(strconv.Itoa(int(m.CounterId)) + " " + m.Instance + "\n"))
+		}
+		f2.Close()
+	**/
+
 }
 
 func checkAndSanitizeConfig(config *load.Config) {

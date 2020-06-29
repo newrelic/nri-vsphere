@@ -18,20 +18,26 @@ import (
 // ArgumentList Available Arguments
 type ArgumentList struct {
 	sdkArgs.DefaultArgumentList
-	Local                  bool   `default:"true" help:"Collect local entity info"`
-	Entity                 string `default:"" help:"Manually set a remote entity name"`
-	URL                    string `default:"" help:"Required: ESXi or vCenter SDK URL eg. https://172.16.53.129/sdk"`
-	User                   string `default:"" help:"Required: Username"`
-	Pass                   string `default:"" help:"Required: Password"`
-	DatacenterLocation     string `default:"" help:"Datacenter Location of your vCenter or ESXi Host eg. sydney-ultimo"`
-	EventsPageSize         string `default:"100" help:"Number of events fetched from the vCenter for each page"`
-	EnableVsphereEvents    bool   `default:"false" help:"If set the integration will collect as well vSphere events at datacenter level"`
-	EnableVsphereTags      bool   `default:"false" help:"If true tags will be collected. Tags are available when connecting to vcenter"`
-	EnableVsphereSnapshots bool   `default:"true" help:"If set to true integration will collect, process and send as well data regarding vm Snapshots"`
-	AgentDir               string `default:"" help:"Agent Directory, injected by agent to save cache in Linux environments, es: /var/db/newrelic-infra" os:"linux"`
-	AppDataDir             string `default:"" help:"Agent Data Directory, injected by agent to save cache in Windows environments, es: %PROGRAMDATA%\\New Relic\\newrelic-infra" os:"windows"`
-	ValidateSSL            bool   `default:"false" help:"Validate SSL"`
-	Version                bool   `default:"false" help:"If set prints version and exit"`
+	Local                        bool   `default:"true" help:"Collect local entity info"`
+	Entity                       string `default:"" help:"Manually set a remote entity name"`
+	URL                          string `default:"" help:"Required: ESXi or vCenter SDK URL eg. https://172.16.53.129/sdk"`
+	User                         string `default:"" help:"Required: Username"`
+	Pass                         string `default:"" help:"Required: Password"`
+	UserCommonHost               string `default:"" help:"UserCommonHost"`
+	PassCommonHost               string `default:"" help:"PassCommonHost"`
+	EnableDistributedPerfMetrics bool   `default:"false" help:"Validate SSL"`
+	LogAvailableCounters         bool   `default:"false" help:"Print available perofrmance metrics"`
+	PerfMetricFile               string `default:"config.json" help:"location of the configuration file containing perfMetrics to be retrieved"`
+	DatacenterLocation           string `default:"" help:"Datacenter Location of your vCenter or ESXi Host eg. sydney-ultimo"`
+	EventsPageSize               string `default:"100" help:"Number of events fetched from the vCenter for each page"`
+	EnableVsphereEvents          bool   `default:"false" help:"If set the integration will collect as well vSphere events at datacenter level"`
+	EnableVspherePerfMetrics     bool   `default:"true" help:"If set the integration will collect as well vSphere perf metrics"`
+	EnableVsphereTags            bool   `default:"false" help:"If true tags will be collected. Tags are available when connecting to vcenter"`
+	EnableVsphereSnapshots       bool   `default:"true" help:"If set to true integration will collect, process and send as well data regarding vm Snapshots"`
+	AgentDir                     string `default:"" help:"Agent Directory, injected by agent to save cache in Linux environments, es: /var/db/newrelic-infra" os:"linux"`
+	AppDataDir                   string `default:"" help:"Agent Data Directory, injected by agent to save cache in Windows environments, es: %PROGRAMDATA%\\New Relic\\newrelic-infra" os:"windows"`
+	ValidateSSL                  bool   `default:"false" help:"Validate SSL"`
+	Version                      bool   `default:"false" help:"If set prints version and exit"`
 }
 
 type Config struct {
@@ -49,7 +55,7 @@ type Config struct {
 	VMWareClientRest     *rest.Client             // VMWareClientRest Client
 	ViewManager          *view.Manager            // ViewManager Client
 	TagsManager          *tags.Manager            // TagsManager Client
-	Datacenters          []Datacenter             // Datacenters VMWare
+	Datacenters          []*Datacenter            // Datacenters VMWare
 	TagsByID             TagsByID                 // Lists of tags by id
 	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
 }

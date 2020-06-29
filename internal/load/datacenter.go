@@ -4,6 +4,8 @@
 package load
 
 import (
+	"github.com/newrelic/nri-vsphere/internal/performance"
+
 	"sync"
 
 	"github.com/newrelic/nri-vsphere/internal/events"
@@ -26,6 +28,7 @@ type TagsByID map[string]Tag
 type Datacenter struct {
 	Datacenter      *mo.Datacenter
 	EventDispacher  *events.EventDispacher
+	PerfCollector   *performance.PerfCollector
 	Hosts           map[mor]*mo.HostSystem
 	Clusters        map[mor]*mo.ClusterComputeResource
 	ResourcePools   map[mor]*mo.ResourcePool
@@ -33,12 +36,14 @@ type Datacenter struct {
 	Networks        map[mor]*mo.Network
 	VirtualMachines map[mor]*mo.VirtualMachine
 	Tags            map[mor][]Tag
+	PerfMetrics     map[mor][]performance.PerfMetric
 	tagMux          sync.Mutex
+	PerfMetricsMux  sync.Mutex
 }
 
 // NewDatacenter Initialize datacenter struct
-func NewDatacenter(datacenter *mo.Datacenter) Datacenter {
-	return Datacenter{
+func NewDatacenter(datacenter *mo.Datacenter) *Datacenter {
+	return &Datacenter{
 		Datacenter:      datacenter,
 		Hosts:           make(map[mor]*mo.HostSystem),
 		Clusters:        make(map[mor]*mo.ClusterComputeResource),
@@ -47,6 +52,7 @@ func NewDatacenter(datacenter *mo.Datacenter) Datacenter {
 		Networks:        make(map[mor]*mo.Network),
 		VirtualMachines: make(map[mor]*mo.VirtualMachine),
 		Tags:            make(map[mor][]Tag),
+		PerfMetrics:     make(map[mor][]performance.PerfMetric),
 	}
 }
 
@@ -99,6 +105,15 @@ func (dc *Datacenter) AddTags(tagsByObject map[mor][]Tag) {
 		for _, t := range tags {
 			dc.Tags[mor] = append(dc.Tags[mor], t)
 		}
+	}
+}
+
+// AddTags appends a tag batch to dc Tags map
+func (dc *Datacenter) AddPerfMetrics(data map[types.ManagedObjectReference][]performance.PerfMetric) {
+	dc.PerfMetricsMux.Lock()
+	defer dc.PerfMetricsMux.Unlock()
+	for mo, value := range data {
+		dc.PerfMetrics[mo] = append(dc.PerfMetrics[mo], value...)
 	}
 }
 
