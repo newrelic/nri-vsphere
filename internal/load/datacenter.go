@@ -52,6 +52,7 @@ func NewDatacenter(datacenter *mo.Datacenter) *Datacenter {
 		Networks:        make(map[mor]*mo.Network),
 		VirtualMachines: make(map[mor]*mo.VirtualMachine),
 		Tags:            make(map[mor][]Tag),
+		PerfMetrics:     make(map[mor][]performance.PerfMetric),
 	}
 }
 

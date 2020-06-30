@@ -52,7 +52,7 @@ func VirtualMachines(config *load.Config) {
 		}
 
 		if config.Args.EnableVspherePerfMetrics {
-			//dc.PerfCollector
+			//dc.PerfCollector can be null todo
 			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.VM)
 			dc.AddPerfMetrics(collectedData)
 		}

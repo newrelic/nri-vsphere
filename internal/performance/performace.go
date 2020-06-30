@@ -76,10 +76,10 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 
 		for _, vm := range chunk {
 			querySpec := types.PerfQuerySpec{
-				Entity:    vm.Reference(),
-				MaxSample: 1,
-				MetricId:  metrics,
-				//IntervalId: 20,
+				Entity:     vm.Reference(),
+				MaxSample:  1,
+				MetricId:   metrics,
+				IntervalId: 20,
 				//If the optional intervalId is omitted, the metrics are returned in their originally sampled interval.
 				//When an intervalId is specified, the server tries to summarize the information for the specified intervalId.
 				//However, if that interval does not exist or has no data, the server summarizes the information using the best interval available.
@@ -184,7 +184,7 @@ func (c *PerfCollector) BuildPerMetricIdSlice(slice []string) []types.PerfMetric
 	var tmp []types.PerfMetricId
 	for _, metricName := range slice {
 		if counterID, ok := c.metricsAvaliableByName[metricName]; ok {
-			pfi := types.PerfMetricId{CounterId: counterID, Instance: "*"}
+			pfi := types.PerfMetricId{CounterId: counterID, Instance: ""}
 			tmp = append(tmp, pfi)
 		} //todo what we should do if a metric is not available?
 	}
