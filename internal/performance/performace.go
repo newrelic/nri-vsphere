@@ -1,73 +1,69 @@
 // Copyright 2020 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package collect
+package performance
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/newrelic/infra-integrations-sdk/integration"
+	logrus "github.com/sirupsen/Logrus"
 	"github.com/vmware/govmomi"
-	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/performance"
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/types"
 	"os"
-
-	"github.com/newrelic/nri-vsphere/internal/load"
 )
 
-const maxBatchSizePerf = 30
+//
+const maxBatchSizePerf = 30 //TODO make it configurable
+//As a general rule, specify between 10 and 50 entities in a single call to the QueryPerf method.
+//This is a general recommendation because your system configuration may impose different
+//constraints.
+//https://vdc-download.vmware.com/vmwb-repository/dcr-public/cdbbd51c-4824-4a1b-ad43-45df55a76a76/8cb3ed93-cac2-46aa-b329-db5a096af5bc/vsphere-web-services-sdk-67-programming-guide.pdf
 
-type perfCollector struct {
-	client      *govmomi.Client
-	entity      *integration.Entity
-	finder      *find.Finder
-	perfManager *performance.Manager
-
-	metricDefinition *perfMetrics
-
-	//TODO verify which on is actually needed
+type PerfCollector struct {
+	client                 *govmomi.Client
+	perfManager            *performance.Manager
+	logger                 *logrus.Logger
+	MetricDefinition       *perfMetrics
 	metricsAvaliableByID   map[int32]string
 	metricsAvaliableByName map[string]int32
 }
 
 //this struct is not needed we can decide to pass more info and process it in the process, it would hide logic
-type perfMetric struct {
-	value   int64
-	counter string
+type PerfMetric struct {
+	Value   int64
+	Counter string
 }
 
-func newPerfCollector(config *load.Config) (*perfCollector, error) {
+func NewPerfCollector(client *govmomi.Client, logger *logrus.Logger, perfMetricFile string, logAvailableCounters bool) (*PerfCollector, error) {
 
-	finder := find.NewFinder(config.VMWareClient.Client, true)
+	perfManager := performance.NewManager(client.Client)
 
-	perfManager := performance.NewManager(config.VMWareClient.Client)
-
-	perfCollector := &perfCollector{
-		client:      config.VMWareClient,
-		finder:      finder,
+	perfCollector := &PerfCollector{
+		client:      client,
 		perfManager: perfManager,
+		logger:      logger,
 	}
 
-	err := perfCollector.retrieveCounterMetadata(config)
+	err := perfCollector.retrieveCounterMetadata(logAvailableCounters)
 	if err != nil {
-		config.Logrus.WithError(err).Errorf("failed to fetch available metrics from perfManager")
+		logger.WithError(err).Errorf("failed to fetch available metrics from perfManager")
 		return nil, err
 	}
-	err = perfCollector.parseConfigFile(config.Args.PerfMetricFile)
+	err = perfCollector.parseConfigFile(perfMetricFile)
 	if err != nil {
-		config.Logrus.WithError(err).Errorf("failed to fetch data from config file")
+		logger.WithError(err).Errorf("failed to fetch data from config file")
 		return nil, err
 	}
 
 	return perfCollector, err
 }
 
-func (c *perfCollector) collect(config *load.Config, mos []types.ManagedObjectReference, metrics []types.PerfMetricId) map[types.ManagedObjectReference][]perfMetric {
+func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []types.PerfMetricId) map[types.ManagedObjectReference][]PerfMetric {
 	ctx := context.Background()
-	perfMetricsByRef := map[types.ManagedObjectReference][]perfMetric{}
+	perfMetricsByRef := map[types.ManagedObjectReference][]PerfMetric{}
 
 	query := types.QueryPerf{
 		This:      c.perfManager.Reference(),
@@ -76,7 +72,7 @@ func (c *perfCollector) collect(config *load.Config, mos []types.ManagedObjectRe
 
 	for i := 0; i < len(mos); i += maxBatchSizePerf {
 
-		chunk := mos[i:min(i+maxBatchSize, len(mos))]
+		chunk := mos[i:min(i+maxBatchSizePerf, len(mos))]
 
 		for _, vm := range chunk {
 			querySpec := types.PerfQuerySpec{
@@ -91,29 +87,29 @@ func (c *perfCollector) collect(config *load.Config, mos []types.ManagedObjectRe
 			query.QuerySpec = append(query.QuerySpec, querySpec)
 		}
 
+		c.logger.WithField("number of entities", len(query.QuerySpec)).Debug("quering for perf metrics")
 		retrievedStats, err := methods.QueryPerf(ctx, c.perfManager.Client(), &query)
 		if err != nil {
-			config.Logrus.Error(err)
+			c.logger.Error(err)
 			continue
 		}
 
 		for _, returnVal := range retrievedStats.Returnval {
-			metricsValues, ok := returnVal.(*types.PerfEntityMetric)
+			metricsValues, ok := returnVal.(*types.PerfEntityMetric) //TODO IT is guarantee only one sample but w should not check this like this
 			if !ok {
 				continue
 			}
 			e := metricsValues.Entity
 			c.processEntityMetrics(metricsValues, perfMetricsByRef, e)
-
 		}
 
 	}
 	return perfMetricsByRef
 }
 
-func (c *perfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetric, perfMetricsByRef map[types.ManagedObjectReference][]perfMetric, e types.ManagedObjectReference) {
+func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetric, perfMetricsByRef map[types.ManagedObjectReference][]PerfMetric, e types.ManagedObjectReference) {
 	for _, metricValue := range metricsValues.Value {
-		metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries)
+		metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries) //TODO IT is guarantee only one sample but w should not check this like this
 		if !ok2 {
 			continue
 		}
@@ -122,23 +118,23 @@ func (c *perfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 			continue
 		}
 
-		perfMetricsByRef[e] = append(perfMetricsByRef[e], perfMetric{
-			counter: name,
-			value:   metricValueSeries.Value[0], //TODO IT is guarantee only one sample but w should not check this like this
+		perfMetricsByRef[e] = append(perfMetricsByRef[e], PerfMetric{
+			Counter: name,
+			Value:   metricValueSeries.Value[0], //TODO IT is guarantee only one sample but w should not check this like this
 		})
 
 	}
 }
 
-func (c *perfCollector) retrieveCounterMetadata(config *load.Config) (err error) {
+func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) (err error) {
 	ctx := context.Background()
 
 	counters, err := c.perfManager.CounterInfo(ctx)
 	c.metricsAvaliableByID = map[int32]string{}
 	c.metricsAvaliableByName = map[string]int32{}
 
-	if config.Args.LogAvailableCounters {
-		config.Logrus.Info("LogAvailableCounters FLAG ON, printing all %d available counters", len(counters))
+	if logAvailableCounters {
+		c.logger.Info("LogAvailableCounters FLAG ON, printing all %d available counters", len(counters))
 	}
 	for _, perfCounter := range counters {
 		groupInfo := perfCounter.GroupInfo.GetElementDescription()
@@ -148,18 +144,17 @@ func (c *perfCollector) retrieveCounterMetadata(config *load.Config) (err error)
 		c.metricsAvaliableByName[fullCounterName] = perfCounter.Key
 		c.metricsAvaliableByID[perfCounter.Key] = fullCounterName
 
-		if config.Args.LogAvailableCounters {
-			config.Logrus.Info("\t %s [%d]\n", fullCounterName, perfCounter.Level)
+		if logAvailableCounters {
+			c.logger.Info("\t %s [%d]\n", fullCounterName, perfCounter.Level)
 		}
 	}
 	return nil
 }
 
-func (c *perfCollector) parseConfigFile(fileName string) error {
+func (c *PerfCollector) parseConfigFile(fileName string) error {
 
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
 		return fmt.Errorf("error loading configuration from file. Configuration file does not exist")
-
 	}
 	var cf configFile
 
@@ -174,7 +169,7 @@ func (c *perfCollector) parseConfigFile(fileName string) error {
 		return err
 	}
 
-	c.metricDefinition = &perfMetrics{
+	c.MetricDefinition = &perfMetrics{
 		VM:                     c.BuildPerMetricIdSlice(cf.VM),
 		ClusterComputeResource: c.BuildPerMetricIdSlice(cf.ClusterComputeResource),
 		ResourcePool:           c.BuildPerMetricIdSlice(cf.ResourcePool),
@@ -185,7 +180,7 @@ func (c *perfCollector) parseConfigFile(fileName string) error {
 	return nil
 }
 
-func (c *perfCollector) BuildPerMetricIdSlice(slice []string) []types.PerfMetricId {
+func (c *PerfCollector) BuildPerMetricIdSlice(slice []string) []types.PerfMetricId {
 	var tmp []types.PerfMetricId
 	for _, metricName := range slice {
 		if counterID, ok := c.metricsAvaliableByName[metricName]; ok {
@@ -211,4 +206,11 @@ type configFile struct {
 	ResourcePool           []string `json:"resourcePool"`
 	ClusterComputeResource []string `json:"clusterComputeResource"`
 	Datastore              []string `json:"datastore"`
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

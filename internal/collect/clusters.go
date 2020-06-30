@@ -33,7 +33,7 @@ func Clusters(config *load.Config) {
 			config.Logrus.WithError(err).Error("failed to retrieve ClusterComputeResource")
 			continue
 		}
-		if err := collectTags(config, clusters, &config.Datacenters[i]); err != nil {
+		if err := collectTags(config, clusters, config.Datacenters[i]); err != nil {
 			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
 		}
 		for j := 0; j < len(clusters); j++ {

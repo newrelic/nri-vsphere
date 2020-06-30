@@ -5,10 +5,10 @@ package collect
 
 import (
 	"context"
-
 	"github.com/newrelic/nri-vsphere/internal/cache"
 	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
@@ -37,15 +37,23 @@ func Datacenters(config *load.Config) {
 	for i, d := range datacenters {
 		newDatacenter := load.NewDatacenter(&datacenters[i])
 		if config.IsVcenterAPIType && config.Args.EnableVsphereEvents {
-			collectEvents(config, d, &newDatacenter)
+			collectEvents(config, d, newDatacenter)
+		}
+
+		if config.Args.EnableVspherePerfMetrics {
+			newDatacenter.PerfCollector, err = performance.NewPerfCollector(config.VMWareClient, config.Logrus, config.Args.PerfMetricFile, config.Args.LogAvailableCounters)
+			if err != nil {
+				config.Logrus.Fatal(err)
+			}
 		}
 		config.Datacenters = append(config.Datacenters, newDatacenter)
 
 		// create a slice in order to collect tags just for the dc that will be used to store the tags
 		dc := []mo.Datacenter{datacenters[i]}
-		if err := collectTags(config, dc, &config.Datacenters[i]); err != nil {
+		if err := collectTags(config, dc, config.Datacenters[i]); err != nil {
 			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
 		}
+
 	}
 }
 
