@@ -51,9 +51,8 @@ func VirtualMachines(config *load.Config) {
 			refSlice = append(refSlice, vms[j].Self)
 		}
 
-		if config.Args.EnableVspherePerfMetrics {
-			//dc.PerfCollector can be null todo
-			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.VM)
+		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
+			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.VM, config.Args.BatchSizePerfEntities, config.Args.BatchSizePerfEntities)
 			dc.AddPerfMetrics(collectedData)
 		}
 
