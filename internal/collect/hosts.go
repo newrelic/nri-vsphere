@@ -47,9 +47,8 @@ func Hosts(config *load.Config) {
 
 		}
 
-		if config.Args.EnableVspherePerfMetrics {
-			//dc.PerfCollector can be null todo
-			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.Host)
+		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
+			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.Host, config.Args.BatchSizePerfEntities, config.Args.BatchSizePerfEntities)
 			dc.AddPerfMetrics(collectedData)
 		}
 	}

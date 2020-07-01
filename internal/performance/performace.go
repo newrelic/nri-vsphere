@@ -13,20 +13,23 @@ import (
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/types"
 	"os"
+	"strconv"
 )
 
-//
-const maxBatchSizePerf = 30 //TODO make it configurable
+const maxBatchSizePerfEntities = 100
+const maxBatchSizePerfMetrics = 100
+
 //As a general rule, specify between 10 and 50 entities in a single call to the QueryPerf method.
 //This is a general recommendation because your system configuration may impose different
 //constraints.
 //https://vdc-download.vmware.com/vmwb-repository/dcr-public/cdbbd51c-4824-4a1b-ad43-45df55a76a76/8cb3ed93-cac2-46aa-b329-db5a096af5bc/vsphere-web-services-sdk-67-programming-guide.pdf
 
 type PerfCollector struct {
-	client                 *govmomi.Client
-	perfManager            *performance.Manager
-	logger                 *logrus.Logger
-	MetricDefinition       *perfMetrics
+	client           *govmomi.Client
+	perfManager      *performance.Manager
+	logger           *logrus.Logger
+	MetricDefinition *perfMetricsIDs
+
 	metricsAvaliableByID   map[int32]string
 	metricsAvaliableByName map[string]int32
 }
@@ -61,56 +64,63 @@ func NewPerfCollector(client *govmomi.Client, logger *logrus.Logger, perfMetricF
 	return perfCollector, err
 }
 
-func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []types.PerfMetricId) map[types.ManagedObjectReference][]PerfMetric {
+func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []types.PerfMetricId, batchSizePerfEntitiesString string, batchSizePerfMetricsString string) map[types.ManagedObjectReference][]PerfMetric {
 	ctx := context.Background()
 	perfMetricsByRef := map[types.ManagedObjectReference][]PerfMetric{}
+
+	batchSizePerfEntities, batchSizePerfMetrics, err := sanitizeArgs(batchSizePerfEntitiesString, c.logger, batchSizePerfMetricsString)
+	if err != nil {
+		return nil
+	}
 
 	query := types.QueryPerf{
 		This:      c.perfManager.Reference(),
 		QuerySpec: []types.PerfQuerySpec{},
 	}
 
-	for i := 0; i < len(mos); i += maxBatchSizePerf {
+	for i := 0; i < len(mos); i += batchSizePerfEntities {
+		for m := 0; m < len(metrics); m += batchSizePerfMetrics {
 
-		chunk := mos[i:min(i+maxBatchSizePerf, len(mos))]
+			chunkEntities := mos[i:min(i+batchSizePerfEntities, len(mos))]
+			chunkMetrics := metrics[m:min(m+batchSizePerfMetrics, len(metrics))]
 
-		for _, vm := range chunk {
-			querySpec := types.PerfQuerySpec{
-				Entity:     vm.Reference(),
-				MaxSample:  1,
-				MetricId:   metrics,
-				IntervalId: 20,
-				//If the optional intervalId is omitted, the metrics are returned in their originally sampled interval.
-				//When an intervalId is specified, the server tries to summarize the information for the specified intervalId.
-				//However, if that interval does not exist or has no data, the server summarizes the information using the best interval available.
+			for _, vm := range chunkEntities {
+				querySpec := types.PerfQuerySpec{
+					Entity:     vm.Reference(),
+					MaxSample:  1,
+					MetricId:   chunkMetrics,
+					IntervalId: 20,
+					//If the optional intervalId is omitted, the metrics are returned in their originally sampled interval.
+					//When an intervalId is specified, the server tries to summarize the information for the specified intervalId.
+					//However, if that interval does not exist or has no data, the server summarizes the information using the best interval available.
+				}
+				query.QuerySpec = append(query.QuerySpec, querySpec)
 			}
-			query.QuerySpec = append(query.QuerySpec, querySpec)
-		}
 
-		c.logger.WithField("number of entities", len(query.QuerySpec)).Debug("quering for perf metrics")
-		retrievedStats, err := methods.QueryPerf(ctx, c.perfManager.Client(), &query)
-		if err != nil {
-			c.logger.Error(err)
-			continue
-		}
-
-		for _, returnVal := range retrievedStats.Returnval {
-			metricsValues, ok := returnVal.(*types.PerfEntityMetric) //TODO IT is guarantee only one sample but w should not check this like this
-			if !ok {
+			c.logger.WithField("number of entities", len(query.QuerySpec)).Debug("querying for perf metrics")
+			retrievedStats, err := methods.QueryPerf(ctx, c.perfManager.Client(), &query)
+			if err != nil {
+				c.logger.Error(err)
 				continue
 			}
-			e := metricsValues.Entity
-			c.processEntityMetrics(metricsValues, perfMetricsByRef, e)
-		}
 
+			for _, returnVal := range retrievedStats.Returnval {
+				metricsValues, ok := returnVal.(*types.PerfEntityMetric) //TODO IT is guarantee
+				if !ok || metricsValues == nil {
+					continue
+				}
+				e := metricsValues.Entity
+				c.processEntityMetrics(metricsValues, perfMetricsByRef, e)
+			}
+		}
 	}
 	return perfMetricsByRef
 }
 
 func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetric, perfMetricsByRef map[types.ManagedObjectReference][]PerfMetric, e types.ManagedObjectReference) {
 	for _, metricValue := range metricsValues.Value {
-		metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries) //TODO IT is guarantee only one sample but w should not check this like this
-		if !ok2 {
+		metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries) //TODO IT is guarantee
+		if !ok2 || metricValueSeries == nil {
 			continue
 		}
 		name, ok := c.metricsAvaliableByID[metricValueSeries.Id.CounterId]
@@ -118,9 +128,14 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 			continue
 		}
 
+		if len(metricValueSeries.Value) != 1 {
+			c.logger.Debug("The metrics is not containing one sample, this is not expected")
+			continue
+		}
+
 		perfMetricsByRef[e] = append(perfMetricsByRef[e], PerfMetric{
 			Counter: name,
-			Value:   metricValueSeries.Value[0], //TODO IT is guarantee only one sample but w should not check this like this
+			Value:   metricValueSeries.Value[0],
 		})
 
 	}
@@ -169,7 +184,7 @@ func (c *PerfCollector) parseConfigFile(fileName string) error {
 		return err
 	}
 
-	c.MetricDefinition = &perfMetrics{
+	c.MetricDefinition = &perfMetricsIDs{
 		VM:                     c.BuildPerMetricIdSlice(cf.VM),
 		ClusterComputeResource: c.BuildPerMetricIdSlice(cf.ClusterComputeResource),
 		ResourcePool:           c.BuildPerMetricIdSlice(cf.ResourcePool),
@@ -184,14 +199,20 @@ func (c *PerfCollector) BuildPerMetricIdSlice(slice []string) []types.PerfMetric
 	var tmp []types.PerfMetricId
 	for _, metricName := range slice {
 		if counterID, ok := c.metricsAvaliableByName[metricName]; ok {
+			//““ – A string of length zero directs the vSphere Server to return only aggregated instance
+			//data or rollup type data
+			//https://vdc-download.vmware.com/vmwb-repository/dcr-public/cdbbd51c-4824-4a1b-ad43-45df55a76a76/8cb3ed93-cac2-46aa-b329-db5a096af5bc/vsphere-web-services-sdk-67-programming-guide.pdf
 			pfi := types.PerfMetricId{CounterId: counterID, Instance: ""}
+
 			tmp = append(tmp, pfi)
-		} //todo what we should do if a metric is not available?
+		} else {
+			c.logger.WithField("metricName", metricName).Debug("metric not available")
+		}
 	}
 	return tmp
 }
 
-type perfMetrics struct {
+type perfMetricsIDs struct {
 	Host                   []types.PerfMetricId
 	VM                     []types.PerfMetricId
 	ResourcePool           []types.PerfMetricId
@@ -213,4 +234,36 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func sanitizeArgs(batchSizePerfEntitiesString string, logger *logrus.Logger, batchSizePerfMetricsString string) (int, int, error) {
+	batchSizePerfEntities, err := strconv.Atoi(batchSizePerfEntitiesString)
+	if err != nil {
+		logger.WithError(err).Warn("Failed to parse batchSizePerf flag")
+		return 0, 0, err
+	}
+
+	if batchSizePerfEntities > maxBatchSizePerfEntities {
+		batchSizePerfEntities = maxBatchSizePerfEntities
+		logger.WithField("maxBatchSizePerfEntities", maxBatchSizePerfEntities).Warn("maxBatchSizePerfEntities above the maximum, setting it to the maximum")
+	} else if batchSizePerfEntities < 0 {
+		batchSizePerfEntities = 1
+		logger.WithField("min size", 1).Warn("batchSizePerf less then 0 no allowed, setting it to 1")
+	}
+
+	batchSizePerfMetrics, err := strconv.Atoi(batchSizePerfMetricsString)
+	if err != nil {
+		logger.WithError(err).Warn("Failed to parse batchSizePerf flag")
+		return 0, 0, err
+	}
+
+	if batchSizePerfMetrics > maxBatchSizePerfMetrics {
+		batchSizePerfMetrics = maxBatchSizePerfMetrics
+		logger.WithField("maxBatchSizePerfMetrics", maxBatchSizePerfMetrics).Warn("maxBatchSizePerfMetrics above the maximum, setting it to the maximum")
+	} else if batchSizePerfMetrics < 0 {
+		batchSizePerfMetrics = 1
+		logger.WithField("min size", 1).Warn("maxBatchSizePerfMetrics less then 0 no allowed, setting it to 1")
+	}
+
+	return batchSizePerfEntities, batchSizePerfMetrics, nil
 }
