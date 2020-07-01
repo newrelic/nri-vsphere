@@ -117,6 +117,14 @@ func (dc *Datacenter) AddPerfMetrics(data map[types.ManagedObjectReference][]per
 	}
 }
 
+// GetPerfMetrics returns the slice of Perf metrics for the given object reference
+func (dc *Datacenter) GetPerfMetrics(ref mor) []performance.PerfMetric {
+	if perfMetrics, ok := dc.PerfMetrics[ref]; ok {
+		return perfMetrics
+	}
+	return nil
+}
+
 // GetTagsByCategories return a map of tags categories and the corresponding tags associated to the mor
 func (dc *Datacenter) GetTagsByCategories(ref mor) map[string]string {
 	tagsByCategory := make(map[string]string)
