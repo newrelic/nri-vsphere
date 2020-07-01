@@ -106,9 +106,9 @@ func createDatacenterSamples(config *load.Config) {
 		// Tags
 		tagsByCategory := dc.GetTagsByCategories(dc.Datacenter.Self)
 		for k, v := range tagsByCategory {
-			checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+			checkError(config, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 			// add tags to inventory due to the inventory workaround
-			checkError(config, dcEntity.SetInventoryItem("tags", "tags."+k, v))
+			checkError(config, dcEntity.SetInventoryItem("tags", tagsPrefix+k, v))
 		}
 	}
 }

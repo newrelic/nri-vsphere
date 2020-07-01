@@ -152,12 +152,17 @@ func createVirtualMachineSamples(config *load.Config) {
 			checkError(config, ms.SetMetric("connectionState", fmt.Sprintf("%v", vm.Runtime.ConnectionState), metric.ATTRIBUTE))
 			checkError(config, ms.SetMetric("powerState", fmt.Sprintf("%v", vm.Runtime.PowerState), metric.ATTRIBUTE))
 
+			//Tags
 			tagsByCategory := dc.GetTagsByCategories(vm.Self)
-
 			for k, v := range tagsByCategory {
-				checkError(config, ms.SetMetric("tags."+k, v, metric.ATTRIBUTE))
+				checkError(config, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 				// add tags to inventory due to the inventory workaround
-				checkError(config, e.SetInventoryItem("tags", "tags."+k, v))
+				checkError(config, e.SetInventoryItem("tags", tagsPrefix+k, v))
+			}
+			// Performance metrics
+			perfMetrics := dc.GetPerfMetrics(vm.Self)
+			for _, perfMetric := range perfMetrics {
+				checkError(config, ms.SetMetric(perfMetricPrefix+perfMetric.Counter, perfMetric.Value, metric.GAUGE))
 			}
 
 			if vm.Snapshot != nil && config.Args.EnableVsphereSnapshots {
