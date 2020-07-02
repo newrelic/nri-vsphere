@@ -61,27 +61,6 @@ func TestEvents(t *testing.T) {
 	assert.Equal(t, 10, len(ed.Events), "We were expecting 10 events")
 	ed3.Cancel()
 
-	/* Currently the very same 10 events are collected each time and there is no support in the simulator for complex query (providing the timestamp for example)
-	vm, err := find.NewFinder(c.Client).VirtualMachine(ctx, "DC0_H0_VM0")
-	assert.NoError(t, err)
-
-	task, err := vm.CreateSnapshot(ctx, "backup", "Backup", false, false)
-	task.Wait(ctx)
-	assert.NoError(t, err)
-
-	task, err = vm.PowerOff(ctx)
-	assert.NoError(t, err)
-	task.Wait(ctx)
-
-	task, err = vm.PowerOn(ctx)
-	task.Wait(ctx)
-	assert.NoError(t, err)
-
-	Events(config)
-
-	assert.Equal(t, 14, len(config.Integration.LocalEntity().Events), "We were expecting 14 events")
-	*/
-
 }
 
 type NewCacheMock struct{}

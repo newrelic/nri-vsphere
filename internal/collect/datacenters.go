@@ -32,7 +32,10 @@ func Datacenters(config *load.Config) {
 	}
 
 	if config.Args.EnableVsphereTags && config.IsVcenterAPIType {
-		collectTagsByID(config.TagsByID, config.TagsManager)
+		err := collectTagsByID(config.TagsByID, config.TagsManager)
+		if err != nil {
+			config.Logrus.WithError(err).Error("failed to collect tags by id")
+		}
 	}
 
 	for i, d := range datacenters {
@@ -42,7 +45,7 @@ func Datacenters(config *load.Config) {
 		}
 
 		if config.Args.EnableVspherePerfMetrics {
-			newDatacenter.PerfCollector, err = performance.NewPerfCollector(config.VMWareClient, config.Logrus, config.Args.PerfMetricFile, config.Args.LogAvailableCounters, config.Args.PerfLevel)
+			newDatacenter.PerfCollector, err = performance.NewPerfCollector(config.VMWareClient, config.Logrus, config.Args.PerfMetricFile, config.Args.LogAvailableCounters, config.Args.PerfLevel, config.Args.BatchSizePerfEntities, config.Args.BatchSizePerfEntities)
 			if err != nil {
 				config.Logrus.Fatal(err)
 			}

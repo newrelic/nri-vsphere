@@ -66,7 +66,7 @@ func NewEventDispacher(client *vim25.Client, mo types.ManagedObjectReference, lo
 func sanitizeTimestamp(err error, log *logrus.Logger, lastTimestamp time.Time, now time.Time) time.Time {
 
 	if err != nil {
-		log.WithError(err).Error("Error reading cache, setting default timestamp to current time")
+		log.WithError(err).Debug("Error reading cache, setting default timestamp to current time")
 		lastTimestamp = now
 		return lastTimestamp
 	}
@@ -77,14 +77,14 @@ func sanitizeTimestamp(err error, log *logrus.Logger, lastTimestamp time.Time, n
 	limitTimestamp := now.Add(time.Duration(-1) * time.Hour)
 	if lastTimestamp.Before(limitTimestamp) {
 		//we try to avoid a deadlock where tue to a really old timestamp the integration try to fetch too many events timing out
-		log.WithField("timestamp", lastTimestamp.String()).Warn("Timestamp is too old, setting lastTimestamp to 1 hour ago to fetch events")
+		log.WithField("timestamp", lastTimestamp.String()).Debug("Timestamp is too old, setting lastTimestamp to 1 hour ago to fetch events")
 		lastTimestamp = limitTimestamp
 		return lastTimestamp
 	}
 
 	//we make sure the last timestamp is smaller or equal then now, otherwise the API call fails
 	if lastTimestamp.After(now) {
-		log.WithField("timestamp", lastTimestamp.String()).Warn("Timestamp after the time.Now(), setting lastTimestamp to time.Now()")
+		log.WithField("timestamp", lastTimestamp.String()).Debug("Timestamp after the time.Now(), setting lastTimestamp to time.Now()")
 		lastTimestamp = now
 		return lastTimestamp
 	}

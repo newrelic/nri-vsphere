@@ -1,10 +1,10 @@
-# The list specify the performance counters ordered by entity type and level.
-# The current list contains counters most of the performance counter metrics but they could
-# vary depending on the vCenter version.
-# As a best practice, only metrics that needed should be collected since the amount of metrics
+# The list specifies the performance counters grouped by entity type and level.
+# The current list contains a subset of the performance counter metrics available, moreover they could
+# vary depending on the vCenter version and configuration.
+# As a best practice, only metrics that are needed should be collected since the number of metrics
 # and their level affects the vCenter performance. 
-# For more information about please check the following doc
-# https://docs.vmware.com/en/VMware-vSphere/6.0/vsphere-esxi-vcenter-server-601-monitoring-performance-guide.pdf
+# For more information regarding performance metrics, please check out the official vmWare documentation:
+# https://docs.vmware.com/en/VMware-vSphere/6.7/vsphere-esxi-vcenter-server-67-monitoring-performance-guide.pdf
 
 host:
   level_1:

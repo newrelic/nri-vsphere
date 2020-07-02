@@ -40,15 +40,15 @@ func Hosts(config *load.Config) {
 		if err := collectTags(config, hosts, config.Datacenters[i]); err != nil {
 			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
 		}
+
 		var refSlice []types.ManagedObjectReference
 		for j := 0; j < len(hosts); j++ {
 			config.Datacenters[i].Hosts[hosts[j].Self] = &hosts[j]
 			refSlice = append(refSlice, hosts[j].Self)
-
 		}
 
 		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.Host, config.Args.BatchSizePerfEntities, config.Args.BatchSizePerfEntities)
+			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.Host)
 			dc.AddPerfMetrics(collectedData)
 		}
 	}

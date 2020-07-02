@@ -5,6 +5,7 @@ package performance
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -19,25 +20,20 @@ import (
 )
 
 const (
-	maxBatchSizePerfEntities = 100
-	maxBatchSizePerfMetrics  = 100
-	counterLimit             = 150 // limits the number of perf metrics to be added to avoid reach the 256 limit per event
+	counterLimit = 150 // limits the number of perf metrics to be added to avoid reach the 256 limit per event
 )
-
-//As a general rule, specify between 10 and 50 entities in a single call to the QueryPerf method.
-//This is a general recommendation because your system configuration may impose different
-//constraints.
-//https://vdc-download.vmware.com/vmwb-repository/dcr-public/cdbbd51c-4824-4a1b-ad43-45df55a76a76/8cb3ed93-cac2-46aa-b329-db5a096af5bc/vsphere-web-services-sdk-67-programming-guide.pdf
 
 type PerfCollector struct {
 	client           *govmomi.Client
 	perfManager      *performance.Manager
 	logger           *logrus.Logger
-	MetricDefinition *perfMetricsIDs
-	collectionLevel  int // Perf Counter level specified by Vmware
+	MetricDefinition *perfMetricsIDs //These are the metrics contained in the config file once not available ones or not included in the level has been dropped
+	collectionLevel  int             // Perf Counter level specified by Vmware
 
 	metricsAvaliableByID   map[int32]string
 	metricsAvaliableByName map[string]int32
+	batchSizePerfEntities  int
+	batchSizePerfMetrics   int
 }
 
 //this struct is not needed we can decide to pass more info and process it in the process, it would hide logic
@@ -46,18 +42,26 @@ type PerfMetric struct {
 	Counter string
 }
 
-func NewPerfCollector(client *govmomi.Client, logger *logrus.Logger, perfMetricFile string, logAvailableCounters bool, collectionLevel int) (*PerfCollector, error) {
+func NewPerfCollector(client *govmomi.Client, logger *logrus.Logger, perfMetricFile string, logAvailableCounters bool, collectionLevel int, batchSizePerfEntitiesString string, batchSizePerfMetricsString string) (*PerfCollector, error) {
+
+	batchSizePerfEntities, batchSizePerfMetrics, err := sanitizeArgs(batchSizePerfEntitiesString, batchSizePerfMetricsString)
+	if err != nil {
+		logger.WithError(err).Error("error while parsing args, not possible to collect perfMetrics")
+		return nil, err
+	}
 
 	perfManager := performance.NewManager(client.Client)
 
 	perfCollector := &PerfCollector{
-		client:          client,
-		perfManager:     perfManager,
-		logger:          logger,
-		collectionLevel: collectionLevel,
+		client:                client,
+		perfManager:           perfManager,
+		logger:                logger,
+		collectionLevel:       collectionLevel,
+		batchSizePerfEntities: batchSizePerfEntities,
+		batchSizePerfMetrics:  batchSizePerfMetrics,
 	}
 
-	err := perfCollector.retrieveCounterMetadata(logAvailableCounters)
+	err = perfCollector.retrieveCounterMetadata(logAvailableCounters)
 	if err != nil {
 		logger.WithError(err).Errorf("failed to fetch available metrics from perfManager")
 		return nil, err
@@ -71,24 +75,19 @@ func NewPerfCollector(client *govmomi.Client, logger *logrus.Logger, perfMetricF
 	return perfCollector, err
 }
 
-func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []types.PerfMetricId, batchSizePerfEntitiesString string, batchSizePerfMetricsString string) map[types.ManagedObjectReference][]PerfMetric {
+func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []types.PerfMetricId) map[types.ManagedObjectReference][]PerfMetric {
 	ctx := context.Background()
 	perfMetricsByRef := map[types.ManagedObjectReference][]PerfMetric{}
 
-	batchSizePerfEntities, batchSizePerfMetrics, err := sanitizeArgs(batchSizePerfEntitiesString, c.logger, batchSizePerfMetricsString)
-	if err != nil {
-		return nil
-	}
-
-	for i := 0; i < len(mos); i += batchSizePerfEntities {
-		for m := 0; m < len(metrics); m += batchSizePerfMetrics {
+	for i := 0; i < len(mos); i += c.batchSizePerfEntities {
+		for m := 0; m < len(metrics); m += c.batchSizePerfMetrics {
 			query := types.QueryPerf{
 				This:      c.perfManager.Reference(),
 				QuerySpec: []types.PerfQuerySpec{},
 			}
 
-			chunkEntities := mos[i:min(i+batchSizePerfEntities, len(mos))]
-			chunkMetrics := metrics[m:min(m+batchSizePerfMetrics, len(metrics))]
+			chunkEntities := mos[i:min(i+c.batchSizePerfEntities, len(mos))]
+			chunkMetrics := metrics[m:min(m+c.batchSizePerfMetrics, len(metrics))]
 
 			for _, vm := range chunkEntities {
 				querySpec := types.PerfQuerySpec{
@@ -103,7 +102,6 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 				query.QuerySpec = append(query.QuerySpec, querySpec)
 			}
 
-			c.logger.WithField("number of entities", len(query.QuerySpec)).Debug("querying for perf metrics")
 			retrievedStats, err := methods.QueryPerf(ctx, c.perfManager.Client(), &query)
 			if err != nil {
 				c.logger.Error(err)
@@ -111,39 +109,44 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 			}
 
 			for _, returnVal := range retrievedStats.Returnval {
-				metricsValues, ok := returnVal.(*types.PerfEntityMetric) //TODO IT is guarantee
+				//The query return a generic inside a generic, however there is only one type we ca cast to:
+				// More info: https://vdc-repo.vmware.com/vmwb-repository/dcr-public/790263bc-bd30-48f1-af12-ed36055d718b/e5f17bfc-ecba-40bf-a04f-376bbb11e811/vim.PerformanceManager.html#queryStats
+				metricsValues, ok := returnVal.(*types.PerfEntityMetric)
 				if !ok || metricsValues == nil {
 					continue
 				}
-				e := metricsValues.Entity
-				c.processEntityMetrics(metricsValues, perfMetricsByRef, e)
+				c.processEntityMetrics(metricsValues, perfMetricsByRef)
 			}
 		}
 	}
 	return perfMetricsByRef
 }
 
-func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetric, perfMetricsByRef map[types.ManagedObjectReference][]PerfMetric, e types.ManagedObjectReference) {
+func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetric, perfMetricsByRef map[types.ManagedObjectReference][]PerfMetric) {
 	for _, metricValue := range metricsValues.Value {
-		metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries) //TODO IT is guarantee
+		metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries)
 		if !ok2 || metricValueSeries == nil {
 			continue
 		}
 		name, ok := c.metricsAvaliableByID[metricValueSeries.Id.CounterId]
 		if !ok {
+			c.logger.Debugf("The perf metric Id:%v is not present in the map", metricValueSeries.Id.CounterId)
+			continue
+		}
+		if metricValueSeries.Value == nil {
+			c.logger.Debugf("vCenter returned no samples for the metric: %v", name)
 			continue
 		}
 
 		if len(metricValueSeries.Value) != 1 {
-			c.logger.Debug("The metrics is not containing one sample, this is not expected")
+			c.logger.Debugf("The metric: %v is not containing one sample, this is not expected", name)
 			continue
 		}
 
-		perfMetricsByRef[e] = append(perfMetricsByRef[e], PerfMetric{
+		perfMetricsByRef[metricsValues.Entity] = append(perfMetricsByRef[metricsValues.Entity], PerfMetric{
 			Counter: name,
 			Value:   metricValueSeries.Value[0],
 		})
-
 	}
 }
 
@@ -158,10 +161,8 @@ func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) (err 
 		c.logger.Infof("LogAvailableCounters FLAG ON, printing all %d available counters", len(counters))
 	}
 	for _, perfCounter := range counters {
-		groupInfo := perfCounter.GroupInfo.GetElementDescription()
-		nameInfo := perfCounter.NameInfo.GetElementDescription()
-		fullCounterName := groupInfo.Key + "." + nameInfo.Key + "." + fmt.Sprint(perfCounter.RollupType)
 
+		fullCounterName := perfCounter.GroupInfo.GetElementDescription().Key + "." + perfCounter.NameInfo.GetElementDescription().Key + "." + fmt.Sprint(perfCounter.RollupType)
 		c.metricsAvaliableByName[fullCounterName] = perfCounter.Key
 		c.metricsAvaliableByID[perfCounter.Key] = fullCounterName
 
@@ -173,15 +174,15 @@ func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) (err 
 }
 
 func (c *PerfCollector) parseConfigFile(fileName string) error {
-
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
 		return fmt.Errorf("error loading configuration from file. Configuration file does not exist")
 	}
 	configFile, err := os.Open(fileName)
-	defer configFile.Close()
 	if err != nil {
 		return err
 	}
+	defer configFile.Close()
+
 	ymlParser := yaml.NewDecoder(configFile)
 
 	var cf ymlConfig
@@ -250,33 +251,23 @@ func min(a, b int) int {
 	return b
 }
 
-func sanitizeArgs(batchSizePerfEntitiesString string, logger *logrus.Logger, batchSizePerfMetricsString string) (int, int, error) {
+func sanitizeArgs(batchSizePerfEntitiesString string, batchSizePerfMetricsString string) (int, int, error) {
 	batchSizePerfEntities, err := strconv.Atoi(batchSizePerfEntitiesString)
 	if err != nil {
-		logger.WithError(err).Warn("Failed to parse batchSizePerf flag")
 		return 0, 0, err
 	}
 
-	if batchSizePerfEntities > maxBatchSizePerfEntities {
-		batchSizePerfEntities = maxBatchSizePerfEntities
-		logger.WithField("maxBatchSizePerfEntities", maxBatchSizePerfEntities).Warn("maxBatchSizePerfEntities above the maximum, setting it to the maximum")
-	} else if batchSizePerfEntities < 0 {
-		batchSizePerfEntities = 1
-		logger.WithField("min size", 1).Warn("batchSizePerf less then 0 no allowed, setting it to 1")
+	if batchSizePerfEntities <= 0 {
+		return 0, 0, errors.New("batchSizePerfEntities cannot be negative or zero")
 	}
 
 	batchSizePerfMetrics, err := strconv.Atoi(batchSizePerfMetricsString)
 	if err != nil {
-		logger.WithError(err).Warn("Failed to parse batchSizePerf flag")
 		return 0, 0, err
 	}
 
-	if batchSizePerfMetrics > maxBatchSizePerfMetrics {
-		batchSizePerfMetrics = maxBatchSizePerfMetrics
-		logger.WithField("maxBatchSizePerfMetrics", maxBatchSizePerfMetrics).Warn("maxBatchSizePerfMetrics above the maximum, setting it to the maximum")
-	} else if batchSizePerfMetrics < 0 {
-		batchSizePerfMetrics = 1
-		logger.WithField("min size", 1).Warn("maxBatchSizePerfMetrics less then 0 no allowed, setting it to 1")
+	if batchSizePerfMetrics <= 0 {
+		return 0, 0, errors.New("batchSizePerfMetrics cannot be negative or zero")
 	}
 
 	return batchSizePerfEntities, batchSizePerfMetrics, nil

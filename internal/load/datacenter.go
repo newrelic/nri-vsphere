@@ -112,8 +112,8 @@ func (dc *Datacenter) AddTags(tagsByObject map[mor][]Tag) {
 func (dc *Datacenter) AddPerfMetrics(data map[types.ManagedObjectReference][]performance.PerfMetric) {
 	dc.PerfMetricsMux.Lock()
 	defer dc.PerfMetricsMux.Unlock()
-	for mo, value := range data {
-		dc.PerfMetrics[mo] = append(dc.PerfMetrics[mo], value...)
+	for m, value := range data {
+		dc.PerfMetrics[m] = append(dc.PerfMetrics[m], value...)
 	}
 }
 
