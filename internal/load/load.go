@@ -26,14 +26,15 @@ type ArgumentList struct {
 	DatacenterLocation string `default:"" help:"Datacenter Location of your vCenter or ESXi Host eg. sydney-ultimo"`
 
 	//TODO now all features are enabled by default for testing purposes
-	EnableVsphereEvents bool   `default:"true" help:"If set the integration will collect as well vSphere events at datacenter level"`
+	EnableVsphereEvents bool   `default:"false" help:"If set the integration will collect as well vSphere events at datacenter level"`
 	EventsPageSize      string `default:"100" help:"Number of events fetched from the vCenter for each page"`
 	AgentDir            string `default:"" help:"Agent Directory, injected by agent to save cache in Linux environments, es: /var/db/newrelic-infra" os:"linux"`
 	AppDataDir          string `default:"" help:"Agent Data Directory, injected by agent to save cache in Windows environments, es: %PROGRAMDATA%\\New Relic\\newrelic-infra" os:"windows"`
 
-	EnableVspherePerfMetrics bool   `default:"true" help:"If set the integration will collect as well vSphere perf metrics"`
+	EnableVspherePerfMetrics bool   `default:"false" help:"If set the integration will collect as well vSphere perf metrics"`
+	PerfLevel                int    `default:"1" help:"Performance counter level that will be collected"`
 	LogAvailableCounters     bool   `default:"false" help:"Print available perofrmance metrics"`
-	PerfMetricFile           string `default:"config.json" help:"location of the configuration file containing perfMetrics to be retrieved"`
+	PerfMetricFile           string `default:"vsphere-performance.metrics" help:"location of the configuration file containing perfMetrics to be retrieved"`
 	BatchSizePerfEntities    string `default:"30" help:"Number of entities requested at the same time when querying perf metrics"`
 	BatchSizePerfMetrics     string `default:"30" help:"Number of metrics requested at the same time when querying perf metrics"`
 

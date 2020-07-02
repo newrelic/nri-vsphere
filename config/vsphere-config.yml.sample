@@ -15,6 +15,11 @@ integrations:
       - --enable_vsphere_tags
       # Snapshots info is collected when this flag is present
       - --enable_vsphere_snapshots
+      # Performance metrics is collected when this flag is present
+      - --enable_vsphere_perf_metrics
+      # TODO add comment of labels and windows version
+      - --perf_level
+      - 1
       # - --validate_ssl # if you require SSL validation enable
       # Datacenter location label can be added to all entities in this vSphere platform
       # - --datacenter_location
