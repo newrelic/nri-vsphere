@@ -35,7 +35,7 @@ type ArgumentList struct {
 	EnableVspherePerfMetrics bool   `default:"false" help:"If set the integration will collect as well vSphere performance metrics"`
 	PerfLevel                int    `default:"1" help:"Performance counter level that will be collected"`
 	LogAvailableCounters     bool   `default:"false" help:"Print available performance metrics"`
-	PerfMetricFile           string `default:"vsphere-performance.metrics" help:"location of the configuration file containing perfMetrics to be retrieved"`
+	PerfMetricFile           string `default:"" help:"location of the configuration file containing perfMetrics to be retrieved"`
 
 	//As a general rule, specify between 10 and 50 entities in a single call to the QueryPerf method.
 	//This is a general recommendation because your system configuration may impose different

@@ -9,16 +9,29 @@ integrations:
       - administrator@vsphere.local
       - --pass
       - Example!
+
       # Events info is collected when this flag is present
       - --enable_vsphere_events
+
       # Tags are collected when this flag is present
       - --enable_vsphere_tags
+
       # Snapshots info is collected when this flag is present
-      #- --enable_vsphere_snapshots
-      # Performance metrics are collected when this flag is present
-      #- --enable_vsphere_perf_metrics
-      #- --perf_level
-      #- 1
+      # - --enable_vsphere_snapshots
+
+      # Performance metrics is collected when this flag is present. Activate this feature could overload vCenter
+      # depending on the environment size. 
+      # - --enable_vsphere_perf_metrics
+      # Performance metric collection level [1-4]. Be careful when you set a higher collection level, as the process requires 
+      # significant increase of resource usage on vCenter. Level 3 and 4 should only be used for a short period of time.
+      # For a more granular selection check on vsphere-performance.metrics file.
+      # - --perf_level
+      # - 1
+      # Path to the performance metrics config file. This file contains the performance counters that are going to be
+      # collected if they are available by vCenter.
+      # - --perf_metric_file
+      # - C:\Program Files\New Relic\newrelic-infra\integrations.d\vsphere-performance.metrics
+
       # - --validate_ssl # if you require SSL validation enable
       # Datacenter location label can be added to all entities in this vSphere platform
       # - --datacenter_location
