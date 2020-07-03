@@ -143,7 +143,7 @@ func startVcSim(t *testing.T) (context.Context, error, *govmomi.Client) {
 
 	//SettingUp Simulator
 	model := simulator.VPX()
-	model.Machine = 50
+	model.Machine = 51
 	err := model.Create()
 	assert.NoError(t, err)
 
@@ -203,10 +203,7 @@ func TestPerfMetrics(t *testing.T) {
 
 	metrics = p.Collect(refSlice, ms)
 	assert.Equal(t, len(refSlice), len(metrics), "we have 100 vm, all of them should be present in the map")
-	assert.Equal(t, 1, len(metrics[types.ManagedObjectReference{
-		Type:  "VirtualMachine",
-		Value: "vm-87",
-	}]), "we expect only one metric since only metrics with id 2 and 6 are defined for vms and only 2 is map in metricsAvaliableByID")
+	assert.Equal(t, 1, len(metrics[refSlice[0]]), "we expect only one metric since only metrics with id 2 and 6 are defined for vms and only 2 is map in metricsAvaliableByID")
 
 }
 

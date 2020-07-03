@@ -91,7 +91,7 @@ func checkAndSanitizeConfig(config *load.Config) {
 
 	if config.Args.EnableVsphereEvents {
 		if config.Args.AppDataDir == "" && runtime.GOOS == "windows" {
-			config.Logrus.Fatal("missing argument `app_data_dir`, in newer version of the Agent it is injected automatically, please update or specify argument in integration it in config file")
+			config.Logrus.Fatal("missing argument `app_data_dir`, in newer version of the Agent it is injected automatically, please update or specify argument in integration config file")
 		}
 
 		if config.Args.AgentDir == "" && runtime.GOOS != "windows" {
