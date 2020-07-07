@@ -29,8 +29,6 @@ type ArgumentList struct {
 
 	EnableVsphereEvents bool   `default:"false" help:"If set the integration will collect as well vSphere events at datacenter level"`
 	EventsPageSize      string `default:"100" help:"Number of events fetched from the vCenter for each page"`
-	AgentDir            string `default:"" help:"Agent Directory, injected by agent to save cache in Linux environments, es: /var/db/newrelic-infra" os:"linux"`
-	AppDataDir          string `default:"" help:"Agent Data Directory, injected by agent to save cache in Windows environments, es: %PROGRAMDATA%\\New Relic\\newrelic-infra" os:"windows"`
 
 	EnableVspherePerfMetrics bool   `default:"false" help:"If set the integration will collect as well vSphere performance metrics"`
 	PerfLevel                int    `default:"1" help:"Performance counter level that will be collected"`
@@ -46,9 +44,8 @@ type ArgumentList struct {
 
 	EnableVsphereTags      bool `default:"false" help:"If true tags will be collected. Tags are available when connecting to vcenter"`
 	EnableVsphereSnapshots bool `default:"false" help:"If set to true integration will collect, process and send as well data regarding vm Snapshots"`
-
-	ValidateSSL bool `default:"false" help:"Validate SSL"`
-	Version     bool `default:"false" help:"If set prints version and exit"`
+	ValidateSSL            bool   `default:"false" help:"Validate SSL"`
+	Version                bool   `default:"false" help:"If set prints version and exit"`
 }
 
 type Config struct {

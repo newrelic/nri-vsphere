@@ -5,6 +5,8 @@ package collect
 
 import (
 	"context"
+	"github.com/newrelic/infra-integrations-sdk/persist"
+	"time"
 
 	"github.com/newrelic/nri-vsphere/internal/cache"
 	"github.com/newrelic/nri-vsphere/internal/events"
@@ -64,7 +66,7 @@ func Datacenters(config *load.Config) {
 func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Datacenter) {
 	//https://pubs.vmware.com/vsphere-51/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.HistoryCollector.html
 
-	c := cache.NewCache(d.Name, config.CachePath)
+	c := setupCache(config, d.Name)
 	ed, err := events.NewEventDispacher(config.VMWareClient.Client, d.Self, config.Logrus, c)
 	if err != nil {
 		config.Logrus.WithError(err).Error("error while creating event Dispatcher")
@@ -74,4 +76,16 @@ func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Dat
 
 	newDatacenter.EventDispacher = ed
 	ed.CollectEvents(config.Args.EventsPageSize)
+}
+
+func setupCache(config *load.Config, resourceName string) *cache.Cache {
+	path := persist.DefaultPath(config.IntegrationName)
+	store, err := persist.NewFileStore(path, config.Logrus, time.Hour*24)
+	// if for some reason we couldn't create a file store, use an in-memory store.
+	if err != nil {
+		config.Logrus.WithError(err).Warn("could not create file based cache for events. using in-memory store")
+		store = persist.NewInMemoryStore()
+	}
+	c := cache.NewCache(resourceName, store)
+	return c
 }

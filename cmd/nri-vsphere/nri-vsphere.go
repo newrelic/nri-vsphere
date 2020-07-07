@@ -6,8 +6,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -89,21 +87,6 @@ func checkAndSanitizeConfig(config *load.Config) {
 		config.Logrus.Fatal("missing argument `pass`, please check if password has been supplied")
 	}
 
-	if config.Args.EnableVsphereEvents {
-		if config.Args.AppDataDir == "" && runtime.GOOS == "windows" {
-			config.Logrus.Fatal("missing argument `app_data_dir`, in newer version of the Agent it is injected automatically, please update or specify argument in integration config file")
-		}
-
-		if config.Args.AgentDir == "" && runtime.GOOS != "windows" {
-			config.Logrus.Fatal("missing argument `agent_dir`, in newer version of the Agent it is injected automatically, please update or specify argument in integration config file")
-		}
-		if runtime.GOOS == "windows" {
-			config.CachePath = filepath.Join(config.Args.AppDataDir, "/data/integration/events-cache")
-		} else {
-			//to test locally in darwin systems you can pass as argument agetn_dir=./ and create te folder "data/integration/events-cache"
-			config.CachePath = filepath.Join(config.Args.AgentDir, "/data/integration/events-cache")
-		}
-	}
 	config.Args.DatacenterLocation = strings.ToLower(config.Args.DatacenterLocation)
 }
 
