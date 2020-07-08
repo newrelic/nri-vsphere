@@ -5,7 +5,6 @@ package collect
 
 import (
 	"context"
-	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -34,16 +33,10 @@ func Datastores(config *load.Config) {
 		if err := collectTags(config, datastores, config.Datacenters[i]); err != nil {
 			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
 		}
-		var refSlice []types.ManagedObjectReference
 
 		for j := 0; j < len(datastores); j++ {
 			config.Datacenters[i].Datastores[datastores[j].Self] = &datastores[j]
-			refSlice = append(refSlice, datastores[j].Self)
 		}
 
-		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.Datastore)
-			dc.AddPerfMetrics(collectedData)
-		}
 	}
 }

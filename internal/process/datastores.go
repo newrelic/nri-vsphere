@@ -60,11 +60,7 @@ func createDatastoreSamples(config *load.Config) {
 				// add tags to inventory due to the inventory workaround
 				checkError(config, e.SetInventoryItem("tags", tagsPrefix+k, v))
 			}
-			// Performance metrics
-			perfMetrics := dc.GetPerfMetrics(ds.Self)
-			for _, perfMetric := range perfMetrics {
-				checkError(config, ms.SetMetric(perfMetricPrefix+perfMetric.Counter, perfMetric.Value, metric.GAUGE))
-			}
+
 		}
 	}
 }

@@ -5,7 +5,6 @@ package collect
 
 import (
 	"context"
-	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -36,16 +35,10 @@ func ResourcePools(config *load.Config) {
 		if err := collectTags(config, resourcePools, config.Datacenters[i]); err != nil {
 			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
 		}
-		var refSlice []types.ManagedObjectReference
 
 		for j := 0; j < len(resourcePools); j++ {
 			config.Datacenters[i].ResourcePools[resourcePools[j].Self] = &resourcePools[j]
-			refSlice = append(refSlice, resourcePools[j].Self)
 		}
 
-		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.ResourcePool)
-			dc.AddPerfMetrics(collectedData)
-		}
 	}
 }

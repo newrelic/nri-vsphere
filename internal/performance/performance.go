@@ -101,10 +101,9 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 				}
 				query.QuerySpec = append(query.QuerySpec, querySpec)
 			}
-
 			retrievedStats, err := methods.QueryPerf(ctx, c.perfManager.Client(), &query)
 			if err != nil {
-				c.logger.Error(err)
+				c.logger.Errorf("failed to exec queryPerf:%s", err)
 				continue
 			}
 
@@ -194,8 +193,6 @@ func (c *PerfCollector) parseConfigFile(fileName string) error {
 	c.MetricDefinition = &perfMetricsIDs{
 		VM:                     c.buildPerMetricID(cf.VM),
 		ClusterComputeResource: c.buildPerMetricID(cf.ClusterComputeResource),
-		ResourcePool:           c.buildPerMetricID(cf.ResourcePool),
-		Datastore:              c.buildPerMetricID(cf.Datastore),
 		Host:                   c.buildPerMetricID(cf.Host),
 	}
 
@@ -230,18 +227,14 @@ func (c *PerfCollector) buildPerMetricID(countersByLevel map[string][]string) []
 type perfMetricsIDs struct {
 	Host                   []types.PerfMetricId
 	VM                     []types.PerfMetricId
-	ResourcePool           []types.PerfMetricId
 	ClusterComputeResource []types.PerfMetricId
-	Datastore              []types.PerfMetricId
 }
 
 //This struct is used to parse the config file
 type ymlConfig struct {
 	Host                   map[string][]string `yaml:"host"`
 	VM                     map[string][]string `yaml:"vm"`
-	ResourcePool           map[string][]string `yaml:"resourcePool"`
 	ClusterComputeResource map[string][]string `yaml:"clusterComputeResource"`
-	Datastore              map[string][]string `yaml:"datastore"`
 }
 
 func min(a, b int) int {
