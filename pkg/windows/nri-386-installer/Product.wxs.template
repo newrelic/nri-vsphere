@@ -28,6 +28,7 @@
             <ComponentRef Id="CMP_V1_CUSTOM_PLUGINS_BIN"/>
             <ComponentGroupRef Id="CustomPluginsBinComponent"/>
             <ComponentGroupRef Id="PluginConfigsComponent"/>
+            <ComponentGroupRef Id="PluginPerfMetricsConfigsComponent"/>
         </Feature>
     </Product>
 
@@ -78,6 +79,15 @@
                 <File Id="FILE_NRI_VSPHERE_CONFIG_YML"
                       Name="vsphere-config.yml.sample"
                       Source="$(var.ProjectRootPath)config\vsphere-config-win.yml.sample"
+                      KeyPath="yes"/>
+            </Component>
+       </ComponentGroup>
+        <ComponentGroup Id="PluginPerfMetricsConfigsComponent" Directory="PluginConfigsFolder">
+            <Component Id="CMP_NRI_VSPHERE_PERF_METRICS_CONFIG" Guid="2951c9e2-e78c-497d-9884-0bb505b34d5a" Win64="no"
+                       NeverOverwrite="yes" Permanent="yes">
+                <File Id="FILE_NRI_VSPHERE_PERF_METRICS_CONFIG"
+                      Name="vsphere-performance.metrics"
+                      Source="$(var.ProjectRootPath)config\vsphere-performance.metrics"
                       KeyPath="yes"/>
             </Component>
        </ComponentGroup>

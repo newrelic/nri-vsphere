@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vsphere/internal/client"
@@ -41,10 +42,13 @@ func main() {
 
 	checkAndSanitizeConfig(config)
 
+	config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("before creating client")
+
 	config.VMWareClient, err = client.New(config.Args.URL, config.Args.User, config.Args.Pass, config.Args.ValidateSSL)
 	if err != nil {
 		config.Logrus.WithError(err).Fatal("failed to create client")
 	}
+	defer client.Logout(config.VMWareClient)
 
 	if config.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter" {
 		config.IsVcenterAPIType = true
@@ -63,12 +67,15 @@ func main() {
 		if err != nil {
 			config.Logrus.WithError(err).Fatal("failed to create client rest")
 		}
+		defer client.LogoutRest(config.VMWareClientRest)
+
 		config.TagsManager = tags.NewManager(config.VMWareClientRest)
 	}
 
 	config.ViewManager = view.NewManager(config.VMWareClient.Client)
 
 	runIntegration(config)
+
 }
 
 func checkAndSanitizeConfig(config *load.Config) {
@@ -84,7 +91,7 @@ func checkAndSanitizeConfig(config *load.Config) {
 
 	if config.Args.EnableVsphereEvents {
 		if config.Args.AppDataDir == "" && runtime.GOOS == "windows" {
-			config.Logrus.Fatal("missing argument `app_data_dir`, in newer version of the Agent it is injected automatically, please update or specify argument in integration it in config file")
+			config.Logrus.Fatal("missing argument `app_data_dir`, in newer version of the Agent it is injected automatically, please update or specify argument in integration config file")
 		}
 
 		if config.Args.AgentDir == "" && runtime.GOOS != "windows" {
@@ -110,8 +117,11 @@ func setupLogger(config *load.Config) {
 
 func runIntegration(config *load.Config) {
 
+	config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("before collecting data")
 	collect.CollectData(config)
+	config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("before processing data")
 	process.ProcessData(config)
+	config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("after processing data")
 
 	err := config.Integration.Publish()
 	if err != nil {

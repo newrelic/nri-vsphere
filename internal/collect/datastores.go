@@ -30,11 +30,13 @@ func Datastores(config *load.Config) {
 			config.Logrus.WithError(err).Error("failed to retrieve Datastore")
 			continue
 		}
-		if err := collectTags(config, datastores, &config.Datacenters[i]); err != nil {
+		if err := collectTags(config, datastores, config.Datacenters[i]); err != nil {
 			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
 		}
+
 		for j := 0; j < len(datastores); j++ {
 			config.Datacenters[i].Datastores[datastores[j].Self] = &datastores[j]
 		}
+
 	}
 }

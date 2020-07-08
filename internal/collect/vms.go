@@ -5,6 +5,8 @@ package collect
 
 import (
 	"context"
+	"github.com/vmware/govmomi/vim25/types"
+	"time"
 
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -31,21 +33,33 @@ func VirtualMachines(config *load.Config) {
 			propertiesToRetrieve = append(propertiesToRetrieve, "snapshot", "layoutEx.file", "layoutEx.snapshot")
 		}
 
+		config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("before collecting vm data method.Retrieve")
+
 		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
 		err = cv.Retrieve(ctx, []string{"VirtualMachine"}, propertiesToRetrieve, &vms)
 		if err != nil {
 			config.Logrus.WithError(err).Error("failed to retrieve VM Summaries")
 			continue
 		}
+		config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("after collecting vm data method.Retrieve")
 
-		config.Logrus.WithField("collected in dc", len(vms)).Debug("vm data collected")
-
-		if err := collectTags(config, vms, &config.Datacenters[i]); err != nil {
+		if err := collectTags(config, vms, config.Datacenters[i]); err != nil {
 			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
+		} else {
+			config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("vm tags collected")
 		}
 
+		var refSlice []types.ManagedObjectReference
 		for j := 0; j < len(vms); j++ {
 			config.Datacenters[i].VirtualMachines[vms[j].Self] = &vms[j]
+			refSlice = append(refSlice, vms[j].Self)
 		}
+
+		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
+			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.VM)
+			dc.AddPerfMetrics(collectedData)
+		}
+		config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("vm perf metrics collected")
+
 	}
 }

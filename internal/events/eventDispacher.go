@@ -13,7 +13,6 @@ import (
 )
 
 type EventDispacher struct {
-	cancelCtx context.CancelFunc
 	collector *event.HistoryCollector
 	ctx       *context.Context
 
@@ -30,7 +29,7 @@ const (
 func NewEventDispacher(client *vim25.Client, mo types.ManagedObjectReference, log *logrus.Logger, c cache.CacheInterface) (*EventDispacher, error) {
 
 	manager := event.NewManager(client)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx := context.Background()
 
 	now := time.Now()
 	lastTimestamp, err := c.ReadTimestampCache()
@@ -54,7 +53,6 @@ func NewEventDispacher(client *vim25.Client, mo types.ManagedObjectReference, lo
 	}
 
 	ed := EventDispacher{
-		cancelCtx:     cancel,
 		LastTimestamp: &lastTimestamp,
 		collector:     collector,
 		ctx:           &ctx,
@@ -68,7 +66,7 @@ func NewEventDispacher(client *vim25.Client, mo types.ManagedObjectReference, lo
 func sanitizeTimestamp(err error, log *logrus.Logger, lastTimestamp time.Time, now time.Time) time.Time {
 
 	if err != nil {
-		log.WithError(err).Error("Error reading cache, setting default timestamp to current time")
+		log.WithError(err).Debug("Error reading cache, setting default timestamp to current time")
 		lastTimestamp = now
 		return lastTimestamp
 	}
@@ -79,14 +77,14 @@ func sanitizeTimestamp(err error, log *logrus.Logger, lastTimestamp time.Time, n
 	limitTimestamp := now.Add(time.Duration(-1) * time.Hour)
 	if lastTimestamp.Before(limitTimestamp) {
 		//we try to avoid a deadlock where tue to a really old timestamp the integration try to fetch too many events timing out
-		log.WithField("timestamp", lastTimestamp.String()).Warn("Timestamp is too old, setting lastTimestamp to 1 hour ago to fetch events")
+		log.WithField("timestamp", lastTimestamp.String()).Debug("Timestamp is too old, setting lastTimestamp to 1 hour ago to fetch events")
 		lastTimestamp = limitTimestamp
 		return lastTimestamp
 	}
 
 	//we make sure the last timestamp is smaller or equal then now, otherwise the API call fails
 	if lastTimestamp.After(now) {
-		log.WithField("timestamp", lastTimestamp.String()).Warn("Timestamp after the time.Now(), setting lastTimestamp to time.Now()")
+		log.WithField("timestamp", lastTimestamp.String()).Debug("Timestamp after the time.Now(), setting lastTimestamp to time.Now()")
 		lastTimestamp = now
 		return lastTimestamp
 	}
@@ -96,7 +94,10 @@ func sanitizeTimestamp(err error, log *logrus.Logger, lastTimestamp time.Time, n
 }
 
 func (ed *EventDispacher) Cancel() {
-	ed.cancelCtx()
+	err := ed.collector.Destroy(*ed.ctx)
+	if err != nil {
+		ed.log.WithError(err).Error("error while saving cache")
+	}
 	t := ed.LastTimestamp
 
 	//computing last timestamp processed
@@ -107,7 +108,7 @@ func (ed *EventDispacher) Cancel() {
 	}
 
 	ed.log.WithField("date", t).Debug("saving in cache last read message")
-	err := ed.c.WriteTimestampCache(*t)
+	err = ed.c.WriteTimestampCache(*t)
 	if err != nil {
 		ed.log.WithError(err).Error("error while saving cache")
 	}

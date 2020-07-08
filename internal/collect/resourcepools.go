@@ -32,11 +32,13 @@ func ResourcePools(config *load.Config) {
 			config.Logrus.WithError(err).Error("failed to retrieve ResourcePools")
 			continue
 		}
-		if err := collectTags(config, resourcePools, &config.Datacenters[i]); err != nil {
+		if err := collectTags(config, resourcePools, config.Datacenters[i]); err != nil {
 			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
 		}
+
 		for j := 0; j < len(resourcePools); j++ {
 			config.Datacenters[i].ResourcePools[resourcePools[j].Self] = &resourcePools[j]
 		}
+
 	}
 }

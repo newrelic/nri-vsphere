@@ -40,6 +40,8 @@ prep-pkg-env:
 	@chmod 755 $(SOURCE_DIR)/var/db/newrelic-infra/newrelic-integrations/bin/*
 	@cp ./config/$(SHORT_INTEGRATION)-config.yml.sample $(SOURCE_DIR)/etc/newrelic-infra/integrations.d/$(SHORT_INTEGRATION)-config.yml.sample
 	@chmod 644 $(SOURCE_DIR)/etc/newrelic-infra/integrations.d/$(SHORT_INTEGRATION)-config.yml.sample
+	@cp ./config/vsphere-performance.metrics $(SOURCE_DIR)/etc/newrelic-infra/integrations.d/vsphere-performance.metrics
+	@chmod 644 $(SOURCE_DIR)/etc/newrelic-infra/integrations.d/vsphere-performance.metrics
 
 deb: prep-pkg-env
 	@echo "=== Main === [ deb ]: building DEB package..."
