@@ -4,11 +4,11 @@
 package load
 
 import (
-	"github.com/newrelic/nri-vsphere/internal/performance"
-
+	"sort"
 	"sync"
 
 	"github.com/newrelic/nri-vsphere/internal/events"
+	"github.com/newrelic/nri-vsphere/internal/performance"
 
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
@@ -129,6 +129,9 @@ func (dc *Datacenter) GetPerfMetrics(ref mor) []performance.PerfMetric {
 func (dc *Datacenter) GetTagsByCategories(ref mor) map[string]string {
 	tagsByCategory := make(map[string]string)
 	if tags, ok := dc.Tags[ref]; ok {
+		sort.Slice(tags, func(i, j int) bool {
+			return tags[i].Name < tags[j].Name
+		})
 		for _, t := range tags {
 			if _, ok := tagsByCategory[t.Category]; ok {
 				tagsByCategory[t.Category] = tagsByCategory[t.Category] + "|" + t.Name
