@@ -8,7 +8,7 @@ import (
 
 	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
 	"github.com/newrelic/infra-integrations-sdk/integration"
-	logrus "github.com/sirupsen/Logrus"
+	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/view"
 )

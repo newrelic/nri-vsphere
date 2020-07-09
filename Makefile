@@ -14,7 +14,7 @@ INTEGRATION  := vsphere
 SHORT_INTEGRATION  := vsphere
 BINARY_NAME   = nri-$(INTEGRATION)
 
-GOTOOLS       = github.com/kardianos/govendor gopkg.in/alecthomas/gometalinter.v2 github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
+GOTOOLS       = github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
 
 all: build
@@ -64,7 +64,7 @@ tools-update: check-version
 	@go get -u $(GOTOOLS)
 deps-only:
 	@echo "=== $(INTEGRATION) === [ deps ]: Installing package dependencies required by the project..."
-	@govendor sync
+	@go mod download
 
 
 check-version:
