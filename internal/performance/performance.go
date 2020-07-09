@@ -12,7 +12,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	logrus "github.com/sirupsen/Logrus"
+	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/performance"
 	"github.com/vmware/govmomi/vim25/methods"

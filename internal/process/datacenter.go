@@ -12,7 +12,7 @@ import (
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/load"
-	logrus "github.com/sirupsen/Logrus"
+	logrus "github.com/sirupsen/logrus"
 )
 
 func createDatacenterSamples(config *load.Config) {

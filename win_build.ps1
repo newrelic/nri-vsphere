@@ -45,6 +45,13 @@ if (-not $?)
     exit -1
 }
 
+echo "Downloading Deps..."
+if ((Get-Command "govendor.exe" -ErrorAction SilentlyContinue) -eq $null)
+{
+    go get github.com/kardianos/govendor
+}
+govendor sync
+
 echo "Checking MSBuild.exe..."
 $msBuild = (Get-ItemProperty hklm:\software\Microsoft\MSBuild\ToolsVersions\4.0).MSBuildToolsPath
 if ($msBuild.Length -eq 0) {
@@ -55,6 +62,7 @@ echo $msBuild
 
 $env:GOOS="windows"
 $env:GOARCH=$arch
+$env:GO111MODULE="off"
 
 echo "--- Collecting files"
 
