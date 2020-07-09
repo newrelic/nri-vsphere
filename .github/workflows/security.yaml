@@ -10,12 +10,16 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
+      with:
+        path: src/github.com/newrelic/nri-vsphere
     - name: Run Snyk to check for vulnerabilities
       uses: snyk/actions/golang@master
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        GOPATH: /github/workspace
       with:
-        args: --severity-threshold=high
-      with:
+        args: /github/workspace/src/github.com/newrelic/nri-vsphere --severity-threshold=high
         command: monitor
+
+        
