@@ -63,6 +63,7 @@ echo $msBuild
 $env:GOOS="windows"
 $env:GOARCH=$arch
 $env:GO111MODULE="off"
+$env:GOPATH=C:\gopath
 
 echo "--- Collecting files"
 
