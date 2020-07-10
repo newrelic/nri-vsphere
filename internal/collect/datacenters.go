@@ -6,13 +6,12 @@ package collect
 import (
 	"context"
 	"github.com/newrelic/infra-integrations-sdk/persist"
-	"time"
-
 	"github.com/newrelic/nri-vsphere/internal/cache"
 	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/mo"
+	"time"
 )
 
 // Datacenters VMWare
@@ -40,10 +39,12 @@ func Datacenters(config *load.Config) {
 		}
 	}
 
+	cs := newCacheStore(config)
 	for i, d := range datacenters {
 		newDatacenter := load.NewDatacenter(&datacenters[i])
 		if config.IsVcenterAPIType && config.Args.EnableVsphereEvents {
-			collectEvents(config, d, newDatacenter)
+			c := cache.NewCache(d.Name, cs)
+			collectEvents(config, d, newDatacenter, c)
 		}
 
 		if config.Args.EnableVspherePerfMetrics {
@@ -63,10 +64,8 @@ func Datacenters(config *load.Config) {
 	}
 }
 
-func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Datacenter) {
+func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Datacenter, c *cache.Cache) {
 	//https://pubs.vmware.com/vsphere-51/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.HistoryCollector.html
-
-	c := setupCache(config, d.Name)
 	ed, err := events.NewEventDispacher(config.VMWareClient.Client, d.Self, config.Logrus, c)
 	if err != nil {
 		config.Logrus.WithError(err).Error("error while creating event Dispatcher")
@@ -78,7 +77,7 @@ func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Dat
 	ed.CollectEvents(config.Args.EventsPageSize)
 }
 
-func setupCache(config *load.Config, resourceName string) *cache.Cache {
+func newCacheStore(config *load.Config) persist.Storer {
 	path := persist.DefaultPath(config.IntegrationName)
 	store, err := persist.NewFileStore(path, config.Logrus, time.Hour*24)
 	// if for some reason we couldn't create a file store, use an in-memory store.
@@ -86,6 +85,5 @@ func setupCache(config *load.Config, resourceName string) *cache.Cache {
 		config.Logrus.WithError(err).Warn("could not create file based cache for events. using in-memory store")
 		store = persist.NewInMemoryStore()
 	}
-	c := cache.NewCache(resourceName, store)
-	return c
+	return store
 }
