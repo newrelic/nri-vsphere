@@ -141,10 +141,13 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 			continue
 		}
 		var metricVal int64
-		for _, val := range metricValueSeries.Value {
-			metricVal += val
+		if len(metricValueSeries.Value) < 1 {
+			c.logger.Debugf("The metric: %v is not containing at least one sample, this is not expected", name)
+			continue
 		}
-
+		// MaxSamples is set to 1 but the API is retreiving multiple samples with the same value for historical interval metrics.
+		// We will take just first one.
+		metricVal = metricValueSeries.Value[0]
 		perfMetricsByRef[metricsValues.Entity] = append(perfMetricsByRef[metricsValues.Entity], PerfMetric{
 			Counter: name,
 			Value:   metricVal,
