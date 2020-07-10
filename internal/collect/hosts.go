@@ -5,6 +5,8 @@ package collect
 
 import (
 	"context"
+
+	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/newrelic/nri-vsphere/internal/load"
@@ -48,7 +50,7 @@ func Hosts(config *load.Config) {
 		}
 
 		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.Host)
+			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.Host, performance.RealTimeInterval)
 			dc.AddPerfMetrics(collectedData)
 		}
 	}

@@ -5,8 +5,10 @@ package collect
 
 import (
 	"context"
-	"github.com/vmware/govmomi/vim25/types"
 	"time"
+
+	"github.com/newrelic/nri-vsphere/internal/performance"
+	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -56,7 +58,7 @@ func VirtualMachines(config *load.Config) {
 		}
 
 		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.VM)
+			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.VM, performance.RealTimeInterval)
 			dc.AddPerfMetrics(collectedData)
 		}
 		config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("vm perf metrics collected")
