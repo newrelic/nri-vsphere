@@ -33,10 +33,10 @@ compile-linux: deps
 	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
 	@GOOS=linux go  build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
 compile-darwin: deps
-	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
+	@echo "=== $(PROJECT_NAME) === [ compile-darwin    ]: building commands:"
 	@GOOS=darwin go  build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
 compile-windows: deps
-	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
+	@echo "=== $(PROJECT_NAME) === [ compile-windows    ]: building commands:"
 	@GOOS=windows go  build -o $(BIN_DIR)/$(BINARY_NAME).exe ./cmd/...
 
 
