@@ -20,6 +20,6 @@ jobs:
         GOPATH: /github/workspace
       with:
         args: /github/workspace/src/github.com/newrelic/nri-vsphere --severity-threshold=high
-        command: monitor
+        command: test
 
         

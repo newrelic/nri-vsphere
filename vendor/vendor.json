@@ -220,20 +220,14 @@
 			"revisionTime": "2020-02-13T16:48:48Z"
 		},
 		{
-			"checksumSHA1": "tPUy5ckuRcNSroe+kj8PH/edRuo=",
-			"path": "github.com/vmware/govmomi/simulator/esx",
-			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
-			"revisionTime": "2020-02-13T16:48:48Z"
-		},
-		{
 			"checksumSHA1": "C7bv0/X53d+oCrRtezDcBt1DMN0=",
 			"path": "github.com/vmware/govmomi/simulator/esx",
 			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
 			"revisionTime": "2020-03-05T20:03:13Z"
 		},
 		{
-			"checksumSHA1": "W63fE4115rnJfTI9mWcFbYg0yVQ=",
-			"path": "github.com/vmware/govmomi/simulator/internal",
+			"checksumSHA1": "tPUy5ckuRcNSroe+kj8PH/edRuo=",
+			"path": "github.com/vmware/govmomi/simulator/esx",
 			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
 			"revisionTime": "2020-02-13T16:48:48Z"
 		},
@@ -242,6 +236,12 @@
 			"path": "github.com/vmware/govmomi/simulator/internal",
 			"revision": "09f40b1a69c0e05c59e78b5af4614b8cbe8a95ee",
 			"revisionTime": "2020-03-05T20:03:13Z"
+		},
+		{
+			"checksumSHA1": "W63fE4115rnJfTI9mWcFbYg0yVQ=",
+			"path": "github.com/vmware/govmomi/simulator/internal",
+			"revision": "e7df0c1118c15c0b35fe08f183ca084269ea6542",
+			"revisionTime": "2020-02-13T16:48:48Z"
 		},
 		{
 			"checksumSHA1": "N7/PU8k8V+TLmvR84KxedhLPswQ=",
