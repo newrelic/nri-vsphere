@@ -56,6 +56,8 @@ echo $msBuild
 $env:GOOS="windows"
 $env:GOARCH=$arch
 
+go mod download
+
 echo "--- Collecting files"
 
 $goFiles = go list ./...
