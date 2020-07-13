@@ -16,6 +16,7 @@ BINARY_NAME   = nri-$(INTEGRATION)
 
 GOTOOLS       = github.com/kardianos/govendor  github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
+SNYK_VERSION  = v1.361.3
 
 all: build
 build: clean test compile
@@ -40,7 +41,7 @@ compile-windows: deps
 	@GOOS=windows go  build -o $(BIN_DIR)/$(BINARY_NAME).exe ./cmd/...
 
 
-test: deps test-unit test-integration
+test: deps test-unit test-integration test-security
 test-unit:
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
 	@gocov test $(GO_PKGS) | gocov-xml > coverage.xml
@@ -50,6 +51,17 @@ test-integration:
 	@docker-compose -f ./integration-test/docker-compose.yml up -d --build
 	@go test -v -tags=integration ./integration-test/. || (ret=$$?; docker-compose -f ./integration-test/docker-compose.yml  down && exit $$ret)
 	@docker-compose -f ./integration-test/docker-compose.yml  down
+
+bin:
+	@mkdir $(BIN_DIR)
+
+test-security: bin deps
+	@echo "=== $(PROJECT_NAME) === [ security-test        ]: running security tests..."
+	@wget https://github.com/snyk/snyk/releases/download/$(SNYK_VERSION)/snyk-linux -O $(BIN_DIR)/snyk-linux
+	@chmod +x $(BIN_DIR)/snyk-linux
+	@$(BIN_DIR)/snyk-linux auth $(SNYK_TOKEN)
+	@$(BIN_DIR)/snyk-linux test
+
 lint: deps
 	@echo "=== $(PROJECT_NAME) === [ lint             ]: Validating source code running $(GOLINTER)..."
 	@$(GOLINTER) run ./...
@@ -64,7 +76,7 @@ tools-update: check-version
 	@go get -u $(GOTOOLS)
 deps-only:
 	@echo "=== $(INTEGRATION) === [ deps ]: Installing package dependencies required by the project..."
-	@govendor sync
+	@$(GOPATH)/bin/govendor sync
 
 
 check-version:

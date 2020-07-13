@@ -1,0 +1,26 @@
+name: Security vulnerabilities scan
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: go/src/github.com/newrelic/nri-vsphere
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.14'
+    - name: Run snyk via Makefile
+      env:
+        SNYK_TOKEN: ${{secrets.SNYK_TOKEN}}
+        GO111MODULE: auto
+      run: |
+        export GOPATH=${GITHUB_WORKSPACE}/go
+        cd go/src/github.com/newrelic/nri-vsphere
+        make test-security
