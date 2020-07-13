@@ -2,9 +2,14 @@ package performance
 
 import (
 	"context"
+
 	logrus "github.com/sirupsen/Logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"io/ioutil"
+	"os"
+	"testing"
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/performance"
@@ -12,9 +17,6 @@ import (
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 func TestPerfCollector_parseConfigFile(t *testing.T) {
@@ -93,7 +95,7 @@ vm:
 
 	ref := types.ManagedObjectReference{Type: "VirtualMachine", Value: "vm-87"}
 
-	metrics := pc.Collect([]types.ManagedObjectReference{ref}, pc.MetricDefinition.VM)
+	metrics := pc.Collect([]types.ManagedObjectReference{ref}, pc.MetricDefinition.VM, RealTimeInterval)
 
 	assert.Equal(t, 1, len(metrics), "we fetched events for 1 vm only")
 	assert.Equal(t, 1, len(metrics[ref]), "we expect only one metric since only metrics with id 2 and 6 are defined for vms and only 2 is map in metricsAvaliableByID")
@@ -130,11 +132,11 @@ func TestPerfMetricsEmptyPerfCollector(t *testing.T) {
 	}
 
 	//no fail SEG/Fault expected
-	metrics := p.Collect(refSlice, nil)
+	metrics := p.Collect(refSlice, nil, RealTimeInterval)
 	assert.Equal(t, map[types.ManagedObjectReference][]PerfMetric{}, metrics)
 
 	ms := []types.PerfMetricId{{CounterId: 1, Instance: ""}, {CounterId: 2, Instance: ""}, {CounterId: 3, Instance: ""}, {CounterId: 4, Instance: ""}}
-	metrics = p.Collect(refSlice, ms)
+	metrics = p.Collect(refSlice, ms, RealTimeInterval)
 	assert.Equal(t, map[types.ManagedObjectReference][]PerfMetric{}, metrics)
 }
 
@@ -182,12 +184,12 @@ func TestPerfMetrics(t *testing.T) {
 	}
 
 	//no fail SEG/Fault expected
-	metrics := p.Collect(refSlice, nil)
+	metrics := p.Collect(refSlice, nil, RealTimeInterval)
 	assert.Equal(t, map[types.ManagedObjectReference][]PerfMetric{}, metrics)
 
 	//Please notice that only value for ID 2 and 6 is defined
 	ms := []types.PerfMetricId{{CounterId: 1, Instance: ""}, {CounterId: 2, Instance: ""}, {CounterId: 5, Instance: ""}, {CounterId: 6, Instance: ""}}
-	metrics = p.Collect(refSlice, ms)
+	metrics = p.Collect(refSlice, ms, RealTimeInterval)
 	assert.Equal(t, map[types.ManagedObjectReference][]PerfMetric{}, metrics)
 
 	p = PerfCollector{
@@ -201,7 +203,7 @@ func TestPerfMetrics(t *testing.T) {
 		batchSizePerfMetrics:   3,
 	}
 
-	metrics = p.Collect(refSlice, ms)
+	metrics = p.Collect(refSlice, ms, RealTimeInterval)
 	assert.Equal(t, len(refSlice), len(metrics), "we have 100 vm, all of them should be present in the map")
 	assert.Equal(t, 1, len(metrics[refSlice[0]]), "we expect only one metric since only metrics with id 2 and 6 are defined for vms and only 2 is map in metricsAvaliableByID")
 

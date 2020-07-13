@@ -21,6 +21,9 @@ import (
 
 const (
 	counterLimit = 150 // limits the number of perf metrics to be added to avoid reach the 256 limit per event
+
+	RealTimeInterval    = 20
+	FiveMinutesInterval = 300
 )
 
 type PerfCollector struct {
@@ -75,7 +78,7 @@ func NewPerfCollector(client *govmomi.Client, logger *logrus.Logger, perfMetricF
 	return perfCollector, err
 }
 
-func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []types.PerfMetricId) map[types.ManagedObjectReference][]PerfMetric {
+func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []types.PerfMetricId, intervalId int32) map[types.ManagedObjectReference][]PerfMetric {
 	ctx := context.Background()
 	perfMetricsByRef := map[types.ManagedObjectReference][]PerfMetric{}
 
@@ -89,18 +92,19 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 			chunkEntities := mos[i:min(i+c.batchSizePerfEntities, len(mos))]
 			chunkMetrics := metrics[m:min(m+c.batchSizePerfMetrics, len(metrics))]
 
-			for _, vm := range chunkEntities {
+			for _, ref := range chunkEntities {
 				querySpec := types.PerfQuerySpec{
-					Entity:     vm.Reference(),
+					Entity:     ref.Reference(),
 					MaxSample:  1,
 					MetricId:   chunkMetrics,
-					IntervalId: 20,
+					IntervalId: intervalId,
 					//If the optional intervalId is omitted, the metrics are returned in their originally sampled interval.
 					//When an intervalId is specified, the server tries to summarize the information for the specified intervalId.
 					//However, if that interval does not exist or has no data, the server summarizes the information using the best interval available.
 				}
 				query.QuerySpec = append(query.QuerySpec, querySpec)
 			}
+
 			retrievedStats, err := methods.QueryPerf(ctx, c.perfManager.Client(), &query)
 			if err != nil {
 				c.logger.Errorf("failed to exec queryPerf:%s", err)
@@ -136,15 +140,17 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 			c.logger.Debugf("vCenter returned no samples for the metric: %v", name)
 			continue
 		}
-
-		if len(metricValueSeries.Value) != 1 {
-			c.logger.Debugf("The metric: %v is not containing one sample, this is not expected", name)
+		var metricVal int64
+		if len(metricValueSeries.Value) < 1 {
+			c.logger.Debugf("The metric: %v is not containing at least one sample, this is not expected", name)
 			continue
 		}
-
+		// MaxSamples is set to 1 but the API is retreiving multiple samples with the same value for historical interval metrics.
+		// We will take just first one.
+		metricVal = metricValueSeries.Value[0]
 		perfMetricsByRef[metricsValues.Entity] = append(perfMetricsByRef[metricsValues.Entity], PerfMetric{
 			Counter: name,
-			Value:   metricValueSeries.Value[0],
+			Value:   metricVal,
 		})
 	}
 }
@@ -193,6 +199,8 @@ func (c *PerfCollector) parseConfigFile(fileName string) error {
 	c.MetricDefinition = &perfMetricsIDs{
 		VM:                     c.buildPerMetricID(cf.VM),
 		ClusterComputeResource: c.buildPerMetricID(cf.ClusterComputeResource),
+		ResourcePool:           c.buildPerMetricID(cf.ResourcePool),
+		Datastore:              c.buildPerMetricID(cf.Datastore),
 		Host:                   c.buildPerMetricID(cf.Host),
 	}
 
@@ -227,14 +235,18 @@ func (c *PerfCollector) buildPerMetricID(countersByLevel map[string][]string) []
 type perfMetricsIDs struct {
 	Host                   []types.PerfMetricId
 	VM                     []types.PerfMetricId
+	ResourcePool           []types.PerfMetricId
 	ClusterComputeResource []types.PerfMetricId
+	Datastore              []types.PerfMetricId
 }
 
 //This struct is used to parse the config file
 type ymlConfig struct {
 	Host                   map[string][]string `yaml:"host"`
 	VM                     map[string][]string `yaml:"vm"`
+	ResourcePool           map[string][]string `yaml:"resourcePool"`
 	ClusterComputeResource map[string][]string `yaml:"clusterComputeResource"`
+	Datastore              map[string][]string `yaml:"datastore"`
 }
 
 func min(a, b int) int {

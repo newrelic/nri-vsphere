@@ -3,8 +3,13 @@
 # vary depending on the vCenter version and configuration.
 # As a best practice, only metrics that are needed should be collected since the number of metrics
 # and their level affects the vCenter performance. 
+
+# host and vm metrics are available in intervals of 20 seconds (Real time), and resourcePool, cluster and datastore 
+# performance metrics are available in intervals of 300 seconds(historical metrics).
+
 # For more information regarding performance metrics, please check out the official vmWare documentation:
 # https://docs.vmware.com/en/VMware-vSphere/6.7/vsphere-esxi-vcenter-server-67-monitoring-performance-guide.pdf
+# https://vdc-repo.vmware.com/vmwb-repository/dcr-public/790263bc-bd30-48f1-af12-ed36055d718b/e5f17bfc-ecba-40bf-a04f-376bbb11e811/vim.PerformanceManager.html
 
 host:
   level_1:
@@ -235,6 +240,60 @@ vm:
     - sys.heartbeat.latest
     - sys.osUptime.latest
 
+resourcePool:
+  level_1:
+    - cpu.usagemhz.average
+    - mem.consumed.average
+    - mem.overhead.average
+    - mem.vmmemctl.average
+  level_2:
+    - cpu.cpuentitlement.latest
+    - mem.active.average
+    - mem.compressed.average
+    - mem.compressionRate.average
+    - mem.decompressionRate.average
+    - mem.granted.average
+    - mem.mementitlement.latest
+    - mem.shared.average
+    - mem.swapped.average
+    - mem.zero.average
+    - power.power.average
+  level_3:
+    - power.energy.summation
+  level_4:
+    - cpu.capacity.contention.average
+    - cpu.capacity.demand.average
+    - cpu.capacity.entitlement.average
+    - cpu.capacity.usage.average
+    - cpu.corecount.contention.average
+    - cpu.corecount.provisioned.average
+    - cpu.usagemhz.maximum
+    - cpu.usagemhz.minimum
+    - disk.throughput.contention.average
+    - disk.throughput.usage.average
+    - mem.active.maximum
+    - mem.active.minimum
+    - mem.capacity.contention.average
+    - mem.capacity.entitlement.average
+    - mem.capacity.provisioned.average
+    - mem.capacity.usage.average
+    - mem.consumed.maximum
+    - mem.consumed.minimum
+    - mem.granted.maximum
+    - mem.granted.minimum
+    - mem.overhead.maximum
+    - mem.overhead.minimum
+    - mem.shared.maximum
+    - mem.shared.minimum
+    - mem.swapped.maximum
+    - mem.swapped.minimum
+    - mem.vmmemctl.maximum
+    - mem.vmmemctl.minimum
+    - mem.zero.maximum
+    - mem.zero.minimum
+    - net.throughput.contention.summation
+    - net.throughput.usage.average
+
 clusterComputeResource:
   level_1:
     - cpu.usage.average
@@ -319,3 +378,22 @@ clusterComputeResource:
     - net.throughput.provisioned.average
     - net.throughput.usable.average
     - net.throughput.usage.average
+
+datastore:
+  level_1:
+    - datastore.numberReadAveraged.average
+    - datastore.numberWriteAveraged.average
+    - disk.capacity.latest
+    - disk.provisioned.latest
+    - disk.unshared.latest
+    - disk.used.latest
+  level_2:
+    - datastore.read.average
+    - datastore.write.average
+  level_3:
+  level_4:
+    - datastore.throughput.contention.average
+    - datastore.throughput.usage.average
+    - disk.capacity.contention.average
+    - disk.capacity.provisioned.average
+    - disk.capacity.usage.average
