@@ -34,6 +34,5 @@ func (c *Cache) ReadTimestampCache() (time.Time, error) {
 
 func (c *Cache) WriteTimestampCache(lastTimestamp time.Time) error {
 	c.store.Set(c.resourceName, lastTimestamp.UnixNano())
-	err := c.store.Save()
-	return err
+	return c.store.Save()
 }

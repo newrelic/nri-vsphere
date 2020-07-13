@@ -39,7 +39,10 @@ func Datacenters(config *load.Config) {
 		}
 	}
 
-	cs := newCacheStore(config)
+	cs, err := newCacheStore(config)
+	if err != nil {
+		config.Logrus.WithError(err).Warn("could not create cache for vsphere events. all events will be returned")
+	}
 	for i, d := range datacenters {
 		newDatacenter := load.NewDatacenter(&datacenters[i])
 		if config.IsVcenterAPIType && config.Args.EnableVsphereEvents {
@@ -77,13 +80,9 @@ func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Dat
 	ed.CollectEvents(config.Args.EventsPageSize)
 }
 
-func newCacheStore(config *load.Config) persist.Storer {
-	path := persist.DefaultPath(config.IntegrationName)
+func newCacheStore(config *load.Config) (persist.Storer, error) {
+	// we have to set a distinct default path otherwise it gets overwritten by the default Infra SDK store
+	path := persist.DefaultPath(config.IntegrationName + "_timestamps")
 	store, err := persist.NewFileStore(path, config.Logrus, time.Hour*24)
-	// if for some reason we couldn't create a file store, use an in-memory store.
-	if err != nil {
-		config.Logrus.WithError(err).Warn("could not create file based cache for events. using in-memory store")
-		store = persist.NewInMemoryStore()
-	}
-	return store
+	return store, err
 }
