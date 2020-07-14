@@ -5,13 +5,14 @@ package collect
 
 import (
 	"context"
+	"time"
+
 	"github.com/newrelic/infra-integrations-sdk/persist"
 	"github.com/newrelic/nri-vsphere/internal/cache"
 	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/mo"
-	"time"
 )
 
 // Datacenters VMWare
@@ -84,5 +85,8 @@ func newCacheStore(config *load.Config) (persist.Storer, error) {
 	// we have to set a distinct default path otherwise it gets overwritten by the default Infra SDK store
 	path := persist.DefaultPath(config.IntegrationName + "_timestamps")
 	store, err := persist.NewFileStore(path, config.Logrus, time.Hour*24)
+	if err != nil {
+		store = persist.NewInMemoryStore()
+	}
 	return store, err
 }
