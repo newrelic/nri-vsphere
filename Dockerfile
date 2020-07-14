@@ -3,8 +3,8 @@ FROM golang:1.14
 WORKDIR /go/src/nri-vsphere
 COPY . .
 
-RUN apt update && \
-    apt install docker-compose -qq && \
+RUN apt-get update && \
+    apt-get install docker-compose -qq > /dev/null && \
     rm -rf /var/lib/apt/lists/*
 
 RUN make deps
