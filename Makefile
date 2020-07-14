@@ -24,8 +24,8 @@ all: build
 build-local: clean test compile
 build: bin
 	@docker build --no-cache -t $(CONTAINER_IMAGE) .
-	@docker run --privileged=true --name $(CONTAINER) $(CONTAINER_IMAGE) \
-		/etc/init.d/docker start && make test compile 
+	@docker rm -f $(CONTAINER) 2>/dev/null
+	@docker run --privileged=true --name $(CONTAINER) $(CONTAINER_IMAGE) /etc/init.d/docker start && make test compile
 	@docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/bin/$(BINARY_NAME) $(BIN_DIR); docker rm -f $(CONTAINER);
 
 bin:
