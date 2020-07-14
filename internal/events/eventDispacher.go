@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/newrelic/nri-vsphere/internal/cache"
-	logrus "github.com/sirupsen/Logrus"
+	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/event"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/types"

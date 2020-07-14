@@ -14,7 +14,7 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/collect"
 	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/newrelic/nri-vsphere/internal/process"
-	logrus "github.com/sirupsen/Logrus"
+	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/view"
 )

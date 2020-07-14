@@ -3,7 +3,7 @@ package events
 import (
 	"context"
 	"fmt"
-	logrus "github.com/sirupsen/Logrus"
+	logrus "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/simulator"
