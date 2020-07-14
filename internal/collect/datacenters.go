@@ -5,7 +5,9 @@ package collect
 
 import (
 	"context"
+	"time"
 
+	"github.com/newrelic/infra-integrations-sdk/persist"
 	"github.com/newrelic/nri-vsphere/internal/cache"
 	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/load"
@@ -38,10 +40,15 @@ func Datacenters(config *load.Config) {
 		}
 	}
 
+	cs, err := newCacheStore(config)
+	if err != nil {
+		config.Logrus.WithError(err).Warn("could not create cache for vsphere events. all events will be returned")
+	}
 	for i, d := range datacenters {
 		newDatacenter := load.NewDatacenter(&datacenters[i])
 		if config.IsVcenterAPIType && config.Args.EnableVsphereEvents {
-			collectEvents(config, d, newDatacenter)
+			c := cache.NewCache(d.Name, cs)
+			collectEvents(config, d, newDatacenter, c)
 		}
 
 		if config.Args.EnableVspherePerfMetrics {
@@ -61,10 +68,8 @@ func Datacenters(config *load.Config) {
 	}
 }
 
-func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Datacenter) {
+func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Datacenter, c *cache.Cache) {
 	//https://pubs.vmware.com/vsphere-51/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.HistoryCollector.html
-
-	c := cache.NewCache(d.Name, config.CachePath)
 	ed, err := events.NewEventDispacher(config.VMWareClient.Client, d.Self, config.Logrus, c)
 	if err != nil {
 		config.Logrus.WithError(err).Error("error while creating event Dispatcher")
@@ -74,4 +79,14 @@ func collectEvents(config *load.Config, d mo.Datacenter, newDatacenter *load.Dat
 
 	newDatacenter.EventDispacher = ed
 	ed.CollectEvents(config.Args.EventsPageSize)
+}
+
+func newCacheStore(config *load.Config) (persist.Storer, error) {
+	// we have to set a distinct default path otherwise it gets overwritten by the default Infra SDK store
+	path := persist.DefaultPath(config.IntegrationName + "_timestamps")
+	store, err := persist.NewFileStore(path, config.Logrus, time.Hour*24)
+	if err != nil {
+		store = persist.NewInMemoryStore()
+	}
+	return store, err
 }
