@@ -7,4 +7,4 @@ RUN apt-get update && \
     apt-get install docker-compose -qq > /dev/null && \
     rm -rf /var/lib/apt/lists/*
 
-RUN make deps
+RUN /etc/init.d/docker start && make test compile
