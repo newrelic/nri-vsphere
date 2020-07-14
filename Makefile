@@ -21,8 +21,7 @@ SNYK_BIN       = snyk-linux
 SNYK_VERSION   = v1.361.3
 
 all: build-container
-build: clean test compile
-build-container: bin
+build: bin
 	@docker build --no-cache -t $(CONTAINER_IMAGE) .
 	@docker run --privileged=true --name $(CONTAINER) -ti $(CONTAINER_IMAGE) \
 		/etc/init.d/docker start && make test compile
