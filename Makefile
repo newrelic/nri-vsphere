@@ -83,6 +83,8 @@ tools-update: check-version
 	@$(GO_CMD) get -u $(GO_TOOLS)
 deps-only:
 	@echo "=== $(PROJECT_NAME) === [ deps ]: Installing package dependencies required by the project..."
+	@echo $$(go version)
+	@echo $$(pwd)
 	@$(GO_CMD) mod download
 lint-deps:
 	@echo "=== $(PROJECT_NAME) === [ lint-deps ]: Installing linting dependencies required by the project..."
