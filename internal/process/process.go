@@ -23,7 +23,7 @@ const (
 	//sampleTypeSnapshotVm is attached to a vm entity.
 	sampleTypeSnapshotVm = "SnapshotVm"
 
-	tagsPrefix       = "tags."
+	tagsPrefix       = "label."
 	perfMetricPrefix = "perf."
 )
 
