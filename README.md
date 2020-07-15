@@ -35,7 +35,7 @@ If you have the source code and Go toolchain installed, you can build and run th
 
 vSphere data is obtained via a client provided by the `govmomi` package, the official Go wrapper for the VMware API. The same package provides a simulator for the virtual center, leveraged to run integration tests.
 
-The output of the integration is shaped by the `newrelic/infra-integrations-sdk` package and provided in JSON format. The New Relic Infra agent collects such data and sends it to New Relic.
+The output of the integration is determined by the `newrelic/infra-integrations-sdk` package and provided in JSON format. The [New Relic Infrastructure agent](https://github.com/newrelic/infrastructure-agent) collects such data and sends it to New Relic.
 
 1. After cloning this repository, go to the vSphere integration directory and build the integration:
 
