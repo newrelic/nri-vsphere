@@ -15,6 +15,20 @@ The integration captures data about Datacenters, Clusters, Virtual Machines, Hos
 
 To install the integration, follow the official [documentation](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-vsphere-monitoring-integration). We recommend using your operating system native package manager.
 
+## Getting started
+
+After you've [installed](#installation) the integration you should make sure that the required configuration is appropriate for your environment.
+
+To configure the integration go to `/etc/newrelic-infra/integrations.d/` (Linux) or `C:\Program Files\New Relic\newrelic-infra\integrations.d\` (Windows) and open the file `vpshere-config.yml`.
+
+You should configure the `URL`, `user` and `password` fields required to connect to you vCenter or ESXi host.
+
+To select which performance metrics to capture, the integration uses another file that you can use to select which performance metrics you want captured, per each `performance level` you require.
+You can find this file at `/etc/newrelic-infra/integrations.d/vsphere-performance.metrics` (Linux) or `C:\Program Files\New Relic\newrelic-infra\integrations.d\vsphere-performance.metrics` (Windows).
+Use the flag `--perf_level` to select which level of **performance metrics** you want to capture.
+
+Please note that the more **performance metrics** you enable the more load you will add to your envrionment.
+
 ## Building
 
 If you have the source code and Go toolchain installed, you can build and run the vSphere integration locally.
@@ -26,13 +40,10 @@ The output of the integration is shaped by the `newrelic/infra-integrations-sdk`
 1. After cloning this repository, go to vSphere integration directory and build the integration:
 
     ```bash
-    make test
-    make compile-all
+    make compile
     ```
 
-    The command above executes the tests for the vSphere integration and builds an executable file named `nri-vsphere` under `bin/{architecture}`.
-
-    You will also need `docker` to run the integration tests.
+    The command above executes the tests for the vSphere integration and builds an executable file named `nri-vsphere` under `bin/`.
 
 2. Run the executable with the following arguments:
 
@@ -48,6 +59,16 @@ To learn more about the usage of `./bin/darwin/nri-vsphere`, pass the `-help` ar
 
 External dependencies are managed via govendor.
 
+## Testing
+
+After cloning this repository, go to vSphere integration directory and build the integration:
+
+```bash
+make test
+```
+
+You will need `docker-compose` to run the integration tests.
+
 ## Support
 
 New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub. You can find this project's topic/threads here:
@@ -56,7 +77,7 @@ New Relic hosts and moderates an online forum where customers can interact with 
 
 ## Contributing
 
-We encourage your contributions to improve New Relic's VMware vShpere integration. Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
+We encourage your contributions to improv   e New Relic's VMware vShpere integration. Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
 If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company,  please drop us an email at opensource@newrelic.com.
 
 Before submitting a pull request, please review [these guidelines](https://github.com/newrelic/nri-vsphere/blob/master/CONTRIBUTING.md).
