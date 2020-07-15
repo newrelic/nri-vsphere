@@ -14,6 +14,7 @@ SHORT_INTEGRATION := vsphere
 BINARY_NAME        = nri-$(INTEGRATION)
 CONTAINER_IMAGE    = $(PROJECT_NAME)-builder
 CONTAINER          = $(PROJECT_NAME)
+CONTAINER_PATH     = /go/src/$(PROJECT_NAME)
 
 LINTER         = golangci-lint
 LINTER_VERSION = 1.27.0
@@ -22,19 +23,25 @@ SNYK_VERSION   = v1.361.3
 
 all: build
 build-local: clean compile test
-build: bin build-container delete-container
-	@echo "make compile test" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
-	@docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/bin/$(BINARY_NAME) $(BIN_DIR) && \
-     docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/coverage.xml .; docker rm -f $(CONTAINER)
+build: build-container-image delete-container test-container delete-container
 
-build-container:
+build-container-image:
 	@docker build --no-cache -t $(CONTAINER_IMAGE) .
+
+test-container:
+	@echo "make test" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
+	@docker cp $(CONTAINER):$(CONTAINER_PATH)/coverage.xml .
+
+compile-container: bin
+	@echo "make compile" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
+	@docker cp $(CONTAINER):$(CONTAINER_PATH)/bin/$(BINARY_NAME) $(BINS_DIR)
 
 delete-container:
 	-docker rm -f $(CONTAINER) 2>/dev/null
 
 bin:
-	@mkdir $(BIN_DIR)
+	-mkdir -p $(BIN_DIR)
+	-mkdir -p $(BINS_DIR)
 
 clean:
 	@echo "=== $(PROJECT_NAME) === [ clean ]: Removing binaries and coverage file..."
