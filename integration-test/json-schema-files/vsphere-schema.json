@@ -1,0 +1,515 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+      "name": {
+        "pattern": "^com.newrelic.vsphere$",
+        "type": "string"
+      },
+      "protocol_version": {
+        "type": "string"
+      },
+      "integration_version": {
+        "pattern": "^[0-9]+.[0-9]+.[0-9]+$",
+        "type": "string"
+      },
+      "data": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "vsphere-datastore",
+                    "vsphere-datacenter",
+                    "vsphere-vm",
+                    "vsphere-host",
+                    "vsphere-cluster"
+                  ]
+                },
+                "id_attributes": {
+                  "type": "array",
+                  "items": {
+                    "items": {},
+                    "additionalItems": true,
+                    "additionalProperties": true
+                  },
+                  "additionalItems": true
+                }
+              },
+              "additionalProperties": true,
+              "required": [
+                "name",
+                "type",
+                "id_attributes"
+              ]
+            },
+            "metrics": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "accessible": {
+                    "type": "string"
+                  },
+                  "capacity": {
+                    "type": "number"
+                  },
+                  "datacenterName": {
+                    "type": "string",
+                    "enum": [
+                      "DC0"
+                    ]
+                  },
+                  "event_type": {
+                    "type": "string",
+                    "enum": [
+                      "VSphereDatastoreSample",
+                      "VSphereDatacenterSample",
+                      "VSphereVmSample",
+                      "VSphereHostSample",
+                      "VSphereClusterSample"
+                    ]
+                  },
+                  "fileSystemType": {
+                    "type": "string"
+                  },
+                  "freeSpace": {
+                    "type": "number"
+                  },
+                  "hostCount": {
+                    "type": "integer"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "overallStatus": {
+                    "type": "string",
+                    "enum": [
+                      "green"
+                    ]
+                  },
+                  "uncommitted": {
+                    "type": "integer"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "vmCount": {
+                    "type": "integer"
+                  },
+                  "clusters": {
+                    "type": "integer"
+                  },
+                  "cpu.cores": {
+                    "type": "integer"
+                  },
+                  "cpu.overallUsage": {
+                    "type": "integer"
+                  },
+                  "cpu.overallUsagePercentage": {
+                    "type": "number"
+                  },
+                  "cpu.totalMHz": {
+                    "type": "integer"
+                  },
+                  "datastore.totalFreeGiB": {
+                    "type": "integer"
+                  },
+                  "datastore.totalGiB": {
+                    "type": "integer"
+                  },
+                  "datastore.totalUsedGiB": {
+                    "type": "integer"
+                  },
+                  "datastores": {
+                    "type": "integer"
+                  },
+                  "mem.size": {
+                    "type": "integer"
+                  },
+                  "mem.usage": {
+                    "type": "integer"
+                  },
+                  "mem.usagePercentage": {
+                    "type": "number"
+                  },
+                  "networks": {
+                    "type": "integer"
+                  },
+                  "resourcePools": {
+                    "type": "integer"
+                  },
+                  "clusterName": {
+                    "type": "string",
+                    "enum": [
+                      "DC0_C0"
+                    ]
+                  },
+                  "connectionState": {
+                    "type": "string",
+                    "enum": [
+                      "connected"
+                    ]
+                  },
+                  "cpu.allocationLimit": {
+                    "type": "integer"
+                  },
+                  "cpu.hostUsagePercent": {
+                    "type": "integer"
+                  },
+                  "datastoreNameList": {
+                    "type": "string",
+                    "enum": [
+                      "LocalDS_0|"
+                    ]
+                  },
+                  "disk.totalMiB": {
+                    "type": "integer"
+                  },
+                  "disk.totalUncommittedMiB": {
+                    "type": "integer"
+                  },
+                  "disk.totalUnsharedMiB": {
+                    "type": "integer"
+                  },
+                  "guestFullName": {
+                    "type": "string",
+                    "enum": [
+                      "otherGuest"
+                    ]
+                  },
+                  "hypervisorHostname": {
+                    "type": "string",
+                    "enum": [
+                      "DC0_C0_H2",
+                      "DC0_C0_H0",
+                      "DC0_C0_H1",
+                      "DC0_H0"
+                    ]
+                  },
+                  "instanceUuid": {
+                    "type": "string"
+                  },
+                  "ipAddress": {
+                    "type": "string",
+                    "enum": [
+                      ""
+                    ]
+                  },
+                  "mem.balloned": {
+                    "type": "integer"
+                  },
+                  "mem.free": {
+                    "type": "integer"
+                  },
+                  "mem.hostUsage": {
+                    "type": "integer"
+                  },
+                  "mem.swapped": {
+                    "type": "integer"
+                  },
+                  "mem.swappedSsd": {
+                    "type": "integer"
+                  },
+                  "networkNameList": {
+                    "type": "string",
+                    "enum": [
+                      "DC0_DVPG0|",
+                      "VM Network|DVS0-DVUplinks-9|DC0_DVPG0|"
+                    ]
+                  },
+                  "operatingSystem": {
+                    "type": "string",
+                    "enum": [
+                      "unknown"
+                    ]
+                  },
+                  "powerState": {
+                    "type": "string",
+                    "enum": [
+                      "poweredOn"
+                    ]
+                  },
+                  "resourcePoolName": {
+                    "type": "string",
+                    "enum": [
+                      ""
+                    ]
+                  },
+                  "vmConfigName": {
+                    "type": "string"
+                  },
+                  "vmHostname": {
+                    "type": "string",
+                    "enum": [
+                      ""
+                    ]
+                  },
+                  "bootTime": {
+                    "type": "string"
+                  },
+                  "cpu.available": {
+                    "type": "integer"
+                  },
+                  "cpu.coreMHz": {
+                    "type": "integer"
+                  },
+                  "cpu.percent": {
+                    "type": "number"
+                  },
+                  "cpu.threads": {
+                    "type": "integer"
+                  },
+                  "cryptoState": {
+                    "type": "string",
+                    "enum": [
+                      ""
+                    ]
+                  },
+                  "inMaintenanceMode": {
+                    "type": "string",
+                    "enum": [
+                      "false"
+                    ]
+                  },
+                  "resourcePoolNameList": {
+                    "type": "string",
+                    "enum": [
+                      ""
+                    ]
+                  },
+                  "standbyMode": {
+                    "type": "string",
+                    "enum": [
+                      ""
+                    ]
+                  },
+                  "uuid": {
+                    "type": "string"
+                  },
+                  "cpu.totalEffectiveMHz": {
+                    "type": "integer"
+                  },
+                  "dasConfig.hbDatastoreCandidatePolicy": {
+                    "type": "string"
+                  },
+                  "dasConfig.hostMonitoring": {
+                    "type": "string"
+                  },
+                  "dasConfig.vmComponentProtecting": {
+                    "type": "string"
+                  },
+                  "dasConfig.vmMonitoring": {
+                    "type": "string"
+                  },
+                  "datastoreList": {
+                    "type": "string"
+                  },
+                  "drsConfig.defaultVmBehavior": {
+                    "type": "string"
+                  },
+                  "drsConfig.vmotionRate": {
+                    "type": "integer"
+                  },
+                  "effectiveHosts": {
+                    "type": "integer"
+                  },
+                  "hostList": {
+                    "type": "string"
+                  },
+                  "hosts": {
+                    "type": "integer"
+                  },
+                  "mem.effectiveSize": {
+                    "type": "integer"
+                  },
+                  "networkList": {
+                    "type": "string"
+                  },
+                  "label.my-category": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "required": [
+                  "event_type",
+                  "overallStatus"
+                ]
+              },
+              "additionalItems": true
+            },
+            "inventory": {
+              "type": "object",
+              "properties": {
+                "vsphereDatastore": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                },
+                "vsphereDatacenter": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                },
+                "vsphereVm": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                },
+                "vsphereHost": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                },
+                "vsphereCluster": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                },
+                "tags": {
+                  "type": "object",
+                  "properties": {
+                    "label.my-category": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "label.my-category"
+                  ]
+                }
+              },
+              "additionalProperties": true
+            },
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "summary": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": [
+                      "vSphereEvent"
+                    ]
+                  },
+                  "attributes": {
+                    "type": "object",
+                    "properties": {
+                      "vSphereEvent.datacenter": {
+                        "type": "string",
+                        "enum": [
+                          "DC0"
+                        ]
+                      },
+                      "vSphereEvent.date": {
+                        "type": "string"
+                      },
+                      "vSphereEvent.userName": {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      },
+                      "vSphereEvent.computeResource": {
+                        "type": "string",
+                        "enum": [
+                          "DC0_H0"
+                        ]
+                      },
+                      "vSphereEvent.host": {
+                        "type": "string",
+                        "enum": [
+                          "DC0_H0"
+                        ]
+                      },
+                      "vSphereEvent.vm": {
+                        "type": "string",
+                        "enum": [
+                          "DC0_H0_VM1",
+                          "DC0_H0_VM0"
+                        ]
+                      }
+                    },
+                    "additionalProperties": true,
+                    "required": [
+                      "vSphereEvent.datacenter",
+                      "vSphereEvent.date",
+                      "vSphereEvent.userName"
+                    ]
+                  }
+                },
+                "additionalProperties": true,
+                "required": [
+                  "summary",
+                  "category",
+                  "attributes"
+                ]
+              },
+              "additionalItems": true
+            }
+          },
+          "additionalProperties": true,
+          "required": [
+            "entity",
+            "metrics",
+            "inventory",
+            "events"
+          ]
+        },
+        "additionalItems": true
+      }
+    },
+    "additionalProperties": true,
+    "required": [
+      "name",
+      "protocol_version",
+      "integration_version",
+      "data"
+    ]
+  }

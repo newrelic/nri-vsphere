@@ -1,0 +1,763 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "protocol_version": {
+        "type": "string"
+      },
+      "integration_version": {
+        "type": "string"
+      },
+      "data": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "vsphere-datastore",
+                    "vsphere-datacenter",
+                    "vsphere-cluster",
+                    "vsphere-vm",
+                    "vsphere-host",
+                    "vsphere-resourcepool"
+                  ]
+                },
+                "id_attributes": {
+                  "type": "array",
+                  "items": {
+                    "items": {},
+                    "additionalItems": true,
+                    "additionalProperties": true
+                  },
+                  "additionalItems": true
+                }
+              },
+              "additionalProperties": true,
+              "required": [
+                "name",
+                "type",
+                "id_attributes"
+              ]
+            },
+            "metrics": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "accessible": {
+                    "type": "string"
+                  },
+                  "capacity": {
+                    "type": "number"
+                  },
+                  "datacenterName": {
+                    "type": "string",
+                    "enum": [
+                      "DC0"
+                    ]
+                  },
+                  "event_type": {
+                    "type": "string",
+                    "enum": [
+                      "VSphereDatastoreSample",
+                      "VSphereDatacenterSample",
+                      "VSphereClusterSample",
+                      "VSphereVmSample",
+                      "VSphereHostSample",
+                      "VSphereResourcePoolSample"
+                    ]
+                  },
+                  "fileSystemType": {
+                    "type": "string"
+                  },
+                  "freeSpace": {
+                    "type": "number"
+                  },
+                  "hostCount": {
+                    "type": "integer"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "overallStatus": {
+                    "type": "string"
+                  },
+                  "perf.datastore.read.average": {
+                    "type": "integer"
+                  },
+                  "perf.datastore.throughput.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.datastore.write.average": {
+                    "type": "integer"
+                  },
+                  "perf.disk.capacity.contention.average": {
+                    "type": "integer"
+                  },
+                  "perf.disk.capacity.latest": {
+                    "type": "integer"
+                  },
+                  "perf.disk.capacity.provisioned.average": {
+                    "type": "integer"
+                  },
+                  "perf.disk.capacity.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.disk.provisioned.latest": {
+                    "type": "integer"
+                  },
+                  "perf.disk.used.latest": {
+                    "type": "integer"
+                  },
+                  "uncommitted": {
+                    "type": "integer"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "vmCount": {
+                    "type": "integer"
+                  },
+                  "clusters": {
+                    "type": "integer"
+                  },
+                  "cpu.cores": {
+                    "type": "integer"
+                  },
+                  "cpu.overallUsage": {
+                    "type": "integer"
+                  },
+                  "cpu.overallUsagePercentage": {
+                    "type": "number"
+                  },
+                  "cpu.totalMHz": {
+                    "type": "integer"
+                  },
+                  "datastore.totalFreeGiB": {
+                    "type": "integer"
+                  },
+                  "datastore.totalGiB": {
+                    "type": "integer"
+                  },
+                  "datastore.totalUsedGiB": {
+                    "type": "integer"
+                  },
+                  "datastores": {
+                    "type": "integer"
+                  },
+                  "mem.size": {
+                    "type": "integer"
+                  },
+                  "mem.usage": {
+                    "type": "integer"
+                  },
+                  "mem.usagePercentage": {
+                    "type": "number"
+                  },
+                  "networks": {
+                    "type": "integer"
+                  },
+                  "resourcePools": {
+                    "type": "integer"
+                  },
+                  "cpu.threads": {
+                    "type": "integer"
+                  },
+                  "cpu.totalEffectiveMHz": {
+                    "type": "integer"
+                  },
+                  "dasConfig.hbDatastoreCandidatePolicy": {
+                    "type": "string"
+                  },
+                  "dasConfig.hostMonitoring": {
+                    "type": "string"
+                  },
+                  "dasConfig.vmComponentProtecting": {
+                    "type": "string"
+                  },
+                  "dasConfig.vmMonitoring": {
+                    "type": "string"
+                  },
+                  "datastoreList": {
+                    "type": "string"
+                  },
+                  "drsConfig.defaultVmBehavior": {
+                    "type": "string"
+                  },
+                  "drsConfig.vmotionRate": {
+                    "type": "integer"
+                  },
+                  "effectiveHosts": {
+                    "type": "integer"
+                  },
+                  "hostList": {
+                    "type": "string"
+                  },
+                  "hosts": {
+                    "type": "integer"
+                  },
+                  "mem.effectiveSize": {
+                    "type": "integer"
+                  },
+                  "networkList": {
+                    "type": "string"
+                  },
+                  "perf.cpu.capacity.demand.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.capacity.provisioned.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.capacity.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.corecount.provisioned.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.corecount.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.reservedCapacity.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.usage.maximum": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.usage.minimum": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.usagemhz.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.usagemhz.maximum": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.usagemhz.minimum": {
+                    "type": "integer"
+                  },
+                  "perf.disk.throughput.contention.average": {
+                    "type": "integer"
+                  },
+                  "perf.disk.throughput.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.active.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.active.maximum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.active.minimum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.capacity.entitlement.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.capacity.provisioned.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.capacity.usable.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.capacity.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.consumed.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.consumed.maximum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.consumed.minimum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.granted.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.granted.maximum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.granted.minimum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.overhead.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.overhead.maximum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.overhead.minimum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.reservedCapacity.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.shared.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.shared.maximum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.shared.minimum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.usage.maximum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.usage.minimum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.zero.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.zero.maximum": {
+                    "type": "integer"
+                  },
+                  "perf.mem.zero.minimum": {
+                    "type": "integer"
+                  },
+                  "perf.net.throughput.provisioned.average": {
+                    "type": "integer"
+                  },
+                  "perf.net.throughput.usable.average": {
+                    "type": "integer"
+                  },
+                  "perf.net.throughput.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numChangeDS.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numChangeHost.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numCreate.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numDestroy.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numPoweroff.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numPoweron.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numRebootGuest.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numReconfigure.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numRegister.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numReset.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numShutdownGuest.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numSuspend.latest": {
+                    "type": "integer"
+                  },
+                  "perf.vmop.numUnregister.latest": {
+                    "type": "integer"
+                  },
+                  "connectionState": {
+                    "type": "string"
+                  },
+                  "cpu.allocationLimit": {
+                    "type": "integer"
+                  },
+                  "cpu.hostUsagePercent": {
+                    "type": "integer"
+                  },
+                  "datastoreNameList": {
+                    "type": "string"
+                  },
+                  "disk.totalMiB": {
+                    "type": "integer"
+                  },
+                  "disk.totalUncommittedMiB": {
+                    "type": "integer"
+                  },
+                  "disk.totalUnsharedMiB": {
+                    "type": "integer"
+                  },
+                  "guestFullName": {
+                    "type": "string"
+                  },
+                  "hypervisorHostname": {
+                    "type": "string",
+                    "enum": [
+                      "DC0_H0",
+                      "DC0_C0_H0",
+                      "DC0_C0_H1",
+                      "DC0_C0_H2"
+                    ]
+                  },
+                  "instanceUuid": {
+                    "type": "string"
+                  },
+                  "ipAddress": {
+                    "type": "string"
+                  },
+                  "mem.balloned": {
+                    "type": "integer"
+                  },
+                  "mem.free": {
+                    "type": "integer"
+                  },
+                  "mem.hostUsage": {
+                    "type": "integer"
+                  },
+                  "mem.swapped": {
+                    "type": "integer"
+                  },
+                  "mem.swappedSsd": {
+                    "type": "integer"
+                  },
+                  "networkNameList": {
+                    "type": "string"
+                  },
+                  "operatingSystem": {
+                    "type": "string"
+                  },
+                  "perf.cpu.costop.summation": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.demand.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.demandEntitlementRatio.latest": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.entitlement.latest": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.idle.summation": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.latency.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.overlap.summation": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.readiness.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.ready.summation": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.run.summation": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.used.summation": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.wait.summation": {
+                    "type": "integer"
+                  },
+                  "perf.disk.maxTotalLatency.latest": {
+                    "type": "integer"
+                  },
+                  "perf.mem.activewrite.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.entitlement.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.overheadMax.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.overheadTouched.average": {
+                    "type": "integer"
+                  },
+                  "perf.net.broadcastRx.summation": {
+                    "type": "integer"
+                  },
+                  "perf.net.bytesRx.average": {
+                    "type": "integer"
+                  },
+                  "perf.net.bytesTx.average": {
+                    "type": "integer"
+                  },
+                  "perf.net.multicastRx.summation": {
+                    "type": "integer"
+                  },
+                  "perf.net.packetsRx.summation": {
+                    "type": "integer"
+                  },
+                  "perf.net.packetsTx.summation": {
+                    "type": "integer"
+                  },
+                  "perf.net.pnicBytesRx.average": {
+                    "type": "integer"
+                  },
+                  "perf.net.pnicBytesTx.average": {
+                    "type": "integer"
+                  },
+                  "perf.net.received.average": {
+                    "type": "integer"
+                  },
+                  "perf.net.transmitted.average": {
+                    "type": "integer"
+                  },
+                  "perf.net.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.sys.heartbeat.latest": {
+                    "type": "integer"
+                  },
+                  "perf.sys.osUptime.latest": {
+                    "type": "integer"
+                  },
+                  "perf.sys.uptime.latest": {
+                    "type": "integer"
+                  },
+                  "perf.virtualDisk.write.average": {
+                    "type": "integer"
+                  },
+                  "powerState": {
+                    "type": "string"
+                  },
+                  "resourcePoolName": {
+                    "type": "string"
+                  },
+                  "vmConfigName": {
+                    "type": "string"
+                  },
+                  "vmHostname": {
+                    "type": "string"
+                  },
+                  "bootTime": {
+                    "type": "string"
+                  },
+                  "cpu.available": {
+                    "type": "integer"
+                  },
+                  "cpu.coreMHz": {
+                    "type": "integer"
+                  },
+                  "cpu.percent": {
+                    "type": "number"
+                  },
+                  "cryptoState": {
+                    "type": "string"
+                  },
+                  "inMaintenanceMode": {
+                    "type": "string"
+                  },
+                  "perf.cpu.coreUtilization.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.totalCapacity.average": {
+                    "type": "integer"
+                  },
+                  "perf.cpu.utilization.average": {
+                    "type": "integer"
+                  },
+                  "perf.datastore.maxTotalLatency.latest": {
+                    "type": "integer"
+                  },
+                  "perf.disk.read.average": {
+                    "type": "integer"
+                  },
+                  "perf.disk.usage.average": {
+                    "type": "integer"
+                  },
+                  "perf.disk.write.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.heap.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.heapfree.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.lowfreethreshold.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.sharedcommon.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.sysUsage.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.totalCapacity.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.unreserved.average": {
+                    "type": "integer"
+                  },
+                  "perf.mem.vmfs.pbc.overhead.latest": {
+                    "type": "integer"
+                  },
+                  "perf.mem.vmfs.pbc.size.latest": {
+                    "type": "integer"
+                  },
+                  "perf.mem.vmfs.pbc.sizeMax.latest": {
+                    "type": "integer"
+                  },
+                  "perf.mem.vmfs.pbc.workingSet.latest": {
+                    "type": "integer"
+                  },
+                  "perf.mem.vmfs.pbc.workingSetMax.latest": {
+                    "type": "integer"
+                  },
+                  "perf.net.broadcastTx.summation": {
+                    "type": "integer"
+                  },
+                  "resourcePoolNameList": {
+                    "type": "string"
+                  },
+                  "standbyMode": {
+                    "type": "string"
+                  },
+                  "uuid": {
+                    "type": "string"
+                  },
+                  "clusterName": {
+                    "type": "string"
+                  },
+                  "perf.cpu.capacity.entitlement.average": {
+                    "type": "integer"
+                  },
+                  "perf.net.throughput.contention.summation": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": true,
+                "required": [
+                  "event_type",
+                  "overallStatus"
+                ]
+              },
+              "additionalItems": true
+            },
+            "inventory": {
+              "type": "object",
+              "properties": {
+                "vsphereDatastore": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                },
+                "vsphereDatacenter": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                },
+                "vsphereCluster": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                },
+                "vsphereVm": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                },
+                "vsphereHost": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                },
+                "vsphereResourcePool": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              "additionalProperties": true
+            },
+            "events": {
+              "type": "array",
+              "items": {
+                "items": {},
+                "additionalItems": true,
+                "additionalProperties": true
+              },
+              "additionalItems": true
+            }
+          },
+          "additionalProperties": true,
+          "required": [
+            "entity",
+            "metrics",
+            "inventory",
+            "events"
+          ]
+        },
+        "additionalItems": true
+      }
+    },
+    "additionalProperties": true,
+    "required": [
+      "name",
+      "protocol_version",
+      "integration_version",
+      "data"
+    ]
+  }

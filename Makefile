@@ -47,11 +47,9 @@ test-unit:
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
 	@gocov test $(GO_PKGS) | gocov-xml > coverage.xml
 
-test-integration:
+test-integration: compile
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
-	@docker-compose -f ./integration-test/docker-compose.yml up -d --build
-	@go test -v -tags=integration ./integration-test/. || (ret=$$?; docker-compose -f ./integration-test/docker-compose.yml  down && exit $$ret)
-	@docker-compose -f ./integration-test/docker-compose.yml  down
+	@go test -v -tags=integration ./integration-test/.
 
 bin:
 	@mkdir $(BIN_DIR)
