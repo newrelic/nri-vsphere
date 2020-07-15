@@ -6,6 +6,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -96,6 +97,14 @@ func checkAndSanitizeConfig(config *load.Config) {
 	}
 	if config.Args.Pass == "" {
 		config.Logrus.Fatal("missing argument `pass`, please check if password has been supplied")
+	}
+
+	if config.Args.EnableVspherePerfMetrics && config.Args.PerfMetricFile ==""{
+		if runtime.GOOS == "windows" {
+			config.Args.PerfMetricFile = "C:\\Program Files\\New Relic\\newrelic-infra\\integrations.d\\vsphere-performance.metrics"
+		} else {
+			config.Args.PerfMetricFile = "/etc/newrelic-infra/integrations.d/vsphere-performance.metrics"
+		}
 	}
 
 	config.Args.DatacenterLocation = strings.ToLower(config.Args.DatacenterLocation)
