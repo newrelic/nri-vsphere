@@ -67,7 +67,7 @@ After cloning this repository, go to vSphere integration directory and build the
 make test
 ```
 
-You will need `docker-compose` to run the integration tests.
+You need `docker-compose` to run the integration tests.
 
 ## Support
 
