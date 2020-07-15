@@ -1,5 +1,3 @@
-// +build integration
-
 /*
 * Copyright 2020 New Relic Corporation. All rights reserved.
 * SPDX-License-Identifier: Apache-2.0
@@ -18,6 +16,7 @@ import (
 
 	"github.com/newrelic/nri-vsphere/integration-test/jsonschema"
 	"github.com/stretchr/testify/require"
+	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/simulator"
 	"github.com/vmware/govmomi/vapi/rest"
@@ -36,11 +35,14 @@ func TestIntegration(t *testing.T) {
 		// Add tag to a vm in the simulator
 		require.NoError(t, addTag(ctx, t, vc))
 
-		stdout, stderr, err := runIntegration(vc.URL().String())
+		stdout, stderr, err := runIntegration([]string{
+			"-url", vc.URL().String(),
+			"-enable_vsphere_tags",
+			"-enable_vsphere_events",
+		})
 		//Notice that stdErr contains as well normal logs of the integration
 		require.NotNil(t, stderr, "unexpected stderr")
 		require.NoError(t, err, "Unexpected error")
-		fmt.Println(stderr)
 
 		schemaPath := filepath.Join("json-schema-files", "vsphere-schema.json")
 		err = jsonschema.Validate(schemaPath, stdout)
@@ -48,18 +50,43 @@ func TestIntegration(t *testing.T) {
 		require.Less(t, 0, len(stdout), "The output should be longer than 0")
 
 	})
+}
+func TestIntegrationPerformanceMetrics(t *testing.T) {
+	ctx := context.Background()
+
+	model := simulator.VPX()
+	// adding a resource pool to the model, default is 0
+	model.Pool = 1
+	require.NoError(t, model.Create())
+
+	s := model.Service.NewServer()
+
+	vc, err := govmomi.NewClient(ctx, s.URL, true)
+	require.NoError(t, err)
+
+	stdout, stderr, err := runIntegration([]string{
+		"-url", vc.URL().String(),
+		"-enable_vsphere_perf_metrics",
+		"-perf_metric_file", "../config/vsphere-performance.metrics",
+		"-perf_level", "4",
+	})
+	//Notice that stdErr contains as well normal logs of the integration
+	require.NotNil(t, stderr, "unexpected stderr")
+	require.NoError(t, err, "Unexpected error")
+
+	schemaPath := filepath.Join("json-schema-files", "vsphere-perf-schema.json")
+	err = jsonschema.Validate(schemaPath, stdout)
+	require.NoError(t, err, "The output of vsphere integration doesn't have expected format")
+	require.Less(t, 0, len(stdout), "The output should be longer than 0")
 
 }
 
-func runIntegration(url string) (string, string, error) {
+func runIntegration(args []string) (string, string, error) {
+	defaultArgs := []string{"-user", "user", "-pass", "pass"}
+	cmdArgs := append(defaultArgs, args...)
 	cmd := exec.Command(
 		integrationPath,
-		"-user", "user",
-		"-pass", "pass",
-		"-url", url,
-		"-enable_vsphere_tags",
-		"-enable_vsphere_events",
-		// Snapshots and Performance metrics are not supported by the vcsim
+		cmdArgs...,
 	)
 
 	var outbuf, errbuf bytes.Buffer
