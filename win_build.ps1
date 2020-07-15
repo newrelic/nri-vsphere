@@ -82,15 +82,6 @@ if (-Not $skipTests) {
     }    
 }
 
-echo "--- Running Build"
-
-go build -v $goFiles
-if (-not $?)
-{
-    echo "Failed building files"
-    exit -1
-}
-
 echo "--- Collecting Go main files"
 
 $packages = go list -f "{{.ImportPath}} {{.Name}}" ./...  | ConvertFrom-String -PropertyNames Path, Name
