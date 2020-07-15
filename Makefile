@@ -21,14 +21,14 @@ SNYK_BIN       = snyk-linux
 SNYK_VERSION   = v1.361.3
 
 all: build
-build-local: clean test compile
+build-local: clean compile test
 build: bin
 	@docker build --no-cache -t $(CONTAINER_IMAGE) .
 	-docker rm -f $(CONTAINER) 2>/dev/null
-	@docker run --privileged=true --network=host --name $(CONTAINER) $(CONTAINER_IMAGE)
+	@echo "make compile test" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
 	@docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/bin/$(BINARY_NAME) $(BIN_DIR) && \
      docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/coverage.xml .; docker rm -f $(CONTAINER)
-     
+
 bin:
 	@mkdir $(BIN_DIR)
 
@@ -52,7 +52,7 @@ compile-windows: deps
 
 
 test: deps lint test-unit test-integration
-test-unit:
+test-unit: compile
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
 	@gocov test $(GO_PKGS) | gocov-xml > coverage.xml
 
@@ -67,7 +67,7 @@ test-security: bin deps
 	@$(BIN_DIR)/$(SNYK_BIN) auth $(SNYK_TOKEN)
 	@$(BIN_DIR)/$(SNYK_BIN) test
 
-lint: deps lint-deps
+lint: lint-deps
 	@echo "=== $(PROJECT_NAME) === [ lint             ]: Validating source code running $(LINTER)..."
 	@$(LINTER) run ./...
 
