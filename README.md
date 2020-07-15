@@ -19,7 +19,7 @@ To install the integration, follow the official [documentation](https://docs.new
 
 ## Getting started
 
-After you've [installed](#installation) the integration you should make sure that the required configuration is appropriate for your environment.
+After you've [installed](#installation) the integration make sure that you have the required configuration for your environment.
 
 To configure the integration go to `/etc/newrelic-infra/integrations.d/` (Linux) or `C:\Program Files\New Relic\newrelic-infra\integrations.d\` (Windows) and open the`vpshere-config.yml` configuration file.
 
