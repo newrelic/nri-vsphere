@@ -1,6 +1,8 @@
 [![Community Project header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Community_Project.png)](https://opensource.newrelic.com/oss-category/#community-project)
 
-# New Relic VMware vShpere integration [![Known Vulnerabilities](https://snyk.io/test/github/newrelic/nri-vsphere/badge.svg?targetFile=vendor/vendor.json)](https://snyk.io/test/github/newrelic/nri-vsphere?targetFile=vendor/vendor.json)
+# New Relic VMware vShpere integration
+
+[![Known Vulnerabilities](https://snyk.io/test/github/newrelic/nri-vsphere/badge.svg?targetFile=vendor/vendor.json)](https://snyk.io/test/github/newrelic/nri-vsphere?targetFile=vendor/vendor.json)
 
 New Relic's VMware vShpere integration captures critical summary and performance metrics data by connecting to VMware vCenter or an ESXi Host. For more information, see [the official New Relic docs](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-vsphere-monitoring-integration).
 
@@ -77,7 +79,7 @@ New Relic hosts and moderates an online forum where customers can interact with 
 
 ## Contributing
 
-We encourage your contributions to improv   e New Relic's VMware vShpere integration. Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
+We encourage your contributions to improve New Relic's VMware vShpere integration. Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
 If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company,  please drop us an email at opensource@newrelic.com.
 
 Before submitting a pull request, please review [these guidelines](https://github.com/newrelic/nri-vsphere/blob/master/CONTRIBUTING.md).
