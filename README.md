@@ -13,7 +13,7 @@ The integration collects data about data centers, clusters, virtual machines, ho
 
 ## Installation
 
-To install the integration, follow the official [documentation](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-vsphere-monitoring-integration). We recommend using your operating system native package manager.
+To install the integration, follow the official [documentation](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-vsphere-monitoring-integration). We recommend using your operating system's package manager.
 
 ## Getting started
 
