@@ -26,7 +26,8 @@ build: bin
 	@docker build --no-cache -t $(CONTAINER_IMAGE) .
 	@docker rm -f $(CONTAINER) 2>/dev/null
 	@docker run --privileged=true --network=host --name $(CONTAINER) $(CONTAINER_IMAGE)
-	@docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/bin/$(BINARY_NAME) $(BIN_DIR); docker rm -f $(CONTAINER);
+	@docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/bin/$(BINARY_NAME) $(BIN_DIR) && \
+     docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/coverage.xml .; docker rm -f $(CONTAINER)
 
 bin:
 	@mkdir -p $@
