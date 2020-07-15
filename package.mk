@@ -20,9 +20,15 @@ FPM_DEB_OPTIONS    = -t deb -p $(PACKAGES_DIR)/deb/
 FPM_RPM_OPTIONS    = -t rpm -p $(PACKAGES_DIR)/rpm/ --epoch 0 --rpm-summary $(SUMMARY)
 
 
+package-local: clean create-bins-local prep-pkg-env $(PACKAGE_TYPES)
 package: clean create-bins prep-pkg-env $(PACKAGE_TYPES)
 
-create-bins: deps
+create-bins: build-container delete-container
+	@echo "make compile" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
+	-mkdir -p $(BINS_DIR)
+	@docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/bin/$(BINARY_NAME) $(BINS_DIR)
+
+create-bins-local: deps
 	echo "=== Main === [ create-bins ]: creating binary ..."
 	GOOS=linux go build -v -ldflags '-X main.buildVersion=$(VERSION)' -o $(BINS_DIR)/$(BINARY_NAME) $(GO_FILES) || exit 1
 	@echo ""

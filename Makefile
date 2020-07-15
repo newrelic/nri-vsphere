@@ -22,12 +22,16 @@ SNYK_VERSION   = v1.361.3
 
 all: build
 build-local: clean compile test
-build: bin
-	@docker build --no-cache -t $(CONTAINER_IMAGE) .
-	-docker rm -f $(CONTAINER) 2>/dev/null
+build: bin build-container delete-container
 	@echo "make compile test" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
 	@docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/bin/$(BINARY_NAME) $(BIN_DIR) && \
      docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/coverage.xml .; docker rm -f $(CONTAINER)
+
+build-container:
+	@docker build --no-cache -t $(CONTAINER_IMAGE) .
+
+delete-container:
+	-docker rm -f $(CONTAINER) 2>/dev/null
 
 bin:
 	@mkdir $(BIN_DIR)
