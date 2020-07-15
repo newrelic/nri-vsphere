@@ -4,7 +4,7 @@
 
 New Relic's VMware vShpere integration captures critical summary and performance metrics data by connecting to VMware vCenter or an ESXi Host. For more information, see [the official New Relic docs](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-vsphere-monitoring-integration).
 
-The integration captures data about Datacenters, Clusters, Virtual Machines, Hosts, Datastores, ResourcePools and Networks. Apart from metrics, the integration also can capture vSphere events and VM snapshot information when enabled by the appropriate flags.
+The integration collects data about data centers, clusters, virtual machines, hosts, datastores, resource pools, and networks. In addition to metrics, the integration can also capture vSphere events and VM snapshot information when enabled by the appropriate flags.
 
 ## Requirements
 
