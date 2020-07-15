@@ -57,7 +57,7 @@ To learn more about the usage of `./bin/darwin/nri-vsphere`, pass the `-help` ar
 ./bin/darwin/nri-vsphere -help
 ```
 
-External dependencies are managed via govendor.
+External dependencies are managed via `govendor`.
 
 ## Testing
 
