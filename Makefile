@@ -26,9 +26,11 @@ build: bin
 	@docker build --no-cache -t $(CONTAINER_IMAGE) .
 	-docker rm -f $(CONTAINER) 2>/dev/null
 	@docker run --privileged=true --network=host --name $(CONTAINER) $(CONTAINER_IMAGE)
-	-mkdir -p $(BIN_DIR)
 	@docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/bin/$(BINARY_NAME) $(BIN_DIR) && \
      docker cp $(CONTAINER):/go/src/$(PROJECT_NAME)/coverage.xml .; docker rm -f $(CONTAINER)
+
+bin:
+	@mkdir $(BIN_DIR)
 
 clean:
 	@echo "=== $(PROJECT_NAME) === [ clean ]: Removing binaries and coverage file..."
@@ -57,9 +59,6 @@ test-unit:
 test-integration: compile
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@$(GO_CMD) test -v -tags=integration ./integration-test/.
-
-bin:
-	@mkdir $(BIN_DIR)
 
 test-security: bin deps
 	@echo "=== $(PROJECT_NAME) === [ security-test        ]: running security tests..."
