@@ -37,7 +37,7 @@ vSphere data is obtained via a client provided by the `govmomi` package, the off
 
 The output of the integration is shaped by the `newrelic/infra-integrations-sdk` package and provided in JSON format. The New Relic Infra agent collects such data and sends it to New Relic.
 
-1. After cloning this repository, go to vSphere integration directory and build the integration:
+1. After cloning this repository, go to the vSphere integration directory and build the integration:
 
     ```bash
     make compile
