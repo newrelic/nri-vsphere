@@ -32,7 +32,7 @@ integrations:
       # - --perf_metric_file
       # - C:\Program Files\New Relic\newrelic-infra\integrations.d\vsphere-performance.metrics
 
-      # - --validate_ssl # if you require SSL validation enable
+      # - --validate_ssl # enable if you require SSL validation
       # Datacenter location label can be added to all entities in this vSphere platform
       # - --datacenter_location
       # - Wolli Creek

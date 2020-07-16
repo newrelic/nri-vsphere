@@ -27,25 +27,25 @@ type ArgumentList struct {
 	Pass               string `default:"" help:"Required: Password"`
 	DatacenterLocation string `default:"" help:"Datacenter Location of your vCenter or ESXi Host eg. sydney-ultimo"`
 
-	EnableVsphereEvents bool   `default:"false" help:"If set the integration will collect as well vSphere events at datacenter level"`
-	EventsPageSize      string `default:"100" help:"Number of events fetched from the vCenter for each page"`
+	EnableVsphereEvents bool   `default:"false" help:"Set to collect vSphere events"`
+	EventsPageSize      string `default:"100" help:"Number of events fetched from the vCenter in each call"`
 
-	EnableVspherePerfMetrics bool   `default:"false" help:"If set the integration will collect as well vSphere performance metrics"`
-	PerfLevel                int    `default:"1" help:"Performance counter level that will be collected"`
+	EnableVspherePerfMetrics bool   `default:"false" help:"Set to collect vSphere performance metrics"`
+	PerfLevel                int    `default:"1" help:"Performance counter level of performance metrics that will be collected"`
 	LogAvailableCounters     bool   `default:"false" help:"Print available performance metrics"`
-	PerfMetricFile           string `default:"" help:"location of the configuration file containing perfMetrics to be retrieved"`
+	PerfMetricFile           string `default:"" help:"Location of performance metrics configuration file"`
 
 	//As a general rule, specify between 10 and 50 entities in a single call to the QueryPerf method.
 	//This is a general recommendation because your system configuration may impose different
 	//constraints.
 	//https://vdc-download.vmware.com/vmwb-repository/dcr-public/cdbbd51c-4824-4a1b-ad43-45df55a76a76/8cb3ed93-cac2-46aa-b329-db5a096af5bc/vsphere-web-services-sdk-67-programming-guide.pdf
-	BatchSizePerfEntities string `default:"50" help:"Number of entities requested at the same time when querying perf metrics"`
-	BatchSizePerfMetrics  string `default:"50" help:"Number of metrics requested at the same time when querying perf metrics"`
+	BatchSizePerfEntities string `default:"50" help:"Number of entities requested at the same time when querying performance metrics"`
+	BatchSizePerfMetrics  string `default:"50" help:"Number of metrics requested at the same time when querying performance metrics"`
 
-	EnableVsphereTags      bool `default:"false" help:"If true tags will be collected. Tags are available when connecting to vcenter"`
-	EnableVsphereSnapshots bool `default:"false" help:"If set to true integration will collect, process and send as well data regarding vm Snapshots"`
-	ValidateSSL            bool   `default:"false" help:"Validate SSL"`
-	Version                bool   `default:"false" help:"If set prints version and exit"`
+	EnableVsphereTags      bool `default:"false" help:"Set to collect tags. Tags are available when connecting to vcenter"`
+	EnableVsphereSnapshots bool `default:"false" help:"Set to collect and process VMs Snapshots data"`
+	ValidateSSL            bool `default:"false" help:"Set to validates SSL when connecting to vCenter or Esxi Host"`
+	Version                bool `default:"false" help:"Set to print vSphere integration version and exit"`
 }
 
 type Config struct {
@@ -55,7 +55,6 @@ type Config struct {
 	Entity               *integration.Entity      // Entity Infrastructure SDK Entity
 	Hostname             string                   // Hostname current host
 	Logrus               *logrus.Logger           // Logrus create instance of the logger
-	CachePath            string                   // Integration cache path
 	IntegrationName      string                   // IntegrationName name of integration
 	IntegrationNameShort string                   // IntegrationNameShort Short Name
 	IntegrationVersion   string                   // IntegrationVersion Version
