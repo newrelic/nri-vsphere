@@ -25,7 +25,12 @@ func Datacenters(config *load.Config) {
 		config.Logrus.WithError(err).Fatal("failed to create Datacenter container view")
 	}
 
-	defer cv.Destroy(ctx)
+	defer func() {
+		err := cv.Destroy(ctx)
+		if err != nil {
+			config.Logrus.WithError(err).Error("error while cleaning up datacenter container view")
+		}
+	}()
 
 	var datacenters []mo.Datacenter
 	err = cv.Retrieve(ctx, []string{"Datacenter"}, []string{"name", "overallStatus"}, &datacenters)

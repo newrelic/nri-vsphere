@@ -32,7 +32,7 @@ func main() {
 		config.Logrus.WithError(err).Fatal("failed to initialize integration")
 	}
 	setupLogger(config)
-	if config.Args.Version == true {
+	if config.Args.Version {
 		config.Logrus.Infof("integration version: %s", buildVersion)
 		return
 	}
@@ -46,7 +46,12 @@ func main() {
 	if err != nil {
 		config.Logrus.WithError(err).Fatal("failed to create client")
 	}
-	defer client.Logout(config.VMWareClient)
+	defer func() {
+		err := client.Logout(config.VMWareClient)
+		if err != nil {
+			config.Logrus.WithError(err).Error("error while logging out client")
+		}
+	}()
 
 	if config.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter" {
 		config.IsVcenterAPIType = true
@@ -65,7 +70,13 @@ func main() {
 		if err != nil {
 			config.Logrus.WithError(err).Fatal("failed to create client rest")
 		}
-		defer client.LogoutRest(config.VMWareClientRest)
+
+		defer func() {
+			err := client.LogoutRest(config.VMWareClientRest)
+			if err != nil {
+				config.Logrus.WithError(err).Error("error while logging out RestClient")
+			}
+		}()
 
 		config.TagsManager = tags.NewManager(config.VMWareClientRest)
 	}

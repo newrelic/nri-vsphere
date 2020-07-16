@@ -33,7 +33,7 @@ var (
 func TestIntegration(t *testing.T) {
 	simulator.Test(func(ctx context.Context, vc *vim25.Client) {
 		// Add tag to a vm in the simulator
-		require.NoError(t, addTag(ctx, t, vc))
+		require.NoError(t, addTag(ctx, vc))
 
 		stdout, stderr, err := runIntegration([]string{
 			"-url", vc.URL().String(),
@@ -104,7 +104,7 @@ func runIntegration(args []string) (string, string, error) {
 	return stdout, stderr, nil
 }
 
-func addTag(ctx context.Context, t *testing.T, vc *vim25.Client) error {
+func addTag(ctx context.Context, vc *vim25.Client) error {
 	c := rest.NewClient(vc)
 	_ = c.Login(ctx, simulator.DefaultLogin)
 

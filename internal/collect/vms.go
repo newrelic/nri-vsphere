@@ -25,7 +25,13 @@ func VirtualMachines(config *load.Config) {
 			config.Logrus.WithError(err).Error("failed to create VirtualMachine container view")
 			continue
 		}
-		defer cv.Destroy(ctx)
+
+		defer func() {
+			err := cv.Destroy(ctx)
+			if err != nil {
+				config.Logrus.WithError(err).Error("error while cleaning up virtual machines container view")
+			}
+		}()
 
 		var vms []mo.VirtualMachine
 

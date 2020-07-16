@@ -46,7 +46,10 @@ vm:
 
 	tmpfile, err := ioutil.TempFile("", "config")
 	require.NoError(t, err)
-	defer os.Remove(tmpfile.Name()) // clean up
+	defer func() {
+		err := os.Remove(tmpfile.Name())
+		assert.NoError(t, err)
+	}()
 	_, err = tmpfile.Write(content)
 	require.NoError(t, err)
 
@@ -80,11 +83,17 @@ vm:
 
 	tmpfile, err := ioutil.TempFile("", "config")
 	require.NoError(t, err)
-	defer os.Remove(tmpfile.Name()) // clean up
+
+	defer func() {
+		err := os.Remove(tmpfile.Name())
+		assert.NoError(t, err)
+	}()
+
 	_, err = tmpfile.Write(content)
 	require.NoError(t, err)
 
 	_, err, c := startVcSim(t)
+	assert.NoError(t, err)
 
 	pc, err := NewPerfCollector(c, logrus.New(), tmpfile.Name(), false, 2, "100", "50")
 	assert.NoError(t, err)
@@ -106,6 +115,7 @@ vm:
 func TestPerfMetricsEmptyPerfCollector(t *testing.T) {
 
 	ctx, err, c := startVcSim(t)
+	assert.NoError(t, err)
 
 	var vms []mo.VirtualMachine
 	m := view.NewManager(c.Client)
@@ -158,6 +168,7 @@ func startVcSim(t *testing.T) (context.Context, error, *govmomi.Client) {
 func TestPerfMetrics(t *testing.T) {
 
 	ctx, err, c := startVcSim(t)
+	assert.NoError(t, err)
 
 	var vms []mo.VirtualMachine
 	m := view.NewManager(c.Client)

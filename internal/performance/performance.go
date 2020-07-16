@@ -155,7 +155,7 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 	}
 }
 
-func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) (err error) {
+func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) error {
 	ctx := context.Background()
 
 	counters, err := c.perfManager.CounterInfo(ctx)
@@ -175,7 +175,7 @@ func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) (err 
 			c.logger.Infof("%s [%d] %v", fullCounterName, perfCounter.Level, perfCounter.NameInfo.GetElementDescription().Summary)
 		}
 	}
-	return nil
+	return err
 }
 
 func (c *PerfCollector) parseConfigFile(fileName string) error {

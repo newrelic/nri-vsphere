@@ -15,8 +15,7 @@ import (
 
 func TestEvents(t *testing.T) {
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := context.Background()
 
 	//SettingUp Simulator
 	model := simulator.VPX()
@@ -39,6 +38,8 @@ func TestEvents(t *testing.T) {
 		logrus.WithError(err).Fatal("failed to create Datacenter container view")
 	}
 	err = cv.Retrieve(ctx, []string{"Datacenter"}, []string{"name", "overallStatus"}, &datacenters)
+	assert.NoError(t, err)
+
 	ca := NewCacheMock{}
 
 	//https://pubs.vmware.com/vsphere-51/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.HistoryCollector.html

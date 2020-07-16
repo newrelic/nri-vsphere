@@ -21,7 +21,12 @@ func Networks(config *load.Config) {
 			config.Logrus.WithError(err).Error("failed to create Network container view")
 			continue
 		}
-		defer cv.Destroy(ctx)
+		defer func() {
+			err := cv.Destroy(ctx)
+			if err != nil {
+				config.Logrus.WithError(err).Error("error while cleaning up network container view")
+			}
+		}()
 
 		var networks []mo.Network
 		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.Network.html

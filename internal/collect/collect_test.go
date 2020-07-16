@@ -19,8 +19,7 @@ func TestCollectData(t *testing.T) {
 		Logrus: logrus.New(),
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := context.Background()
 
 	//SettingUp Simulator
 	model := simulator.VPX()
