@@ -24,7 +24,12 @@ func Datastores(config *load.Config) {
 			config.Logrus.WithError(err).Error("failed to create Datastore container view")
 			continue
 		}
-		defer cv.Destroy(ctx)
+		defer func() {
+			err := cv.Destroy(ctx)
+			if err != nil {
+				config.Logrus.WithError(err).Error("error while cleaning up datastores container view")
+			}
+		}()
 
 		var datastores []mo.Datastore
 		// Reference: https://code.vmware.com/apis/42/vsphere/doc/vim.Datastore.html

@@ -42,7 +42,7 @@ compile-windows: deps
 	@GOOS=windows go  build -o $(BIN_DIR)/$(BINARY_NAME).exe ./cmd/...
 
 
-test: deps test-unit test-integration
+test: deps lint test-unit test-integration
 test-unit:
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
 	@gocov test $(GO_PKGS) | gocov-xml > coverage.xml

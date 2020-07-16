@@ -24,7 +24,14 @@ func ResourcePools(config *load.Config) {
 			config.Logrus.WithError(err).Error("failed to create ResourcePool container view")
 			continue
 		}
-		defer cv.Destroy(ctx)
+
+		defer func() {
+			err := cv.Destroy(ctx)
+			if err != nil {
+				config.Logrus.WithError(err).Error("error while cleaning up resourcePools container view")
+			}
+		}()
+
 		var resourcePools []mo.ResourcePool
 		err = cv.Retrieve(
 			ctx,

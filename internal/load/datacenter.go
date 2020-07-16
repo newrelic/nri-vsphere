@@ -102,13 +102,11 @@ func (dc *Datacenter) AddTags(tagsByObject map[mor][]Tag) {
 	dc.tagMux.Lock()
 	defer dc.tagMux.Unlock()
 	for mor, tags := range tagsByObject {
-		for _, t := range tags {
-			dc.Tags[mor] = append(dc.Tags[mor], t)
-		}
+		dc.Tags[mor] = append(dc.Tags[mor], tags...)
 	}
 }
 
-// AddTags appends a tag batch to dc Tags map
+// AddPerfMetrics appends a perfMetric batch to dc Tags map
 func (dc *Datacenter) AddPerfMetrics(data map[types.ManagedObjectReference][]performance.PerfMetric) {
 	dc.PerfMetricsMux.Lock()
 	defer dc.PerfMetricsMux.Unlock()

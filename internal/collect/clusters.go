@@ -24,7 +24,13 @@ func Clusters(config *load.Config) {
 			config.Logrus.WithError(err).Error("failed to create ComputeResource container view")
 			continue
 		}
-		defer cv.Destroy(ctx)
+		defer func() {
+			err := cv.Destroy(ctx)
+			if err != nil {
+				config.Logrus.WithError(err).Error("error while cleaning up cluster container view")
+			}
+		}()
+
 		var clusters []mo.ClusterComputeResource
 		// Reference: https://code.vmware.com/apis/704/vsphere/vim.ClusterComputeResource.html
 		err = cv.Retrieve(

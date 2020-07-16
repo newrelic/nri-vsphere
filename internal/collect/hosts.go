@@ -26,7 +26,12 @@ func Hosts(config *load.Config) {
 			continue
 		}
 
-		defer cv.Destroy(ctx)
+		defer func() {
+			err := cv.Destroy(ctx)
+			if err != nil {
+				config.Logrus.WithError(err).Error("error while cleaning up host container view")
+			}
+		}()
 
 		var hosts []mo.HostSystem
 		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html

@@ -16,7 +16,7 @@ import (
 const maxBatchSize = 2000
 
 // collectTagAndCategories retreive all tag and categories from vcenter and store them for future un-map from id
-func collectTagsByID(t load.TagsByID, tm *tags.Manager) error {
+func collectTagsByID(tagsById load.TagsByID, tm *tags.Manager) error {
 	ctx := context.Background()
 
 	categories, err := tm.GetCategories(ctx)
@@ -28,13 +28,13 @@ func collectTagsByID(t load.TagsByID, tm *tags.Manager) error {
 		categoriesByID[c.ID] = c.Name
 	}
 
-	tags, err := tm.GetTags(ctx)
+	ts, err := tm.GetTags(ctx)
 	if err != nil {
 		return err
 	}
-	for _, tag := range tags {
+	for _, tag := range ts {
 		if category, ok := categoriesByID[tag.CategoryID]; ok {
-			t[tag.ID] = load.Tag{Name: tag.Name, Category: category}
+			tagsById[tag.ID] = load.Tag{Name: tag.Name, Category: category}
 		}
 	}
 	return nil
@@ -102,12 +102,12 @@ func getTags(ref []mo.Reference, tm *tags.Manager, tagsByID load.TagsByID) (map[
 	for i := 0; i < len(ref); i += maxBatchSize {
 		batch := ref[i:min(i+maxBatchSize, len(ref))]
 
-		tags, err := tm.ListAttachedTagsOnObjects(ctx, batch)
+		ts, err := tm.ListAttachedTagsOnObjects(ctx, batch)
 		if err != nil {
 			return nil, fmt.Errorf("fail to get tags:%v", err)
 		}
 
-		attachedTags = append(attachedTags, tags...)
+		attachedTags = append(attachedTags, ts...)
 	}
 
 	tagsByObject := make(map[types.ManagedObjectReference][]load.Tag)
