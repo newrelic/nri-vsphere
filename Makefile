@@ -26,7 +26,7 @@ build-local: clean compile test
 build: build-container-image delete-container test-container delete-container
 
 build-container-image:
-	@docker build --no-cache -t $(CONTAINER_IMAGE) .
+	@docker build --no-cache -t $(CONTAINER_IMAGE) -f Dockerfile.test .
 
 test-container:
 	@echo "make test" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
