@@ -29,7 +29,7 @@ To select which performance metrics to capture, you must define them in the `vsp
 You can find this file in `/etc/newrelic-infra/integrations.d/vsphere-performance.metrics` (Linux) or `C:\Program Files\New Relic\newrelic-infra\integrations.d\vsphere-performance.metrics` (Windows).
 Use the flag `--perf_level` to select which level of **performance metrics** you want to capture.
 
-Please note that the more **performance metrics** you enable the more load you will add to your envrionment.
+Please note that the more performance metrics you enable the more load you add to your environment.
 
 ## Building
 
