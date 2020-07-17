@@ -78,3 +78,8 @@ func NewConfig(buildVersion string) *Config {
 		TagsByID:             make(map[string]Tag),
 	}
 }
+
+const (
+	WindowsPerfMetricFile      = "C:\\Program Files\\New Relic\\newrelic-infra\\integrations.d\\vsphere-performance.metrics"
+	LinuxDefaultPerfMetricFile = "/etc/newrelic-infra/integrations.d/vsphere-performance.metrics"
+)

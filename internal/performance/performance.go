@@ -71,7 +71,7 @@ func NewPerfCollector(client *govmomi.Client, logger *logrus.Logger, perfMetricF
 	}
 	err = perfCollector.parseConfigFile(perfMetricFile)
 	if err != nil {
-		logger.WithError(err).Errorf("failed to fetch data from config file")
+		logger.WithError(err).WithField("file", perfMetricFile).Errorf("failed to fetch data from performance config file")
 		return nil, err
 	}
 
