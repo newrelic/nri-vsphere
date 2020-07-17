@@ -26,7 +26,7 @@ To configure the integration go to `/etc/newrelic-infra/integrations.d/` (Linux)
 Configure the `URL`, `user`, and `password` fields -- they are required to connect to your vCenter or ESXi host.
 
 To select which performance metrics to capture, you must define them in the `vsphere-performance.metrics` file per each `performance level` you require.
-You can find this file at `/etc/newrelic-infra/integrations.d/vsphere-performance.metrics` (Linux) or `C:\Program Files\New Relic\newrelic-infra\integrations.d\vsphere-performance.metrics` (Windows).
+You can find this file in `/etc/newrelic-infra/integrations.d/vsphere-performance.metrics` (Linux) or `C:\Program Files\New Relic\newrelic-infra\integrations.d\vsphere-performance.metrics` (Windows).
 Use the flag `--perf_level` to select which level of **performance metrics** you want to capture.
 
 Please note that the more **performance metrics** you enable the more load you will add to your envrionment.
