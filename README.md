@@ -33,7 +33,7 @@ Please note that the more performance metrics you enable the more load you add t
 
 ## Building
 
-If you have the source code and Go toolchain installed, you can build and run the vSphere integration locally.
+If you have downloaded the source code and installed the Go toolchain, you can build and run the vSphere integration locally.
 
 vSphere data is obtained via a client provided by the `govmomi` package, the official Go wrapper for the VMware API. The same package provides a simulator for the virtual center, leveraged to run integration tests.
 
