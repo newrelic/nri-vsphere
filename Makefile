@@ -26,15 +26,18 @@ build-local: clean compile test
 build: build-container-image delete-container test-container delete-container
 
 build-container-image:
+	@echo "=== $(PROJECT_NAME) === [ $@ ]: Building the container image"
 	@docker build --no-cache -t $(CONTAINER_IMAGE) -f Dockerfile.test .
 
 test-container:
+	@echo "=== $(PROJECT_NAME) === [ $@ ]: Testing the integration"
 	@echo "make test" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
 	@docker cp $(CONTAINER):$(CONTAINER_PATH)/coverage.xml .
 
 compile-container: bin
-	@echo "make compile" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
-	@docker cp $(CONTAINER):$(CONTAINER_PATH)/bin/$(BINARY_NAME) $(BINS_DIR)
+	@echo "=== $(PROJECT_NAME) === [ $@ ]: Creating the binaries"
+	@echo "make create-bins" | docker run --name $(CONTAINER) -i -e VERSION $(CONTAINER_IMAGE)
+	@docker cp $(CONTAINER):$(CONTAINER_PATH)/$(TARGET)/bin/linux_amd64/$(BINARY_NAME) $(BINS_DIR)
 
 delete-container:
 	-docker rm -f $(CONTAINER) 2>/dev/null
