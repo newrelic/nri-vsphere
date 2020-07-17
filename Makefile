@@ -1,58 +1,75 @@
-WORKDIR      := $(shell pwd)
-NATIVEOS     := $(shell go version | awk -F '[ /]' '{print $$4}')
-NATIVEARCH   := $(shell go version | awk -F '[ /]' '{print $$5}')
-GO_PKGS      := $(shell go list ./... | grep -v -e "/vendor/" -e "/example")
-GO_FILES     := $(shell find cmd -type f -name "*.go")
-
 GO_CMD        = go
-GOLINTER      = golangci-lint
+WORKDIR      := $(shell pwd)
+NATIVEOS     := $(shell $(GO_CMD) version | awk -F '[ /]' '{print $$4}')
+NATIVEARCH   := $(shell $(GO_CMD) version | awk -F '[ /]' '{print $$5}')
+GO_PKGS      := $(shell $(GO_CMD) list ./... | grep -v -e "/vendor/" -e "/example")
+GO_FILES     := $(shell find cmd -type f -name "*.go")
+GO_TOOLS      = github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
-BIN_DIR    = $(WORKDIR)/bin
-TARGET = target
-TARGET_DIR       = $(WORKDIR)/$(TARGET)
-INTEGRATION  := vsphere
-SHORT_INTEGRATION  := vsphere
-BINARY_NAME   = nri-$(INTEGRATION)
+BIN_DIR            = $(WORKDIR)/bin
+TARGET             = target
+TARGET_DIR         = $(WORKDIR)/$(TARGET)
+INTEGRATION       := vsphere
+SHORT_INTEGRATION := vsphere
+BINARY_NAME        = nri-$(INTEGRATION)
+CONTAINER_IMAGE    = $(PROJECT_NAME)-builder
+CONTAINER          = $(PROJECT_NAME)
+CONTAINER_PATH     = /go/src/$(PROJECT_NAME)
 
-GOTOOLS       = github.com/kardianos/govendor  github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
-
-SNYK_VERSION  = v1.361.3
-SNYK_BIN = snyk-linux
+LINTER         = golangci-lint
+LINTER_VERSION = 1.27.0
+SNYK_BIN       = snyk-linux
+SNYK_VERSION   = v1.361.3
 
 all: build
-build: clean test compile
+build-local: clean compile test
+build: build-container-image delete-container test-container delete-container
 
+build-container-image:
+	@docker build --no-cache -t $(CONTAINER_IMAGE) -f Dockerfile.test .
+
+test-container:
+	@echo "make test" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
+	@docker cp $(CONTAINER):$(CONTAINER_PATH)/coverage.xml .
+
+compile-container: bin
+	@echo "make compile" | docker run --name $(CONTAINER) -i $(CONTAINER_IMAGE)
+	@docker cp $(CONTAINER):$(CONTAINER_PATH)/bin/$(BINARY_NAME) $(BINS_DIR)
+
+delete-container:
+	-docker rm -f $(CONTAINER) 2>/dev/null
+
+bin:
+	-mkdir -p $(BIN_DIR)
+	-mkdir -p $(BINS_DIR)
 
 clean:
-	@echo "=== $(INTEGRATION) === [ clean ]: Removing binaries and coverage file..."
+	@echo "=== $(PROJECT_NAME) === [ clean ]: Removing binaries and coverage file..."
 	@rm -rfv bin coverage.xml $(TARGET)
 
 compile: compile-only
 compile-only: deps
 	@echo "=== $(PROJECT_NAME) === [ compile          ]: building commands:"
-	@go build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
+	@$(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
 compile-linux: deps
 	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
-	@GOOS=linux go  build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
+	@GOOS=linux $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
 compile-darwin: deps
 	@echo "=== $(PROJECT_NAME) === [ compile-darwin    ]: building commands:"
-	@GOOS=darwin go  build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
+	@GOOS=darwin $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
 compile-windows: deps
 	@echo "=== $(PROJECT_NAME) === [ compile-windows    ]: building commands:"
-	@GOOS=windows go  build -o $(BIN_DIR)/$(BINARY_NAME).exe ./cmd/...
+	@GOOS=windows $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME).exe ./cmd/...
 
 
 test: deps lint test-unit test-integration
-test-unit:
+test-unit: compile
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
 	@gocov test $(GO_PKGS) | gocov-xml > coverage.xml
 
 test-integration: compile
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
-	@go test -v -tags=integration ./integration-test/.
-
-bin:
-	@mkdir $(BIN_DIR)
+	@$(GO_CMD) test -v -tags=integration ./integration-test/.
 
 test-security: bin deps
 	@echo "=== $(PROJECT_NAME) === [ security-test        ]: running security tests..."
@@ -61,22 +78,24 @@ test-security: bin deps
 	@$(BIN_DIR)/$(SNYK_BIN) auth $(SNYK_TOKEN)
 	@$(BIN_DIR)/$(SNYK_BIN) test
 
-lint: deps
-	@echo "=== $(PROJECT_NAME) === [ lint             ]: Validating source code running $(GOLINTER)..."
-	@$(GOLINTER) run ./...
+lint: lint-deps
+	@echo "=== $(PROJECT_NAME) === [ lint             ]: Validating source code running $(LINTER)..."
+	@$(LINTER) run ./...
 
 
 deps: tools deps-only
 tools: check-version
-	@echo "=== $(INTEGRATION) === [ tools ]: Installing tools required by the project..."
-	@go get $(GOTOOLS)
+	@echo "=== $(PROJECT_NAME) === [ tools ]: Installing tools required by the project..."
+	@$(GO_CMD) get $(GO_TOOLS)
 tools-update: check-version
-	@echo "=== $(INTEGRATION) === [ tools-update ]: Updating tools required by the project..."
-	@go get -u $(GOTOOLS)
+	@echo "=== $(PROJECT_NAME) === [ tools-update ]: Updating tools required by the project..."
+	@$(GO_CMD) get -u $(GO_TOOLS)
 deps-only:
-	@echo "=== $(INTEGRATION) === [ deps ]: Installing package dependencies required by the project..."
-	@$(GOPATH)/bin/govendor sync
-
+	@echo "=== $(PROJECT_NAME) === [ deps ]: Installing package dependencies required by the project..."
+	@$(GO_CMD) mod download
+lint-deps:
+	@echo "=== $(PROJECT_NAME) === [ lint-deps ]: Installing linting dependencies required by the project..."
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$($(GO_CMD) env GOPATH)/bin v$(LINTER_VERSION)
 
 check-version:
 ifdef GOOS

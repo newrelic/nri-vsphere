@@ -28,7 +28,7 @@ versioninfo.json
 *.syso
 *.wxs
 target/
+!Dockerfile.test
 
 coverage.xml
 vendor/*
-!vendor/vendor.json

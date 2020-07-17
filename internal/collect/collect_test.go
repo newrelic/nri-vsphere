@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/newrelic/nri-vsphere/internal/load"
-	logrus "github.com/sirupsen/Logrus"
+	logrus "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/vmware/govmomi"
