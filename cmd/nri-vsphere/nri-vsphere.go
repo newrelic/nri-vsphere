@@ -6,6 +6,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -99,11 +100,15 @@ func checkAndSanitizeConfig(config *load.Config) {
 		config.Logrus.Fatal("missing argument `pass`, please check if password has been supplied")
 	}
 
-	if config.Args.EnableVspherePerfMetrics && config.Args.PerfMetricFile ==""{
+	if config.Args.EnableVspherePerfMetrics && config.Args.PerfMetricFile == "" {
+		var err error
 		if runtime.GOOS == "windows" {
-			config.Args.PerfMetricFile = "C:\\Program Files\\New Relic\\newrelic-infra\\integrations.d\\vsphere-performance.metrics"
+			config.Args.PerfMetricFile, err = filepath.Abs(load.WindowsPerfMetricFile)
 		} else {
-			config.Args.PerfMetricFile = "/etc/newrelic-infra/integrations.d/vsphere-performance.metrics"
+			config.Args.PerfMetricFile, err = filepath.Abs(load.LinuxDefaultPerfMetricFile)
+		}
+		if err != nil {
+			config.Logrus.Fatal("error while setting default path for performance metrics configuration file")
 		}
 	}
 
