@@ -6,7 +6,6 @@ package process
 import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/config"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 )
 
 func createResourcePoolSamples(config *config.Config) {
@@ -68,7 +67,7 @@ func createResourcePoolSamples(config *config.Config) {
 			checkError(config.Logrus, ms.SetMetric("overallStatus", string(rp.OverallStatus), metric.ATTRIBUTE))
 
 			// Tags
-			tagsByCategory := tag.GetTagsByCategories(rp.Self)
+			tagsByCategory := config.TagCollector.GetTagsByCategories(rp.Self)
 			for k, v := range tagsByCategory {
 				checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 				// add tags to inventory due to the inventory workaround

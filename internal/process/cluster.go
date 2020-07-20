@@ -4,7 +4,6 @@
 package process
 
 import (
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"strconv"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
@@ -103,7 +102,7 @@ func createClusterSamples(config *config.Config) {
 			checkError(config.Logrus, ms.SetMetric("dasConfig.hbDatastoreCandidatePolicy", cluster.Configuration.DasConfig.HBDatastoreCandidatePolicy, metric.ATTRIBUTE))
 
 			// Tags
-			tagsByCategory := tag.GetTagsByCategories(cluster.Self)
+			tagsByCategory := config.TagCollector.GetTagsByCategories(cluster.Self)
 			for k, v := range tagsByCategory {
 				checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 				// add tags to inventory due to the inventory workaround

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"github.com/newrelic/nri-vsphere/internal/performance"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
@@ -61,7 +61,7 @@ func VirtualMachines(config *config.Config) {
 
 		var objectTags tag.TagsByObject
 		if collectTags {
-			objectTags, err = tag.FetchTagsForObjects(config.TagsManager, vms)
+			objectTags, err = config.TagCollector.FetchTagsForObjects(vms)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for virtual machines")
 			} else {
@@ -79,7 +79,7 @@ func VirtualMachines(config *config.Config) {
 				continue
 			}
 			// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-			if filterByTag && !tag.MatchObjectTags(objectTags[vm.Reference()]) {
+			if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[vm.Reference()]) {
 				logger.WithField("virtual machine", vm.Name).
 					Debug("ignoring virtual machine since it does not match any configured tag")
 				continue

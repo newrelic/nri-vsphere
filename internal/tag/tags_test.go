@@ -2,6 +2,7 @@ package tag
 
 import (
 	"context"
+	"github.com/sirupsen/logrus"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,11 +21,8 @@ func Test_CollectTagsByID(t *testing.T) {
 		c := rest.NewClient(vc)
 		err := c.Login(ctx, simulator.DefaultLogin)
 		assert.NoError(t, err)
+
 		m := tags.NewManager(c)
-
-		err = BuildTagCache(m)
-		assert.NoError(t, err)
-
 		categoryName := "my-category"
 		categoryID, err := m.CreateCategory(ctx, &tags.Category{Name: categoryName})
 		assert.NoError(t, err)
@@ -33,9 +31,11 @@ func Test_CollectTagsByID(t *testing.T) {
 		tagID, err := m.CreateTag(ctx, &tags.Tag{CategoryID: categoryID, Name: tagName})
 		assert.NoError(t, err)
 
-		assert.NoError(t, BuildTagCache(m))
-		assert.Equal(t, categoryName, GetTagByID(tagID).Category)
-		assert.Equal(t, tagName, GetTagByID(tagID).Name)
+		collector := NewCollector(m, logrus.StandardLogger())
+		err = collector.BuildTagCache()
+		assert.NoError(t, err)
+		assert.Equal(t, categoryName, collector.GetTagByID(tagID).Category)
+		assert.Equal(t, tagName, collector.GetTagByID(tagID).Name)
 
 		return nil
 	})
@@ -59,7 +59,9 @@ func Test_GetTags_ReturnsObjectTags(t *testing.T) {
 		tagID, err := m.CreateTag(ctx, &tags.Tag{CategoryID: categoryID, Name: tagName})
 		assert.NoError(t, err)
 
-		assert.NoError(t, BuildTagCache(m))
+		collector := NewCollector(m, logrus.StandardLogger())
+		err = collector.BuildTagCache()
+		assert.NoError(t, err)
 
 		vm, err := find.NewFinder(vc).VirtualMachine(ctx, "DC0_H0_VM0")
 		assert.NoError(t, err)
@@ -67,7 +69,7 @@ func Test_GetTags_ReturnsObjectTags(t *testing.T) {
 		assert.NoError(t, err)
 
 		vms := []mo.Reference{vm.Reference()}
-		tagsByCategory, _ := getTags(vms, m)
+		tagsByCategory, _ := collector.getTags(vms)
 		assert.Len(t, tagsByCategory, 1)
 		assert.NotEmpty(t, tagsByCategory[vm.Reference()][0])
 		assert.Equal(t, tagName, tagsByCategory[vm.Reference()][0].Name)
@@ -97,14 +99,20 @@ func Test_GetTagsByCategories_ReturnsOrderedTagsPerCategory(t *testing.T) {
 	}
 	tagsByObject := make(map[mor][]Tag)
 	tagsByObject[ref] = ts
-	cacheTags(tagsByObject)
 
-	tbc := GetTagsByCategories(ref)
+	// we can use an "fake" manager since we're not using the simulator
+	collector := NewCollector(&tags.Manager{}, logrus.StandardLogger())
+	collector.cacheTags(tagsByObject)
+
+	tbc := collector.GetTagsByCategories(ref)
 	assert.Equal(t, "A|B", tbc["cat1"], "Tags should should be ordered")
 	assert.Equal(t, "A|B", tbc["cat2"], "Tags should should be ordered")
 }
 
 func Test_ParseTagFilterExpression_CreatesTagFilter(t *testing.T) {
+
+	// we can use an "fake" manager since we're not using the simulator
+	collector := NewCollector(&tags.Manager{}, logrus.StandardLogger())
 
 	tests := []struct {
 		name string
@@ -136,18 +144,20 @@ func Test_ParseTagFilterExpression_CreatesTagFilter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// when
-			ParseFilterTagExpression(tt.args)
+			collector.ParseFilterTagExpression(tt.args)
 
 			// then
-			assert.Equal(t, len(tt.want), len(filterTags))
-			assert.EqualValues(t, tt.want, filterTags)
+			assert.Equal(t, len(tt.want), len(collector.filterTags))
+			assert.EqualValues(t, tt.want, collector.filterTags)
 		})
 	}
 }
 
 func Test_MatchObjectsTags_ReturnsCorrectValue(t *testing.T) {
 
-	ParseFilterTagExpression("region=eu env=test")
+	// we can use an "fake" manager since we're not using the simulator
+	collector := NewCollector(&tags.Manager{}, logrus.StandardLogger())
+	collector.ParseFilterTagExpression("region=eu env=test")
 
 	tests := []struct {
 		name string
@@ -183,7 +193,7 @@ func Test_MatchObjectsTags_ReturnsCorrectValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// when
-			actual := MatchObjectTags(tt.args)
+			actual := collector.MatchObjectTags(tt.args)
 
 			// then
 			assert.Equal(t, tt.want, actual)

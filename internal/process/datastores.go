@@ -5,8 +5,6 @@ package process
 
 import (
 	"fmt"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
-
 	"github.com/newrelic/nri-vsphere/internal/config"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
@@ -56,7 +54,7 @@ func createDatastoreSamples(config *config.Config) {
 			}
 
 			// Tags
-			tagsByCategory := tag.GetTagsByCategories(ds.Self)
+			tagsByCategory := config.TagCollector.GetTagsByCategories(ds.Self)
 			for k, v := range tagsByCategory {
 				checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 				// add tags to inventory due to the inventory workaround

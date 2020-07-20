@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"github.com/newrelic/nri-vsphere/internal/performance"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
@@ -51,7 +51,7 @@ func ResourcePools(config *config.Config) {
 
 		var objectTags tag.TagsByObject
 		if collectTags {
-			objectTags, err = tag.FetchTagsForObjects(config.TagsManager, resourcePools)
+			objectTags, err = config.TagCollector.FetchTagsForObjects(resourcePools)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for resourcePools", err)
 			} else {
@@ -67,7 +67,7 @@ func ResourcePools(config *config.Config) {
 				continue
 			}
 			// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-			if filterByTag && !tag.MatchObjectTags(objectTags[rp.Reference()]) {
+			if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[rp.Reference()]) {
 				logger.WithField("resource pool", rp.Name).
 					Debug("ignoring resource pool since it does not match any configured tag")
 				continue

@@ -5,11 +5,11 @@ import (
 
 	"github.com/newrelic/nri-vsphere/internal/client"
 	"github.com/newrelic/nri-vsphere/internal/config"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 
 	"testing"
 
-	. "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/simulator"
@@ -29,7 +29,7 @@ func Test_ListDatastores_WithEmptyFilter_ReturnsAllDatastores(t *testing.T) {
 		vm := view.NewManager(vc)
 		assert.NotNil(t, vm)
 		// given
-		cfg := &config.Config{VMWareClient: vmClient, ViewManager: vm, Logrus: StandardLogger()}
+		cfg := &config.Config{VMWareClient: vmClient, ViewManager: vm, Logrus: logrus.StandardLogger()}
 		cfg.Datacenters = append(cfg.Datacenters, getDatacenter(ctx, vm))
 
 		// when
@@ -56,7 +56,9 @@ func Test_ListDatastoress_WithNonEmptyFilter(t *testing.T) {
 		addDsTag(ctx, m, vc, "env", "test")
 
 		// given
-		// given
+		collector := tag.NewCollector(m, logrus.StandardLogger())
+		_ = collector.BuildTagCache()
+
 		cfg := &config.Config{
 			Args: config.ArgumentList{
 				EnableVsphereTags: true,
@@ -64,12 +66,9 @@ func Test_ListDatastoress_WithNonEmptyFilter(t *testing.T) {
 			IsVcenterAPIType: true,
 			VMWareClient:     vmClient,
 			ViewManager:      view.NewManager(vc),
-			TagsManager:      m,
-			Logrus:           StandardLogger(),
-			TagsByID:         map[string]tag.Tag{},
+			TagCollector:     collector,
+			Logrus:           logrus.StandardLogger(),
 		}
-
-		_ = tag.BuildTagCache(cfg.TagsManager)
 
 		tests := []struct {
 			name string
@@ -105,7 +104,7 @@ func Test_ListDatastoress_WithNonEmptyFilter(t *testing.T) {
 
 				// when
 				cfg.Args.IncludeTags = tt.args
-				tag.ParseFilterTagExpression(tt.args)
+				collector.ParseFilterTagExpression(tt.args)
 				Datastores(cfg)
 
 				// then

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/newrelic/nri-vsphere/internal/client"
 	"github.com/newrelic/nri-vsphere/internal/config"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 	"github.com/vmware/govmomi/vapi/tags"
 
 	"github.com/sirupsen/logrus"
@@ -54,7 +54,9 @@ func Test_ListHosts_WithNonEmptyFilter(t *testing.T) {
 		addHostTag(ctx, m, vc, "env", "test")
 
 		// given
-		// given
+		collector := tag.NewCollector(m, logrus.StandardLogger())
+		_ = collector.BuildTagCache()
+
 		cfg := &config.Config{
 			Args: config.ArgumentList{
 				EnableVsphereTags: true,
@@ -62,12 +64,9 @@ func Test_ListHosts_WithNonEmptyFilter(t *testing.T) {
 			IsVcenterAPIType: true,
 			VMWareClient:     vmClient,
 			ViewManager:      view.NewManager(vc),
-			TagsManager:      m,
+			TagCollector:     collector,
 			Logrus:           logrus.StandardLogger(),
-			TagsByID:         map[string]tag.Tag{},
 		}
-
-		_ = tag.BuildTagCache(cfg.TagsManager)
 
 		tests := []struct {
 			name string
@@ -103,7 +102,7 @@ func Test_ListHosts_WithNonEmptyFilter(t *testing.T) {
 
 				// when
 				cfg.Args.IncludeTags = tt.args
-				tag.ParseFilterTagExpression(tt.args)
+				collector.ParseFilterTagExpression(tt.args)
 				Hosts(cfg)
 
 				// then

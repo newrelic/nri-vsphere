@@ -4,7 +4,7 @@
 package model
 
 import (
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 	"sync"
 
 	"github.com/newrelic/nri-vsphere/internal/events"
@@ -41,7 +41,6 @@ func NewDatacenter(datacenter *mo.Datacenter) *Datacenter {
 		Datastores:      make(map[mor]*mo.Datastore),
 		Networks:        make(map[mor]*mo.Network),
 		VirtualMachines: make(map[mor]*mo.VirtualMachine),
-		Tags:            make(map[mor][]tag.Tag),
 		PerfMetrics:     make(map[mor][]performance.PerfMetric),
 	}
 }

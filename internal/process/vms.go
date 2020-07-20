@@ -5,7 +5,6 @@ package process
 
 import (
 	"fmt"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"strconv"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
@@ -155,7 +154,7 @@ func createVirtualMachineSamples(config *config.Config) {
 			checkError(config.Logrus, ms.SetMetric("powerState", fmt.Sprintf("%v", vm.Runtime.PowerState), metric.ATTRIBUTE))
 
 			//Tags
-			tagsByCategory := tag.GetTagsByCategories(vm.Self)
+			tagsByCategory := config.TagCollector.GetTagsByCategories(vm.Self)
 			for k, v := range tagsByCategory {
 				checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 				// add tags to inventory due to the inventory workaround

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"github.com/newrelic/nri-vsphere/internal/performance"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
@@ -51,7 +51,7 @@ func Datastores(config *config.Config) {
 
 		var objectTags tag.TagsByObject
 		if collectTags {
-			objectTags, err = tag.FetchTagsForObjects(config.TagsManager, datastores)
+			objectTags, err = config.TagCollector.FetchTagsForObjects(datastores)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for datastores", err)
 			} else {
@@ -67,7 +67,7 @@ func Datastores(config *config.Config) {
 				continue
 			}
 			// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-			if filterByTag && !tag.MatchObjectTags(objectTags[ds.Reference()]) {
+			if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[ds.Reference()]) {
 				logger.WithField("datastore", ds.Name).
 					Debug("ignoring datastore since it does not match any configured tag")
 				continue
@@ -77,6 +77,7 @@ func Datastores(config *config.Config) {
 			dsRefs = append(dsRefs, ds.Self)
 		}
 
+		// TODO move this to config from datacenter
 		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
 			collectedData := dc.PerfCollector.Collect(dsRefs, dc.PerfCollector.MetricDefinition.Datastore, performance.FiveMinutesInterval)
 			dc.AddPerfMetrics(collectedData)

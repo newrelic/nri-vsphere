@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"github.com/newrelic/nri-vsphere/internal/performance"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/vmware/govmomi/vim25/mo"
@@ -51,7 +51,7 @@ func Clusters(config *config.Config) {
 
 		var objectTags tag.TagsByObject
 		if collectTags {
-			objectTags, err = tag.FetchTagsForObjects(config.TagsManager, clusters)
+			objectTags, err = config.TagCollector.FetchTagsForObjects(clusters)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for clusters", err)
 			} else {
@@ -67,7 +67,7 @@ func Clusters(config *config.Config) {
 				continue
 			}
 			// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-			if filterByTag && !tag.MatchObjectTags(objectTags[cluster.Reference()]) {
+			if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[cluster.Reference()]) {
 				logger.WithField("cluster", cluster.Name).
 					Debugf("ignoring cluster since it does not match any configured tag")
 				continue

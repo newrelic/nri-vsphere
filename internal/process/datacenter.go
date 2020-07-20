@@ -5,7 +5,6 @@ package process
 
 import (
 	"fmt"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"time"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
@@ -48,7 +47,7 @@ func createDatacenterSamples(config *config.Config) {
 			continue
 		}
 
-		if config.IsVcenterAPIType && config.Args.EnableVsphereEvents {
+		if config.EventCollectionEnabled() {
 			err = processEvent(config, dc.EventDispacher, dcEntity)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("datacenterName", entityName).WithField("uniqueIdentifier", uniqueIdentifier).Error("failed to create metricSet")
@@ -106,7 +105,7 @@ func createDatacenterSamples(config *config.Config) {
 		checkError(config.Logrus, ms.SetMetric("clusters", len(dc.Clusters), metric.GAUGE))
 
 		// Tags
-		tagsByCategory := tag.GetTagsByCategories(dc.Datacenter.Self)
+		tagsByCategory := config.TagCollector.GetTagsByCategories(dc.Datacenter.Self)
 		for k, v := range tagsByCategory {
 			checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 			// add tags to inventory due to the inventory workaround

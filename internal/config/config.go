@@ -5,15 +5,13 @@ package config
 
 import (
 	"github.com/newrelic/nri-vsphere/internal/model"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 	"time"
 
 	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi"
-	"github.com/vmware/govmomi/vapi/rest"
-	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/view"
 )
 
@@ -61,11 +59,9 @@ type Config struct {
 	IntegrationNameShort string                   // IntegrationNameShort Short Name
 	IntegrationVersion   string                   // IntegrationVersion Version
 	VMWareClient         *govmomi.Client          // VMWareClient Client
-	VMWareClientRest     *rest.Client             // VMWareClientRest Client
 	ViewManager          *view.Manager            // ViewManager Client
-	TagsManager          *tags.Manager            // TagsManager Client
+	TagCollector         *tag.Collector           // TagsManager Client
 	Datacenters          []*model.Datacenter      // Datacenters VMWare
-	TagsByID             tag.TagsByID             // Lists of tags by id
 	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
 }
 
@@ -77,7 +73,6 @@ func New(buildVersion string) *Config {
 		IntegrationVersion:   buildVersion,
 		StartTime:            time.Now().UnixNano() / int64(time.Millisecond),
 		IsVcenterAPIType:     false,
-		TagsByID:             make(map[string]tag.Tag),
 	}
 }
 
@@ -87,7 +82,11 @@ const (
 )
 
 func (c *Config) TagCollectionEnabled() bool {
-	return c.Args.EnableVsphereTags && c.IsVcenterAPIType
+	return c.IsVcenterAPIType && c.Args.EnableVsphereTags
+}
+
+func (c *Config) EventCollectionEnabled() bool {
+	return c.IsVcenterAPIType && c.Args.EnableVsphereEvents
 }
 
 func (c *Config) TagFilteringEnabled() bool {

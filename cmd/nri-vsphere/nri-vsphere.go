@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/vmware/govmomi/vapi/tags"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,11 +16,10 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/client"
 	"github.com/newrelic/nri-vsphere/internal/collect"
 	"github.com/newrelic/nri-vsphere/internal/config"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"github.com/newrelic/nri-vsphere/internal/process"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 
 	"github.com/sirupsen/logrus"
-	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/view"
 )
 
@@ -57,28 +57,26 @@ func main() {
 		}
 	}()
 
-	if cfg.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter" {
-		cfg.IsVcenterAPIType = true
-	}
+	cfg.IsVcenterAPIType = cfg.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter"
 
-	if cfg.IsVcenterAPIType && cfg.Args.EnableVsphereTags {
-		cfg.VMWareClientRest, err = client.NewRest(cfg.VMWareClient, cfg.Args.User, cfg.Args.Pass)
+	if cfg.TagCollectionEnabled() {
+		restClient, err := client.NewRest(cfg.VMWareClient, cfg.Args.User, cfg.Args.Pass)
 		if err != nil {
 			cfg.Logrus.WithError(err).Fatal("failed to create client rest")
 		}
-
 		defer func() {
-			err := client.LogoutRest(cfg.VMWareClientRest)
+			err := client.LogoutRest(restClient)
 			if err != nil {
 				cfg.Logrus.WithError(err).Error("error while logging out RestClient")
 			}
 		}()
 
-		// TODO put this in a TagCollector
-		cfg.TagsManager = tags.NewManager(cfg.VMWareClientRest)
+		tm := tags.NewManager(restClient)
+		tagCollector := tag.NewCollector(tm, cfg.Logrus)
 		if len(cfg.Args.IncludeTags) > 0 {
-			tag.ParseFilterTagExpression(cfg.Args.IncludeTags)
+			tagCollector.ParseFilterTagExpression(cfg.Args.IncludeTags)
 		}
+		cfg.TagCollector = tagCollector
 	}
 
 	cfg.ViewManager = view.NewManager(cfg.VMWareClient.Client)

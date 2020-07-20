@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"github.com/newrelic/nri-vsphere/internal/performance"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
@@ -52,7 +52,7 @@ func Hosts(config *config.Config) {
 
 		var objectTags tag.TagsByObject
 		if collectTags {
-			objectTags, err = tag.FetchTagsForObjects(config.TagsManager, hosts)
+			objectTags, err = config.TagCollector.FetchTagsForObjects(hosts)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for hosts", err)
 			} else {
@@ -68,7 +68,7 @@ func Hosts(config *config.Config) {
 				continue
 			}
 			// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-			if filterByTag && !tag.MatchObjectTags(objectTags[host.Reference()]) {
+			if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[host.Reference()]) {
 				logger.WithField("host", host.Name).
 					Debug("ignoring host since it does not match any configured tag")
 				continue

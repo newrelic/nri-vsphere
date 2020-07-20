@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
-	"github.com/newrelic/nri-vsphere/internal/model/tag"
 )
 
 const (
@@ -21,8 +20,8 @@ const (
 func CollectData(config *config.Config) {
 	now := time.Now()
 
-	if config.Args.EnableVsphereTags && config.IsVcenterAPIType {
-		err := tag.BuildTagCache(config.TagsManager)
+	if config.TagCollectionEnabled() {
+		err := config.TagCollector.BuildTagCache()
 		if err != nil {
 			config.Logrus.WithError(err).Error("failed to build tag cache")
 		}
