@@ -1,9 +1,11 @@
 // Copyright 2020 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package load
+package config
 
 import (
+	"github.com/newrelic/nri-vsphere/internal/model"
+	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"time"
 
 	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
@@ -14,8 +16,6 @@ import (
 	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/view"
 )
-
-var Now = time.Now()
 
 // ArgumentList Available Arguments
 type ArgumentList struct {
@@ -46,6 +46,8 @@ type ArgumentList struct {
 	EnableVsphereSnapshots bool `default:"false" help:"Set to collect and process VMs Snapshots data"`
 	ValidateSSL            bool `default:"false" help:"Set to validates SSL when connecting to vCenter or Esxi Host"`
 	Version                bool `default:"false" help:"Set to print vSphere integration version and exit"`
+
+	IncludeTags string `default:"" help:"Comma-separated list of tag categories and values for resource inclusion. \nIf defined, only resources tagged with any of the tags will be included in the results. \nYou must also include 'enable_vsphere_tags' in order for this option to work. \nExample: --include_tags env=prod dc=us,eu"`
 }
 
 type Config struct {
@@ -62,12 +64,12 @@ type Config struct {
 	VMWareClientRest     *rest.Client             // VMWareClientRest Client
 	ViewManager          *view.Manager            // ViewManager Client
 	TagsManager          *tags.Manager            // TagsManager Client
-	Datacenters          []*Datacenter            // Datacenters VMWare
-	TagsByID             TagsByID                 // Lists of tags by id
+	Datacenters          []*model.Datacenter      // Datacenters VMWare
+	TagsByID             tag.TagsByID             // Lists of tags by id
 	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
 }
 
-func NewConfig(buildVersion string) *Config {
+func New(buildVersion string) *Config {
 	return &Config{
 		Logrus:               logrus.New(),
 		IntegrationName:      "com.newrelic.vsphere",
@@ -75,7 +77,7 @@ func NewConfig(buildVersion string) *Config {
 		IntegrationVersion:   buildVersion,
 		StartTime:            time.Now().UnixNano() / int64(time.Millisecond),
 		IsVcenterAPIType:     false,
-		TagsByID:             make(map[string]Tag),
+		TagsByID:             make(map[string]tag.Tag),
 	}
 }
 
@@ -83,3 +85,11 @@ const (
 	WindowsPerfMetricFile      = "C:\\Program Files\\New Relic\\newrelic-infra\\integrations.d\\vsphere-performance.metrics"
 	LinuxDefaultPerfMetricFile = "/etc/newrelic-infra/integrations.d/vsphere-performance.metrics"
 )
+
+func (c *Config) TagCollectionEnabled() bool {
+	return c.Args.EnableVsphereTags && c.IsVcenterAPIType
+}
+
+func (c *Config) TagFilteringEnabled() bool {
+	return c.TagCollectionEnabled() && len(c.Args.IncludeTags) > 0
+}
