@@ -1,12 +1,13 @@
 package process
 
 import (
-	"github.com/newrelic/infra-integrations-sdk/integration"
-	"github.com/newrelic/nri-vsphere/internal/load"
-	"github.com/stretchr/testify/assert"
-	"github.com/vmware/govmomi/vim25/types"
 	"testing"
 	"time"
+
+	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/nri-vsphere/internal/config"
+	"github.com/stretchr/testify/assert"
+	"github.com/vmware/govmomi/vim25/types"
 )
 
 func TestSnapshots(t *testing.T) {
@@ -32,7 +33,7 @@ func TestSnapshots(t *testing.T) {
 func TestTRaverseSnapshots(t *testing.T) {
 
 	info, _, _ := processLayoutEx(getLayout())
-	config := load.Config{}
+	config := config.Config{}
 	i, _ := integration.New("test", "0.0.0")
 	e := i.LocalEntity()
 	traverseSnapshotList(e, &config, getTree(), "vmName", info)

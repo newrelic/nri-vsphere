@@ -6,11 +6,12 @@ package process
 import (
 	"strconv"
 
+	"github.com/newrelic/nri-vsphere/internal/config"
+
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
-	"github.com/newrelic/nri-vsphere/internal/load"
 )
 
 // It takes care of going through VirtualMachineFileLayoutEx building up infoSnapshot
@@ -65,7 +66,7 @@ func findSnapshotAndUpdateInfoMemory(snapshostFiles []types.VirtualMachineFileLa
 }
 
 // It adds a new sample for each snapshot following the whole tree in a recursive way
-func traverseSnapshotList(e *integration.Entity, config *load.Config, tree types.VirtualMachineSnapshotTree, treeInfo string, info map[types.ManagedObjectReference]*infoSnapshot) {
+func traverseSnapshotList(e *integration.Entity, config *config.Config, tree types.VirtualMachineSnapshotTree, treeInfo string, info map[types.ManagedObjectReference]*infoSnapshot) {
 
 	ms := e.NewMetricSet("VSphere" + sampleTypeSnapshotVm + "Sample")
 	treeInfo = treeInfo + ":" + tree.Name
@@ -78,30 +79,30 @@ func traverseSnapshotList(e *integration.Entity, config *load.Config, tree types
 
 }
 
-func createMetricsCurrentSnapshot(treeInfo string, tree types.VirtualMachineSnapshotTree, config *load.Config, ms *metric.Set, info map[types.ManagedObjectReference]*infoSnapshot) {
-	checkError(config, ms.SetMetric("snapshotTreeInfo", treeInfo, metric.ATTRIBUTE))
-	checkError(config, ms.SetMetric("name", tree.Name, metric.ATTRIBUTE))
-	checkError(config, ms.SetMetric("creationTime", tree.CreateTime.String(), metric.ATTRIBUTE))
-	checkError(config, ms.SetMetric("powerState", string(tree.State), metric.ATTRIBUTE))
-	checkError(config, ms.SetMetric("snapshotId", strconv.FormatInt(int64(tree.Id), 10), metric.ATTRIBUTE))
-	checkError(config, ms.SetMetric("quiesced", strconv.FormatBool(tree.Quiesced), metric.ATTRIBUTE))
+func createMetricsCurrentSnapshot(treeInfo string, tree types.VirtualMachineSnapshotTree, config *config.Config, ms *metric.Set, info map[types.ManagedObjectReference]*infoSnapshot) {
+	checkError(config.Logrus, ms.SetMetric("snapshotTreeInfo", treeInfo, metric.ATTRIBUTE))
+	checkError(config.Logrus, ms.SetMetric("name", tree.Name, metric.ATTRIBUTE))
+	checkError(config.Logrus, ms.SetMetric("creationTime", tree.CreateTime.String(), metric.ATTRIBUTE))
+	checkError(config.Logrus, ms.SetMetric("powerState", string(tree.State), metric.ATTRIBUTE))
+	checkError(config.Logrus, ms.SetMetric("snapshotId", strconv.FormatInt(int64(tree.Id), 10), metric.ATTRIBUTE))
+	checkError(config.Logrus, ms.SetMetric("quiesced", strconv.FormatBool(tree.Quiesced), metric.ATTRIBUTE))
 	if tree.BackupManifest != "" {
-		checkError(config, ms.SetMetric("backupManifest", tree.BackupManifest, metric.ATTRIBUTE))
+		checkError(config.Logrus, ms.SetMetric("backupManifest", tree.BackupManifest, metric.ATTRIBUTE))
 	}
 	if tree.Description != "" {
-		checkError(config, ms.SetMetric("description", tree.Description, metric.ATTRIBUTE))
+		checkError(config.Logrus, ms.SetMetric("description", tree.Description, metric.ATTRIBUTE))
 	}
 	if tree.ReplaySupported != nil {
-		checkError(config, ms.SetMetric("replaySupported", strconv.FormatBool(*tree.ReplaySupported), metric.ATTRIBUTE))
+		checkError(config.Logrus, ms.SetMetric("replaySupported", strconv.FormatBool(*tree.ReplaySupported), metric.ATTRIBUTE))
 	}
 
 	if i, ok := info[tree.Snapshot]; ok {
-		checkError(config, ms.SetMetric("totalMemoryInDisk", i.totalMemoryInDisk/(1<<20), metric.GAUGE))
-		checkError(config, ms.SetMetric("totalUniqueMemoryInDisk", i.totalUniqueMemoryInDisk/(1<<20), metric.GAUGE))
-		checkError(config, ms.SetMetric("totalDisk", i.totalDisk/(1<<20), metric.GAUGE))
-		checkError(config, ms.SetMetric("totalUniqueDisk", i.totalUniqueDisk/(1<<20), metric.GAUGE))
-		checkError(config, ms.SetMetric("datastorePathDisk", i.datastorePathDisk, metric.ATTRIBUTE))
-		checkError(config, ms.SetMetric("datastorePathMemory", i.datastorePathMemory, metric.ATTRIBUTE))
+		checkError(config.Logrus, ms.SetMetric("totalMemoryInDisk", i.totalMemoryInDisk/(1<<20), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("totalUniqueMemoryInDisk", i.totalUniqueMemoryInDisk/(1<<20), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("totalDisk", i.totalDisk/(1<<20), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("totalUniqueDisk", i.totalUniqueDisk/(1<<20), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("datastorePathDisk", i.datastorePathDisk, metric.ATTRIBUTE))
+		checkError(config.Logrus, ms.SetMetric("datastorePathMemory", i.datastorePathMemory, metric.ATTRIBUTE))
 	}
 }
 

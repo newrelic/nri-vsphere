@@ -5,17 +5,19 @@ package process
 
 import (
 	"fmt"
+	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"time"
+
+	"github.com/newrelic/nri-vsphere/internal/config"
 
 	eventSDK "github.com/newrelic/infra-integrations-sdk/data/event"
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vsphere/internal/events"
-	"github.com/newrelic/nri-vsphere/internal/load"
 	logrus "github.com/sirupsen/logrus"
 )
 
-func createDatacenterSamples(config *load.Config) {
+func createDatacenterSamples(config *config.Config) {
 
 	if !config.IsVcenterAPIType {
 		return
@@ -77,43 +79,43 @@ func createDatacenterSamples(config *load.Config) {
 
 		if totalMHz != 0 {
 			cpuPercentHost := cpuOverallUsage / totalMHz * 100
-			checkError(config, ms.SetMetric("cpu.overallUsagePercentage", cpuPercentHost, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("cpu.overallUsagePercentage", cpuPercentHost, metric.GAUGE))
 		}
 
 		if totalMemoryHost != 0 {
 			memoryPercentHost := float64(totalMemoryUsedHost) / float64(totalMemoryHost) * 100
-			checkError(config, ms.SetMetric("mem.usagePercentage", memoryPercentHost, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("mem.usagePercentage", memoryPercentHost, metric.GAUGE))
 		}
 
-		checkError(config, ms.SetMetric("mem.size", totalMemoryHost, metric.GAUGE))
-		checkError(config, ms.SetMetric("mem.usage", totalMemoryUsedHost, metric.GAUGE))
-		checkError(config, ms.SetMetric("cpu.cores", totalCpuHost, metric.GAUGE))
-		checkError(config, ms.SetMetric("cpu.overallUsage", cpuOverallUsage, metric.GAUGE))
-		checkError(config, ms.SetMetric("cpu.totalMHz", totalMHz, metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("mem.size", totalMemoryHost, metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("mem.usage", totalMemoryUsedHost, metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("cpu.cores", totalCpuHost, metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("cpu.overallUsage", cpuOverallUsage, metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("cpu.totalMHz", totalMHz, metric.GAUGE))
 
-		checkError(config, ms.SetMetric("datastore.totalGiB", totalDatastoreCapacity/(1<<30), metric.GAUGE))
-		checkError(config, ms.SetMetric("datastore.totalFreeGiB", totalDatastoreFreeSpace/(1<<30), metric.GAUGE))
-		checkError(config, ms.SetMetric("datastore.totalUsedGiB", (totalDatastoreCapacity-totalDatastoreFreeSpace)/(1<<30), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("datastore.totalGiB", totalDatastoreCapacity/(1<<30), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("datastore.totalFreeGiB", totalDatastoreFreeSpace/(1<<30), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("datastore.totalUsedGiB", (totalDatastoreCapacity-totalDatastoreFreeSpace)/(1<<30), metric.GAUGE))
 
-		checkError(config, ms.SetMetric("overallStatus", string(dc.Datacenter.OverallStatus), metric.ATTRIBUTE))
-		checkError(config, ms.SetMetric("datastores", len(dc.Datastores), metric.GAUGE))
-		checkError(config, ms.SetMetric("hostCount", len(dc.Hosts), metric.GAUGE))
-		checkError(config, ms.SetMetric("vmCount", len(dc.VirtualMachines), metric.GAUGE))
-		checkError(config, ms.SetMetric("networks", len(dc.Networks), metric.GAUGE))
-		checkError(config, ms.SetMetric("resourcePools", countResourcePools, metric.GAUGE))
-		checkError(config, ms.SetMetric("clusters", len(dc.Clusters), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("overallStatus", string(dc.Datacenter.OverallStatus), metric.ATTRIBUTE))
+		checkError(config.Logrus, ms.SetMetric("datastores", len(dc.Datastores), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("hostCount", len(dc.Hosts), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("vmCount", len(dc.VirtualMachines), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("networks", len(dc.Networks), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("resourcePools", countResourcePools, metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("clusters", len(dc.Clusters), metric.GAUGE))
 
 		// Tags
-		tagsByCategory := dc.GetTagsByCategories(dc.Datacenter.Self)
+		tagsByCategory := tag.GetTagsByCategories(dc.Datacenter.Self)
 		for k, v := range tagsByCategory {
-			checkError(config, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 			// add tags to inventory due to the inventory workaround
-			checkError(config, dcEntity.SetInventoryItem("tags", tagsPrefix+k, v))
+			checkError(config.Logrus, dcEntity.SetInventoryItem("tags", tagsPrefix+k, v))
 		}
 	}
 }
 
-func processEvent(config *load.Config, ed *events.EventDispacher, entity *integration.Entity) error {
+func processEvent(config *config.Config, ed *events.EventDispacher, entity *integration.Entity) error {
 
 	if ed == nil {
 		return fmt.Errorf("not expecting empty EventDispacher")
