@@ -78,8 +78,9 @@ func Hosts(config *config.Config) {
 			hostsRefs = append(hostsRefs, host.Self)
 		}
 
-		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(hostsRefs, dc.PerfCollector.MetricDefinition.Host, performance.RealTimeInterval)
+		if config.PerfMetricsCollectionEnabled() {
+			metricsToCollect := config.PerfCollector.MetricDefinition.Host
+			collectedData := config.PerfCollector.Collect(hostsRefs, metricsToCollect, performance.RealTimeInterval)
 			dc.AddPerfMetrics(collectedData)
 		}
 

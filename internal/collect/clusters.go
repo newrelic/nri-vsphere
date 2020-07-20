@@ -77,8 +77,9 @@ func Clusters(config *config.Config) {
 			clusterRefs = append(clusterRefs, cluster.Self)
 		}
 
-		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(clusterRefs, dc.PerfCollector.MetricDefinition.ClusterComputeResource, performance.FiveMinutesInterval)
+		if config.PerfMetricsCollectionEnabled() {
+			metricsToCollect := config.PerfCollector.MetricDefinition.ClusterComputeResource
+			collectedData := config.PerfCollector.Collect(clusterRefs, metricsToCollect, performance.FiveMinutesInterval)
 			dc.AddPerfMetrics(collectedData)
 		}
 

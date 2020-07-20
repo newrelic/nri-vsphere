@@ -89,8 +89,9 @@ func VirtualMachines(config *config.Config) {
 			vmRefs = append(vmRefs, vm.Self)
 		}
 
-		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(vmRefs, dc.PerfCollector.MetricDefinition.VM, performance.RealTimeInterval)
+		if config.PerfMetricsCollectionEnabled() {
+			metricsToCollect := config.PerfCollector.MetricDefinition.VM
+			collectedData := config.PerfCollector.Collect(vmRefs, metricsToCollect, performance.RealTimeInterval)
 			dc.AddPerfMetrics(collectedData)
 		}
 

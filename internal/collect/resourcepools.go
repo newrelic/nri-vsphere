@@ -77,8 +77,9 @@ func ResourcePools(config *config.Config) {
 			rpRefs = append(rpRefs, rp.Self)
 		}
 
-		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(rpRefs, dc.PerfCollector.MetricDefinition.ResourcePool, performance.FiveMinutesInterval)
+		if config.PerfMetricsCollectionEnabled() {
+			metricsToCollect := config.PerfCollector.MetricDefinition.ResourcePool
+			collectedData := config.PerfCollector.Collect(rpRefs, metricsToCollect, performance.FiveMinutesInterval)
 			dc.AddPerfMetrics(collectedData)
 		}
 

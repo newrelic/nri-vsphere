@@ -5,7 +5,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vapi/tags"
+	"github.com/vmware/govmomi/view"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,7 +22,6 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/tag"
 
 	"github.com/sirupsen/logrus"
-	"github.com/vmware/govmomi/view"
 )
 
 var (
@@ -59,6 +60,8 @@ func main() {
 
 	cfg.IsVcenterAPIType = cfg.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter"
 
+	cfg.ViewManager = view.NewManager(cfg.VMWareClient.Client)
+
 	if cfg.TagCollectionEnabled() {
 		restClient, err := client.NewRest(cfg.VMWareClient, cfg.Args.User, cfg.Args.Pass)
 		if err != nil {
@@ -79,7 +82,15 @@ func main() {
 		cfg.TagCollector = tagCollector
 	}
 
-	cfg.ViewManager = view.NewManager(cfg.VMWareClient.Client)
+	if cfg.PerfMetricsCollectionEnabled() {
+		perfCollector, err := performance.NewCollector(cfg.VMWareClient, cfg.Logrus, cfg.Args.PerfMetricFile,
+			cfg.Args.LogAvailableCounters, cfg.Args.PerfLevel, cfg.Args.BatchSizePerfEntities,
+			cfg.Args.BatchSizePerfMetrics)
+		if err != nil {
+			cfg.Logrus.WithError(err).Fatal("failed to create performance collector")
+		}
+		cfg.PerfCollector = perfCollector
+	}
 
 	runIntegration(cfg)
 

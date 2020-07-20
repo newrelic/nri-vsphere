@@ -19,7 +19,6 @@ type mor = types.ManagedObjectReference
 type Datacenter struct {
 	Datacenter      *mo.Datacenter
 	EventDispacher  *events.EventDispacher
-	PerfCollector   *performance.PerfCollector
 	Hosts           map[mor]*mo.HostSystem
 	Clusters        map[mor]*mo.ClusterComputeResource
 	ResourcePools   map[mor]*mo.ResourcePool

@@ -95,7 +95,7 @@ vm:
 	_, err, c := startVcSim(t)
 	assert.NoError(t, err)
 
-	pc, err := NewPerfCollector(c, logrus.New(), tmpfile.Name(), false, 2, "100", "50")
+	pc, err := NewCollector(c, logrus.New(), tmpfile.Name(), false, 2, "100", "50")
 	assert.NoError(t, err)
 	assert.Len(t, pc.MetricDefinition.Host, 2)
 	assert.Len(t, pc.MetricDefinition.VM, 1)

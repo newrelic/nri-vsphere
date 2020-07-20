@@ -12,7 +12,6 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/model"
-	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/newrelic/nri-vsphere/internal/tag"
 
 	"github.com/vmware/govmomi/vim25/mo"
@@ -76,14 +75,6 @@ func Datacenters(config *config.Config) error {
 		if config.EventCollectionEnabled() {
 			c := cache.NewCache(d.Name, cs)
 			collectEvents(config, d, newDatacenter, c)
-		}
-
-		if config.Args.EnableVspherePerfMetrics {
-			//TODO remove this from the datacenter
-			newDatacenter.PerfCollector, err = performance.NewPerfCollector(config.VMWareClient, config.Logrus, config.Args.PerfMetricFile, config.Args.LogAvailableCounters, config.Args.PerfLevel, config.Args.BatchSizePerfEntities, config.Args.BatchSizePerfMetrics)
-			if err != nil {
-				config.Logrus.Fatal(err)
-			}
 		}
 
 		config.Datacenters = append(config.Datacenters, newDatacenter)

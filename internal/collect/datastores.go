@@ -77,9 +77,9 @@ func Datastores(config *config.Config) {
 			dsRefs = append(dsRefs, ds.Self)
 		}
 
-		// TODO move this to config from datacenter
-		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(dsRefs, dc.PerfCollector.MetricDefinition.Datastore, performance.FiveMinutesInterval)
+		if config.PerfMetricsCollectionEnabled() {
+			metricsToCollect := config.PerfCollector.MetricDefinition.Datastore
+			collectedData := config.PerfCollector.Collect(dsRefs, metricsToCollect, performance.FiveMinutesInterval)
 			dc.AddPerfMetrics(collectedData)
 		}
 

@@ -5,6 +5,7 @@ package config
 
 import (
 	"github.com/newrelic/nri-vsphere/internal/model"
+	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/newrelic/nri-vsphere/internal/tag"
 	"time"
 
@@ -63,6 +64,7 @@ type Config struct {
 	TagCollector         *tag.Collector           // TagsManager Client
 	Datacenters          []*model.Datacenter      // Datacenters VMWare
 	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
+	PerfCollector        *performance.PerfCollector
 }
 
 func New(buildVersion string) *Config {
@@ -91,4 +93,8 @@ func (c *Config) EventCollectionEnabled() bool {
 
 func (c *Config) TagFilteringEnabled() bool {
 	return c.TagCollectionEnabled() && len(c.Args.IncludeTags) > 0
+}
+
+func (c *Config) PerfMetricsCollectionEnabled() bool {
+	return c.Args.EnableVspherePerfMetrics
 }
