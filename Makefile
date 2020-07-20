@@ -9,6 +9,7 @@ GO_TOOLS      = github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 BIN_DIR            = $(WORKDIR)/bin
 TARGET             = target
 TARGET_DIR         = $(WORKDIR)/$(TARGET)
+BINS_DIR           = $(TARGET_DIR)/bin/linux_amd64
 INTEGRATION       := vsphere
 SHORT_INTEGRATION := vsphere
 BINARY_NAME        = nri-$(INTEGRATION)
@@ -22,7 +23,7 @@ SNYK_BIN       = snyk-linux
 SNYK_VERSION   = v1.361.3
 
 all: build
-build-local: clean compile test
+build-local: clean compile test tidy
 build: build-container-image delete-container test-container delete-container
 
 build-container-image:
@@ -43,24 +44,23 @@ delete-container:
 	-docker rm -f $(CONTAINER) 2>/dev/null
 
 bin:
-	-mkdir -p $(BIN_DIR)
-	-mkdir -p $(BINS_DIR)
+	@mkdir -p $(BIN_DIR)
+	@mkdir -p $(BINS_DIR)
 
 clean:
 	@echo "=== $(PROJECT_NAME) === [ clean ]: Removing binaries and coverage file..."
-	@rm -rfv bin coverage.xml $(TARGET)
+	@rm -rfv $(BIN_DIR) $(BINS_DIR) coverage.xml $(TARGET)
 
-compile: compile-only
-compile-only: deps
+compile: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile          ]: building commands:"
 	@$(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
-compile-linux: deps
+compile-linux: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
 	@GOOS=linux $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
-compile-darwin: deps
+compile-darwin: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-darwin    ]: building commands:"
 	@GOOS=darwin $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
-compile-windows: deps
+compile-windows: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-windows    ]: building commands:"
 	@GOOS=windows $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME).exe ./cmd/...
 
@@ -85,6 +85,9 @@ lint: lint-deps
 	@echo "=== $(PROJECT_NAME) === [ lint             ]: Validating source code running $(LINTER)..."
 	@$(LINTER) run ./...
 
+tidy:
+	@echo "=== $(PROJECT_NAME) === [ tidy ]: Tidying up go mod..."
+	@$(GO_CMD) mod tidy
 
 deps: tools deps-only
 tools: check-version
