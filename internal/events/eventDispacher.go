@@ -3,13 +3,14 @@ package events
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/newrelic/nri-vsphere/internal/cache"
 	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/event"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/types"
-	"strconv"
-	"time"
 )
 
 type EventDispacher struct {
