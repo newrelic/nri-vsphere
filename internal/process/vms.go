@@ -5,13 +5,15 @@ package process
 
 import (
 	"fmt"
+	"github.com/newrelic/nri-vsphere/internal/model/tag"
 	"strconv"
 
+	"github.com/newrelic/nri-vsphere/internal/config"
+
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
-	"github.com/newrelic/nri-vsphere/internal/load"
 )
 
-func createVirtualMachineSamples(config *load.Config) {
+func createVirtualMachineSamples(config *config.Config) {
 	for _, dc := range config.Datacenters {
 		for _, vm := range dc.VirtualMachines {
 
@@ -53,66 +55,66 @@ func createVirtualMachineSamples(config *load.Config) {
 				continue
 			}
 
-			checkError(config, ms.SetMetric("overallStatus", string(vm.OverallStatus), metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("overallStatus", string(vm.OverallStatus), metric.ATTRIBUTE))
 
 			if config.Args.DatacenterLocation != "" {
-				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
+				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
 
 			if cluster, ok := dc.Clusters[vmHostParent]; ok {
-				checkError(config, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
+				checkError(config.Logrus, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
 			}
 
 			if config.IsVcenterAPIType {
-				checkError(config, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
+				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
 			}
-			checkError(config, ms.SetMetric("hypervisorHostname", hostConfigName, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("hypervisorHostname", hostConfigName, metric.ATTRIBUTE))
 
 			resourcePoolName := dc.GetResourcePoolName(vmResourcePool)
-			checkError(config, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
 
 			datastoreList := ""
 			for _, ds := range vm.Datastore {
 				datastoreList += dc.Datastores[ds].Name + "|"
 			}
-			checkError(config, ms.SetMetric("datastoreNameList", datastoreList, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("datastoreNameList", datastoreList, metric.ATTRIBUTE))
 			// vm
 			// not available if VM is offline
 			if vm.Summary.Guest != nil {
-				checkError(config, ms.SetMetric("vmHostname", vm.Summary.Guest.HostName, metric.ATTRIBUTE))
+				checkError(config.Logrus, ms.SetMetric("vmHostname", vm.Summary.Guest.HostName, metric.ATTRIBUTE))
 			}
-			checkError(config, ms.SetMetric("vmConfigName", vmConfigName, metric.ATTRIBUTE))
-			checkError(config, ms.SetMetric("instanceUuid", instanceUuid, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("vmConfigName", vmConfigName, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("instanceUuid", instanceUuid, metric.ATTRIBUTE))
 
 			networkList := ""
 			for _, nw := range vm.Network {
 				networkList += dc.Networks[nw].Name + "|"
 			}
-			checkError(config, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
 
 			operatingSystem := determineOS(vm.Summary.Config.GuestFullName)
-			checkError(config, ms.SetMetric("operatingSystem", operatingSystem, metric.ATTRIBUTE))
-			checkError(config, ms.SetMetric("guestFullName", vm.Summary.Config.GuestFullName, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("operatingSystem", operatingSystem, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("guestFullName", vm.Summary.Config.GuestFullName, metric.ATTRIBUTE))
 
 			// SystemSample metrics
 
 			// memory
 			memorySize := vm.Summary.Config.MemorySizeMB
-			checkError(config, ms.SetMetric("mem.size", memorySize, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("mem.size", memorySize, metric.GAUGE))
 			memoryUsed := vm.Summary.QuickStats.GuestMemoryUsage
-			checkError(config, ms.SetMetric("mem.usage", memoryUsed, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("mem.usage", memoryUsed, metric.GAUGE))
 			memoryFree := memorySize - memoryUsed
-			checkError(config, ms.SetMetric("mem.free", memoryFree, metric.GAUGE))
-			checkError(config, ms.SetMetric("mem.hostUsage", vm.Summary.QuickStats.HostMemoryUsage, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("mem.free", memoryFree, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("mem.hostUsage", vm.Summary.QuickStats.HostMemoryUsage, metric.GAUGE))
 
-			checkError(config, ms.SetMetric("mem.balloned", vm.Summary.QuickStats.BalloonedMemory, metric.GAUGE))
-			checkError(config, ms.SetMetric("mem.swapped", vm.Summary.QuickStats.SwappedMemory, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("mem.balloned", vm.Summary.QuickStats.BalloonedMemory, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("mem.swapped", vm.Summary.QuickStats.SwappedMemory, metric.GAUGE))
 			swappedSsd := float64(vm.Summary.QuickStats.SsdSwappedMemory) / (1 << 10)
-			checkError(config, ms.SetMetric("mem.swappedSsd", swappedSsd, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("mem.swappedSsd", swappedSsd, metric.GAUGE))
 
 			// cpu
-			checkError(config, ms.SetMetric("cpu.cores", vm.Summary.Config.NumCpu, metric.GAUGE))
-			checkError(config, ms.SetMetric("cpu.overallUsage", vm.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("cpu.cores", vm.Summary.Config.NumCpu, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("cpu.overallUsage", vm.Summary.QuickStats.OverallCpuUsage, metric.GAUGE))
 
 			var cpuAllocationLimit float64
 			if vm.Config.CpuAllocation != nil {
@@ -120,7 +122,7 @@ func createVirtualMachineSamples(config *load.Config) {
 					cpuAllocationLimit = float64(*vm.Config.CpuAllocation.Limit)
 				}
 			}
-			checkError(config, ms.SetMetric("cpu.allocationLimit", cpuAllocationLimit, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("cpu.allocationLimit", cpuAllocationLimit, metric.GAUGE))
 
 			if vmHost.Summary.Hardware != nil {
 				CPUMhz := vmHost.Summary.Hardware.CpuMhz
@@ -134,41 +136,41 @@ func createVirtualMachineSamples(config *load.Config) {
 				} else if cpuAllocationLimit != 0 {
 					cpuPercent = float64(OverallCpuUsage) / cpuAllocationLimit * 100
 				}
-				checkError(config, ms.SetMetric("cpu.hostUsagePercent", cpuPercent, metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("cpu.hostUsagePercent", cpuPercent, metric.GAUGE))
 			}
 
 			// disk
 			if vm.Summary.Storage != nil {
-				checkError(config, ms.SetMetric("disk.totalUncommittedMiB", vm.Summary.Storage.Uncommitted/(1<<20), metric.GAUGE))
-				checkError(config, ms.SetMetric("disk.totalMiB", vm.Summary.Storage.Committed/(1<<20), metric.GAUGE))
-				checkError(config, ms.SetMetric("disk.totalUnsharedMiB", vm.Summary.Storage.Unshared/(1<<20), metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("disk.totalUncommittedMiB", vm.Summary.Storage.Uncommitted/(1<<20), metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("disk.totalMiB", vm.Summary.Storage.Committed/(1<<20), metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("disk.totalUnsharedMiB", vm.Summary.Storage.Unshared/(1<<20), metric.GAUGE))
 			}
 
 			// network
 			if vm.Guest != nil {
-				checkError(config, ms.SetMetric("ipAddress", vm.Guest.IpAddress, metric.ATTRIBUTE))
+				checkError(config.Logrus, ms.SetMetric("ipAddress", vm.Guest.IpAddress, metric.ATTRIBUTE))
 			}
 			// vm state
-			checkError(config, ms.SetMetric("connectionState", fmt.Sprintf("%v", vm.Runtime.ConnectionState), metric.ATTRIBUTE))
-			checkError(config, ms.SetMetric("powerState", fmt.Sprintf("%v", vm.Runtime.PowerState), metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("connectionState", fmt.Sprintf("%v", vm.Runtime.ConnectionState), metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("powerState", fmt.Sprintf("%v", vm.Runtime.PowerState), metric.ATTRIBUTE))
 
 			//Tags
-			tagsByCategory := dc.GetTagsByCategories(vm.Self)
+			tagsByCategory := tag.GetTagsByCategories(vm.Self)
 			for k, v := range tagsByCategory {
-				checkError(config, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
+				checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 				// add tags to inventory due to the inventory workaround
-				checkError(config, e.SetInventoryItem("tags", tagsPrefix+k, v))
+				checkError(config.Logrus, e.SetInventoryItem("tags", tagsPrefix+k, v))
 			}
 			// Performance metrics
 			perfMetrics := dc.GetPerfMetrics(vm.Self)
 			for _, perfMetric := range perfMetrics {
-				checkError(config, ms.SetMetric(perfMetricPrefix+perfMetric.Counter, perfMetric.Value, metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric(perfMetricPrefix+perfMetric.Counter, perfMetric.Value, metric.GAUGE))
 			}
 
 			if vm.Snapshot != nil && config.Args.EnableVsphereSnapshots {
 				infoSnapshot, suspendMemory, suspendMemoryUnique := processLayoutEx(vm.LayoutEx)
-				checkError(config, ms.SetMetric("disk.suspendMemory", strconv.FormatInt(suspendMemory, 10), metric.GAUGE))
-				checkError(config, ms.SetMetric("disk.suspendMemoryUnique", strconv.FormatInt(suspendMemoryUnique, 10), metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("disk.suspendMemory", strconv.FormatInt(suspendMemory, 10), metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("disk.suspendMemoryUnique", strconv.FormatInt(suspendMemoryUnique, 10), metric.GAUGE))
 
 				for _, t := range vm.Snapshot.RootSnapshotList {
 					traverseSnapshotList(e, config, t, entityName, infoSnapshot)
