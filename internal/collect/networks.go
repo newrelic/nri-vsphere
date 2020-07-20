@@ -6,19 +6,24 @@ package collect
 import (
 	"context"
 
-	"github.com/newrelic/nri-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/config"
+
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
 // Networks ESXi
-func Networks(config *load.Config) {
+func Networks(config *config.Config) {
 	ctx := context.Background()
 	m := config.ViewManager
 
+	// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.Network.html
+	propertiesToRetrieve := []string{"name"}
 	for i, dc := range config.Datacenters {
-		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"Network"}, true)
+		logger := config.Logrus.WithField("datacenter", dc.Datacenter.Name)
+
+		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{NETWORK}, true)
 		if err != nil {
-			config.Logrus.WithError(err).Error("failed to create Network container view")
+			logger.WithError(err).Error("failed to create Network container view")
 			continue
 		}
 		defer func() {
@@ -29,10 +34,9 @@ func Networks(config *load.Config) {
 		}()
 
 		var networks []mo.Network
-		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.Network.html
-		err = cv.Retrieve(ctx, []string{"Network"}, []string{"name"}, &networks)
+		err = cv.Retrieve(ctx, []string{NETWORK}, propertiesToRetrieve, &networks)
 		if err != nil {
-			config.Logrus.WithError(err).Error("failed to retrieve Networks")
+			logger.WithError(err).Error("failed to retrieve Networks")
 			continue
 		}
 		for j := 0; j < len(networks); j++ {

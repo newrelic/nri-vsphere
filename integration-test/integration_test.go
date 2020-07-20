@@ -69,7 +69,7 @@ func TestIntegrationPerformanceMetrics(t *testing.T) {
 	stdout, stderr, err := runIntegration([]string{
 		"-url", vc.URL().String(),
 		"-enable_vsphere_perf_metrics",
-		"-perf_metric_file", "../config/vsphere-performance.metrics",
+		"-perf_metric_file", "../configs/vsphere-performance.metrics",
 		"-perf_level", "4",
 	})
 	//Notice that stdErr contains as well normal logs of the integration
