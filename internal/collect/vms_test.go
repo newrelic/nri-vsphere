@@ -104,6 +104,7 @@ func Test_ListVirtualMachines_WithNonEmptyFilter(t *testing.T) {
 
 				// when
 				cfg.Args.IncludeTags = tt.args
+				tag.ParseFilterTagExpression(tt.args)
 				VirtualMachines(cfg)
 
 				// then

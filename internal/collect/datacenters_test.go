@@ -111,6 +111,7 @@ func Test_ListDatacenters_WithNonEmptyFilter(t *testing.T) {
 
 				// when
 				cfg.Args.IncludeTags = tt.args
+				tag.ParseFilterTagExpression(tt.args)
 				_ = Datacenters(cfg)
 
 				// then
@@ -123,7 +124,7 @@ func Test_ListDatacenters_WithNonEmptyFilter(t *testing.T) {
 
 func addTag(ctx context.Context, m *tags.Manager, vc *vim25.Client, category string, value string) {
 	categoryID, _ := m.CreateCategory(ctx, &tags.Category{
-		AssociableTypes: []string{"Datacenter"},
+		AssociableTypes: []string{DATACENTER},
 		Cardinality:     "SINGLE",
 		Name:            category,
 	})

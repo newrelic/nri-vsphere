@@ -79,6 +79,7 @@ func Datacenters(config *config.Config) error {
 		}
 
 		if config.Args.EnableVspherePerfMetrics {
+			//TODO remove this from the datacenter
 			newDatacenter.PerfCollector, err = performance.NewPerfCollector(config.VMWareClient, config.Logrus, config.Args.PerfMetricFile, config.Args.LogAvailableCounters, config.Args.PerfLevel, config.Args.BatchSizePerfEntities, config.Args.BatchSizePerfMetrics)
 			if err != nil {
 				config.Logrus.Fatal(err)

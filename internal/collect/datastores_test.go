@@ -105,6 +105,7 @@ func Test_ListDatastoress_WithNonEmptyFilter(t *testing.T) {
 
 				// when
 				cfg.Args.IncludeTags = tt.args
+				tag.ParseFilterTagExpression(tt.args)
 				Datastores(cfg)
 
 				// then

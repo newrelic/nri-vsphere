@@ -114,12 +114,12 @@ func Test_ParseTagFilterExpression_CreatesTagFilter(t *testing.T) {
 		{
 			name: "InvalidExpression",
 			args: "key value",
-			want: []Tag{},
+			want: nil,
 		},
 		{
 			name: "InvalidExpression",
 			args: "key:value",
-			want: []Tag{},
+			want: nil,
 		},
 		{
 			name: "SingleTag",
@@ -134,7 +134,6 @@ func Test_ParseTagFilterExpression_CreatesTagFilter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			filterTags = []Tag{}
 
 			// when
 			ParseFilterTagExpression(tt.args)

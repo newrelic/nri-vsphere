@@ -103,6 +103,7 @@ func Test_ListHosts_WithNonEmptyFilter(t *testing.T) {
 
 				// when
 				cfg.Args.IncludeTags = tt.args
+				tag.ParseFilterTagExpression(tt.args)
 				Hosts(cfg)
 
 				// then

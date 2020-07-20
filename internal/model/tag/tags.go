@@ -196,6 +196,11 @@ func ParseFilterTagExpression(tagExpression string) {
 		return
 	}
 
+	tagMux.Lock()
+	defer tagMux.Unlock()
+	// clear previous filter tags if any
+	filterTags = nil
+
 	fields := strings.Fields(tagExpression)
 	for _, t := range fields {
 		kv := strings.Split(t, "=")

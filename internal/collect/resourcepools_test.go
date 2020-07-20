@@ -102,6 +102,7 @@ func Test_ListResourcePools_WithNonEmptyFilter(t *testing.T) {
 
 				// when
 				cfg.Args.IncludeTags = tt.args
+				tag.ParseFilterTagExpression(tt.args)
 				ResourcePools(cfg)
 
 				// then

@@ -74,6 +74,7 @@ func main() {
 			}
 		}()
 
+		// TODO put this in a TagCollector
 		cfg.TagsManager = tags.NewManager(cfg.VMWareClientRest)
 		if len(cfg.Args.IncludeTags) > 0 {
 			tag.ParseFilterTagExpression(cfg.Args.IncludeTags)

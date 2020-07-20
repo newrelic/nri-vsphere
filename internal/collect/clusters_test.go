@@ -101,6 +101,7 @@ func Test_ListClusters_WithNonEmptyFilter(t *testing.T) {
 
 				// when
 				cfg.Args.IncludeTags = tt.args
+				tag.ParseFilterTagExpression(tt.args)
 				Clusters(cfg)
 
 				// then
