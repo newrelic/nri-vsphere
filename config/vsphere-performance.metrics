@@ -1,13 +1,15 @@
-# The list specifies the performance counters grouped by entity type and level.
-# The current list contains a subset of the performance counter metrics available, moreover they could
-# vary depending on the vCenter version and configuration.
-# As a best practice, only metrics that are needed should be collected since the number of metrics
-# and their level affects the vCenter performance. 
-
-# host and vm metrics are available in intervals of 20 seconds (Real time), and resourcePool, cluster and datastore 
-# performance metrics are available in intervals of 300 seconds(historical metrics).
-
-# For more information regarding performance metrics, please check out the official vmWare documentation:
+# The following list specifies the performance counters grouped by entity type
+# and level. It contains a subset of the performance counter metrics available;
+# the list can vary depending on the vCenter version and configuration.
+#
+# Only the data that you need should be collected, since the amount of metrics
+# and their level (1 to 4 - 4 being the heaviest) affects vCenter's performance. 
+#
+# Host and VM metrics are collected in 20-second intervals (real time), and
+# resourcePool, cluster and datastore performance metrics are collected in
+# 300-second intervals (historical metrics).
+#
+# For more information on performance metrics, see the official VMware docs:
 # https://docs.vmware.com/en/VMware-vSphere/6.7/vsphere-esxi-vcenter-server-67-monitoring-performance-guide.pdf
 # https://vdc-repo.vmware.com/vmwb-repository/dcr-public/790263bc-bd30-48f1-af12-ed36055d718b/e5f17bfc-ecba-40bf-a04f-376bbb11e811/vim.PerformanceManager.html
 
