@@ -1,45 +1,54 @@
 integrations:
   - name: com.newrelic.vsphere
     exec:
+    # Do not change this path
       - /var/db/newrelic-infra/newrelic-integrations/bin/nri-vsphere
-      # vSphere API connection data (Vcenter or ESXi servers)
-      - --url
-      - https://192.168.0.210/sdk
-      - --user
-      - administrator@vsphere.local
-      - --pass
-      - Example!
 
-      # Events info is collected when this flag is present
+      # vSphere API connection data (vCenter or ESXi servers)
+      - --url
+      - https://YOUR_VSPHERE_API_URL/sdk
+      - --user
+      - YOUR_VSPHERE_USER
+      - --pass
+      - YOUR_PASSWORD
+
+      # Collect events data
       - --enable_vsphere_events
 
-      # Tags are collected when this flag is present
+      # Collect vSphere tags
       - --enable_vsphere_tags
 
-      # Snapshots info is collected when this flag is present
+      # Collect snapshots's data
       # - --enable_vsphere_snapshots
 
-      # Performance metrics is collected when this flag is present. Activate this feature could overload vCenter
-      # depending on the environment size. 
+      # Collect performance metrics. Enabling this feature could overload 
+      # vCenter depending on size of your environment. 
       # - --enable_vsphere_perf_metrics
-      # Performance metric collection level [1-4]. Be careful when you set a higher collection level, as the process requires 
-      # significant increase of resource usage on vCenter. Level 3 and 4 should only be used for a short period of time.
-      # For a more granular selection check on vsphere-performance.metrics file.
+
+      # Performance metric collection level [1-4]. Be mindful when setting a
+      # higher collection level, as this process triggers significant increase
+      # of resource usage on vCenter. Levels 3 and 4 should only be used for a 
+      # short period of time. For a more granular selection check the 
+      # vsphere-performance.metrics file.
       # - --perf_level
       # - 1
-      # Path to the performance metrics config file. This file contains the performance counters that are going to be
-      # collected if they are available by vCenter.
+
+      # Path to the performance metrics config file. This file contains the
+      # performance counters that are going to be collected if available.
       # - --perf_metric_file
       # - /etc/newrelic-infra/integrations.d/vsphere-performance.metrics
 
-      # - --validate_ssl # enable if you require SSL validation
-      # Datacenter location label can be added to all entities in this vSphere platform
+      # - --validate_ssl # Enable if you require SSL validation
+
+      # Datacenter location label can be added to all entities in vSphere.
       # - --datacenter_location
-      # - Wolli Creek
+      # - YOUR_VSPHERE_LOCATION_LABEL
     env:
-      # Proxy configuration can be set up. More information in:
+      # Proxy configuration can be set up. For more information, see the docs:
       # https://docs.newrelic.com/docs/integrations/integrations-sdk/file-specifications/integration-configuration-file-specifications-agent-v180
-      # HTTP_PROXY: socks5://10.0.2.2:8080
-      # HTTPS_PROXY: socks5://10.0.2.2:8080
-    # Interval execution should be more than 20s since real-time vSphere samples are performed every 20s
+      # Uncomment the lines below to add a proxy.
+      # HTTP_PROXY: socks5://YOUR_PROXY_URL:PROXY_PORT
+      # HTTPS_PROXY: socks5://YOUR_PROXY_URL:PROXY_PORT
+    # Execution interval. Set a value higher than 20s, as real-time vSphere
+    # samples are run every 20s.
     interval: 60s
