@@ -57,6 +57,7 @@ func (c *Collector) ParseFilterTagExpression(tagFilterExpression string) {
 	for _, t := range fields {
 		kv := strings.Split(t, "=")
 		if len(kv) != 2 {
+			c.logger.WithField("tag", t).Warn("invalid tag definition")
 			continue
 		}
 
