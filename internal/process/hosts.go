@@ -132,17 +132,20 @@ func createHostSamples(config *config.Config) {
 			checkError(config.Logrus, ms.SetMetric("disk.totalMiB", diskTotalMiB, metric.GAUGE))
 
 			// Tags
-			tagsByCategory := config.TagCollector.GetTagsByCategories(host.Self)
-			for k, v := range tagsByCategory {
-				checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
-				// add tags to inventory due to the inventory workaround
-				checkError(config.Logrus, e.SetInventoryItem("tags", tagsPrefix+k, v))
+			if config.TagCollectionEnabled() {
+				tagsByCategory := config.TagCollector.GetTagsByCategories(host.Self)
+				for k, v := range tagsByCategory {
+					checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
+					// add tags to inventory due to the inventory workaround
+					checkError(config.Logrus, e.SetInventoryItem("tags", tagsPrefix+k, v))
+				}
 			}
-
 			// Performance metrics
-			perfMetrics := dc.GetPerfMetrics(host.Self)
-			for _, perfMetric := range perfMetrics {
-				checkError(config.Logrus, ms.SetMetric(perfMetricPrefix+perfMetric.Counter, perfMetric.Value, metric.GAUGE))
+			if config.PerfMetricsCollectionEnabled() {
+				perfMetrics := dc.GetPerfMetrics(host.Self)
+				for _, perfMetric := range perfMetrics {
+					checkError(config.Logrus, ms.SetMetric(perfMetricPrefix+perfMetric.Counter, perfMetric.Value, metric.GAUGE))
+				}
 			}
 
 		}

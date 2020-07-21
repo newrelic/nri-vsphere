@@ -108,6 +108,9 @@ func (c *Collector) GetTagByID(id string) Tag {
 func (c *Collector) GetTagsByCategories(ref mor) map[string]string {
 	tagsByCategory := make(map[string]string)
 
+	if c.tagsByObjectCache == nil {
+		c.logger.Fatal(">>>> tagsByObjectCache is nill")
+	}
 	if ts, ok := c.tagsByObjectCache[ref]; ok {
 		sort.Slice(ts, func(i, j int) bool {
 			return ts[i].Name < ts[j].Name

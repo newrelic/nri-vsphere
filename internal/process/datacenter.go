@@ -105,11 +105,13 @@ func createDatacenterSamples(config *config.Config) {
 		checkError(config.Logrus, ms.SetMetric("clusters", len(dc.Clusters), metric.GAUGE))
 
 		// Tags
-		tagsByCategory := config.TagCollector.GetTagsByCategories(dc.Datacenter.Self)
-		for k, v := range tagsByCategory {
-			checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
-			// add tags to inventory due to the inventory workaround
-			checkError(config.Logrus, dcEntity.SetInventoryItem("tags", tagsPrefix+k, v))
+		if config.TagCollectionEnabled() {
+			tagsByCategory := config.TagCollector.GetTagsByCategories(dc.Datacenter.Self)
+			for k, v := range tagsByCategory {
+				checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
+				// add tags to inventory due to the inventory workaround
+				checkError(config.Logrus, dcEntity.SetInventoryItem("tags", tagsPrefix+k, v))
+			}
 		}
 	}
 }

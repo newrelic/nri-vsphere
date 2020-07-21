@@ -54,16 +54,20 @@ func createDatastoreSamples(config *config.Config) {
 			}
 
 			// Tags
-			tagsByCategory := config.TagCollector.GetTagsByCategories(ds.Self)
-			for k, v := range tagsByCategory {
-				checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
-				// add tags to inventory due to the inventory workaround
-				checkError(config.Logrus, e.SetInventoryItem("tags", tagsPrefix+k, v))
+			if config.TagCollectionEnabled() {
+				tagsByCategory := config.TagCollector.GetTagsByCategories(ds.Self)
+				for k, v := range tagsByCategory {
+					checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
+					// add tags to inventory due to the inventory workaround
+					checkError(config.Logrus, e.SetInventoryItem("tags", tagsPrefix+k, v))
+				}
 			}
 			// Performance metrics
-			perfMetrics := dc.GetPerfMetrics(ds.Self)
-			for _, perfMetric := range perfMetrics {
-				checkError(config.Logrus, ms.SetMetric(perfMetricPrefix+perfMetric.Counter, perfMetric.Value, metric.GAUGE))
+			if config.PerfMetricsCollectionEnabled() {
+				perfMetrics := dc.GetPerfMetrics(ds.Self)
+				for _, perfMetric := range perfMetrics {
+					checkError(config.Logrus, ms.SetMetric(perfMetricPrefix+perfMetric.Counter, perfMetric.Value, metric.GAUGE))
+				}
 			}
 		}
 	}

@@ -4,7 +4,6 @@
 package model
 
 import (
-	"github.com/newrelic/nri-vsphere/internal/tag"
 	"sync"
 
 	"github.com/newrelic/nri-vsphere/internal/events"
@@ -25,7 +24,6 @@ type Datacenter struct {
 	Datastores      map[mor]*mo.Datastore
 	Networks        map[mor]*mo.Network
 	VirtualMachines map[mor]*mo.VirtualMachine
-	Tags            map[mor][]tag.Tag
 	PerfMetrics     map[mor][]performance.PerfMetric
 	PerfMetricsMux  sync.Mutex
 }
