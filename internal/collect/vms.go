@@ -5,20 +5,14 @@ package collect
 
 import (
 	"context"
-	"time"
-
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
-	"github.com/newrelic/nri-vsphere/internal/tag"
-
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
 // VirtualMachines vms
 func VirtualMachines(config *config.Config) {
-	now := time.Now()
-
 	ctx := context.Background()
 	m := config.ViewManager
 
@@ -48,7 +42,7 @@ func VirtualMachines(config *config.Config) {
 			}
 		}()
 
-		logger.WithField("seconds", time.Since(now).Seconds()).Debug("before collecting vm data method.Retrieve")
+		logger.WithField("seconds", config.Uptime().Seconds()).Debug("before collecting vm data method.Retrieve")
 
 		var vms []mo.VirtualMachine
 		err = cv.Retrieve(ctx, []string{VIRTUAL_MACHINE}, propertiesToRetrieve, &vms)
@@ -57,31 +51,24 @@ func VirtualMachines(config *config.Config) {
 				Error("failed to retrieve VM data for datacenter")
 			continue
 		}
-		logger.WithField("seconds", time.Since(now).Seconds()).Debug("after collecting vm data method.Retrieve")
+		logger.WithField("seconds", config.Uptime().Seconds()).Debug("after collecting vm data method.Retrieve")
 
-		var objectTags tag.TagsByObject
 		if collectTags {
-			objectTags, err = config.TagCollector.FetchTagsForObjects(vms)
+			_, err = config.TagCollector.FetchTagsForObjects(vms)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for virtual machines")
 			} else {
-				logger.WithField("seconds", time.Since(now).Seconds()).Debug("vms tags collected")
+				logger.WithField("seconds", config.Uptime().Seconds()).Debug("vms tags collected")
 			}
 		}
 
-		logger.WithField("seconds", time.Since(now).Seconds()).Debug("vm tags collected")
+		logger.WithField("seconds", config.Uptime().Seconds()).Debug("vm tags collected")
 
 		var vmRefs []types.ManagedObjectReference
 		for _, vm := range vms {
-			if filterByTag && len(objectTags) == 0 {
+			if filterByTag && !config.TagCollector.MatchObjectTags(vm.Reference()) {
 				logger.WithField("virtual machine", vm.Name).
-					Debug("ignoring virtual machine since not tags were collected and we have filters configured")
-				continue
-			}
-			// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-			if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[vm.Reference()]) {
-				logger.WithField("virtual machine", vm.Name).
-					Debug("ignoring virtual machine since it does not match any configured tag")
+					Debug("ignoring virtual machine since no tags matched the configured filters")
 				continue
 			}
 
@@ -93,10 +80,8 @@ func VirtualMachines(config *config.Config) {
 			metricsToCollect := config.PerfCollector.MetricDefinition.VM
 			collectedData := config.PerfCollector.Collect(vmRefs, metricsToCollect, performance.RealTimeInterval)
 			dc.AddPerfMetrics(collectedData)
-		}
 
-		config.Logrus.
-			WithField("seconds", time.Since(now).Seconds()).
-			Debug("vms perf metrics collected")
+			logger.WithField("seconds", config.Uptime().Seconds()).Debug("vms perf metrics collected")
+		}
 	}
 }

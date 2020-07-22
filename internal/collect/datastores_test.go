@@ -101,10 +101,11 @@ func Test_ListDatastoress_WithNonEmptyFilter(t *testing.T) {
 				// we need to get the datacenter first
 				cfg.Datacenters = append(cfg.Datacenters, getDatacenter(ctx, cfg.ViewManager))
 				cfg.Datacenters[0].Datastores = make(map[types.ManagedObjectReference]*mo.Datastore)
-
-				// when
+				// make sure tag filtering is enabled
 				cfg.Args.IncludeTags = tt.args
 				collector.ParseFilterTagExpression(tt.args)
+
+				// when
 				Datastores(cfg)
 
 				// then

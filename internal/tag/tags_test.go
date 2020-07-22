@@ -193,7 +193,7 @@ func Test_MatchObjectsTags_ReturnsCorrectValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// when
-			actual := collector.MatchObjectTags(tt.args)
+			actual := collector.matchTags(tt.args)
 
 			// then
 			assert.Equal(t, tt.want, actual)

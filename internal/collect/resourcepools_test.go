@@ -98,10 +98,11 @@ func Test_ListResourcePools_WithNonEmptyFilter(t *testing.T) {
 				// we need to get the datacenter first
 				cfg.Datacenters = append(cfg.Datacenters, getDatacenter(ctx, cfg.ViewManager))
 				cfg.Datacenters[0].ResourcePools = make(map[types.ManagedObjectReference]*mo.ResourcePool)
-
-				// when
+				// make sure tag filtering is enabled
 				cfg.Args.IncludeTags = tt.args
 				collector.ParseFilterTagExpression(tt.args)
+
+				// when
 				ResourcePools(cfg)
 
 				// then

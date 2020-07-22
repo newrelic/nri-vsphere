@@ -3,6 +3,8 @@ module github.com/newrelic/nri-vsphere
 go 1.14
 
 require (
+	github.com/AlekSi/gocov-xml v0.0.0-20190121064608-3a14fb1c4737 // indirect
+	github.com/axw/gocov v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/newrelic/infra-integrations-sdk v3.5.1-0.20191129092024-23e2c90ae512+incompatible

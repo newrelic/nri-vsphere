@@ -108,10 +108,11 @@ func Test_ListDatacenters_WithNonEmptyFilter(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				cfg.Datacenters = nil
-
-				// when
+				// make sure tag filtering is enabled
 				cfg.Args.IncludeTags = tt.args
 				collector.ParseFilterTagExpression(tt.args)
+
+				// when
 				_ = Datacenters(cfg)
 
 				// then

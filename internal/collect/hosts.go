@@ -9,8 +9,6 @@ import (
 
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
-	"github.com/newrelic/nri-vsphere/internal/tag"
-
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
@@ -50,9 +48,8 @@ func Hosts(config *config.Config) {
 			continue
 		}
 
-		var objectTags tag.TagsByObject
 		if collectTags {
-			objectTags, err = config.TagCollector.FetchTagsForObjects(hosts)
+			_, err = config.TagCollector.FetchTagsForObjects(hosts)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for hosts", err)
 			} else {
@@ -62,15 +59,9 @@ func Hosts(config *config.Config) {
 
 		var hostsRefs []types.ManagedObjectReference
 		for _, host := range hosts {
-			if filterByTag && len(objectTags) == 0 {
-				logger.WithField("host", host.Name).
-					Debug("ignoring host since no tags were collected and we have filters configured")
-				continue
-			}
-			// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-			if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[host.Reference()]) {
-				logger.WithField("host", host.Name).
-					Debug("ignoring host since it does not match any configured tag")
+			if filterByTag && !config.TagCollector.MatchObjectTags(host.Reference()) {
+				config.Logrus.WithField("host", host.Name).
+					Debug("ignoring host since no tags matched the configured filters")
 				continue
 			}
 
@@ -82,8 +73,8 @@ func Hosts(config *config.Config) {
 			metricsToCollect := config.PerfCollector.MetricDefinition.Host
 			collectedData := config.PerfCollector.Collect(hostsRefs, metricsToCollect, performance.RealTimeInterval)
 			dc.AddPerfMetrics(collectedData)
-		}
 
-		logger.WithField("seconds", time.Since(now).Seconds()).Debug("hosts perf metrics collected")
+			logger.WithField("seconds", time.Since(now).Seconds()).Debug("hosts perf metrics collected")
+		}
 	}
 }

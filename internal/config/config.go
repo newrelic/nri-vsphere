@@ -51,7 +51,6 @@ type ArgumentList struct {
 
 type Config struct {
 	Args                 ArgumentList
-	StartTime            int64                    // StartTime time Flex starts in Nanoseconds
 	Integration          *integration.Integration // Integration Infrastructure SDK Integration
 	Entity               *integration.Entity      // Entity Infrastructure SDK Entity
 	Hostname             string                   // Hostname current host
@@ -65,6 +64,7 @@ type Config struct {
 	Datacenters          []*model.Datacenter      // Datacenters VMWare
 	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
 	PerfCollector        *performance.PerfCollector
+	startTime            time.Time // start time the integration started.
 }
 
 func New(buildVersion string) *Config {
@@ -73,8 +73,8 @@ func New(buildVersion string) *Config {
 		IntegrationName:      "com.newrelic.vsphere",
 		IntegrationNameShort: "vsphere",
 		IntegrationVersion:   buildVersion,
-		StartTime:            time.Now().UnixNano() / int64(time.Millisecond),
 		IsVcenterAPIType:     false,
+		startTime:            time.Now(),
 	}
 }
 
@@ -97,4 +97,8 @@ func (c *Config) TagFilteringEnabled() bool {
 
 func (c *Config) PerfMetricsCollectionEnabled() bool {
 	return c.Args.EnableVspherePerfMetrics
+}
+
+func (c *Config) Uptime() time.Duration {
+	return time.Since(c.startTime)
 }

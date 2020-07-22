@@ -97,10 +97,11 @@ func Test_ListClusters_WithNonEmptyFilter(t *testing.T) {
 				// we need to get the datacenter first
 				cfg.Datacenters = append(cfg.Datacenters, getDatacenter(ctx, cfg.ViewManager))
 				cfg.Datacenters[0].Clusters = make(map[types.ManagedObjectReference]*mo.ClusterComputeResource)
-
-				// when
+				// make sure tag filtering is enabled
 				cfg.Args.IncludeTags = tt.args
 				collector.ParseFilterTagExpression(tt.args)
+
+				// when
 				Clusters(cfg)
 
 				// then

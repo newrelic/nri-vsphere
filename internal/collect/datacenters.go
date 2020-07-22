@@ -12,8 +12,6 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/model"
-	"github.com/newrelic/nri-vsphere/internal/tag"
-
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
@@ -41,9 +39,8 @@ func Datacenters(config *config.Config) error {
 		return err
 	}
 
-	var objectTags tag.TagsByObject
 	if config.TagCollectionEnabled() {
-		objectTags, err = config.TagCollector.FetchTagsForObjects(datacenters)
+		_, err = config.TagCollector.FetchTagsForObjects(datacenters)
 		if err != nil {
 			config.Logrus.WithError(err).Warn("failed to retrieve tags for datacenters")
 		}
@@ -58,15 +55,9 @@ func Datacenters(config *config.Config) error {
 	}
 
 	for _, d := range datacenters {
-		if filterByTag && len(objectTags) == 0 {
+		if filterByTag && !config.TagCollector.MatchObjectTags(d.Reference()) {
 			config.Logrus.WithField("datacenter", d.Name).
-				Debugf("ignoring datacenter since not tags were collected and we have filters configured")
-			continue
-		}
-		// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-		if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[d.Reference()]) {
-			config.Logrus.WithField("datacenter", d.Name).
-				Debugf("ignoring datacenter since it does not match any configured tag")
+				Debug("ignoring datacenter since no tags matched the configured filters")
 			continue
 		}
 

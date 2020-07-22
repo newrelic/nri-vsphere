@@ -5,21 +5,20 @@ package main
 
 import (
 	"fmt"
+	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vsphere/internal/performance"
-	"github.com/vmware/govmomi/vapi/tags"
-	"github.com/vmware/govmomi/view"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
-	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vsphere/internal/client"
 	"github.com/newrelic/nri-vsphere/internal/collect"
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/process"
 	"github.com/newrelic/nri-vsphere/internal/tag"
+	"github.com/vmware/govmomi/vapi/tags"
+	"github.com/vmware/govmomi/view"
 
 	"github.com/sirupsen/logrus"
 )
@@ -138,13 +137,11 @@ func setupLogger(config *config.Config) {
 }
 
 func runIntegration(config *config.Config) {
-	now := time.Now()
-
-	config.Logrus.WithField("seconds", time.Since(now).Seconds()).Debug("before collecting data")
+	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("before collecting data")
 	collect.CollectData(config)
-	config.Logrus.WithField("seconds", time.Since(now).Seconds()).Debug("before processing data")
+	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("before processing data")
 	process.ProcessData(config)
-	config.Logrus.WithField("seconds", time.Since(now).Seconds()).Debug("after processing data")
+	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("after processing data")
 
 	err := config.Integration.Publish()
 	if err != nil {

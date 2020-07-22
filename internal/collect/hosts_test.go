@@ -99,10 +99,11 @@ func Test_ListHosts_WithNonEmptyFilter(t *testing.T) {
 				// we need to get the datacenter first
 				cfg.Datacenters = append(cfg.Datacenters, getDatacenter(ctx, cfg.ViewManager))
 				cfg.Datacenters[0].Hosts = make(map[types.ManagedObjectReference]*mo.HostSystem)
-
-				// when
+				// make sure tag filtering is enabled
 				cfg.Args.IncludeTags = tt.args
 				collector.ParseFilterTagExpression(tt.args)
+
+				// when
 				Hosts(cfg)
 
 				// then

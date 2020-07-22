@@ -5,20 +5,14 @@ package collect
 
 import (
 	"context"
-	"time"
-
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
-	"github.com/newrelic/nri-vsphere/internal/tag"
-
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
 // ResourcePools VMWare
 func ResourcePools(config *config.Config) {
-	now := time.Now()
-
 	ctx := context.Background()
 	m := config.ViewManager
 
@@ -49,27 +43,20 @@ func ResourcePools(config *config.Config) {
 			continue
 		}
 
-		var objectTags tag.TagsByObject
 		if collectTags {
-			objectTags, err = config.TagCollector.FetchTagsForObjects(resourcePools)
+			_, err = config.TagCollector.FetchTagsForObjects(resourcePools)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for resourcePools", err)
 			} else {
-				logger.WithField("seconds", time.Since(now).Seconds()).Debug("resourcePools tags collected")
+				logger.WithField("seconds", config.Uptime().Seconds()).Debug("resourcePools tags collected")
 			}
 		}
 
 		var rpRefs []types.ManagedObjectReference
 		for _, rp := range resourcePools {
-			if filterByTag && len(objectTags) == 0 {
-				logger.WithField("resource pool", rp.Name).
-					Debug("ignoring resource pool since no tags were collected and we have filters configured")
-				continue
-			}
-			// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-			if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[rp.Reference()]) {
-				logger.WithField("resource pool", rp.Name).
-					Debug("ignoring resource pool since it does not match any configured tag")
+			if filterByTag && !config.TagCollector.MatchObjectTags(rp.Reference()) {
+				config.Logrus.WithField("resource pool", rp.Name).
+					Debug("ignoring resource pool since no tags matched the configured filters")
 				continue
 			}
 
@@ -81,8 +68,8 @@ func ResourcePools(config *config.Config) {
 			metricsToCollect := config.PerfCollector.MetricDefinition.ResourcePool
 			collectedData := config.PerfCollector.Collect(rpRefs, metricsToCollect, performance.FiveMinutesInterval)
 			dc.AddPerfMetrics(collectedData)
-		}
 
-		logger.WithField("seconds", time.Since(now).Seconds()).Debug("resource pools perf metrics collected")
+			logger.WithField("seconds", config.Uptime().Seconds()).Debug("resource pools perf metrics collected")
+		}
 	}
 }

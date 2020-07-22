@@ -181,11 +181,17 @@ func (c *Collector) FetchTagsForObjects(objectsSlice interface{}) (TagsByObject,
 	return tagsByObject, nil
 }
 
-// MatchObjectTags checks if any tag in 'objectTags' matches any of the 'filterTags'
-func (c *Collector) MatchObjectTags(objectTags []Tag) bool {
+// MatchObjectTags checks if any tag in the resource tags matches any of the 'filterTags'
+func (c *Collector) MatchObjectTags(resource mor) bool {
+	objectTags := c.tagsByObjectCache[resource.Reference()]
 	if len(objectTags) == 0 {
 		return false
 	}
+
+	return c.matchTags(objectTags)
+}
+
+func (c *Collector) matchTags(objectTags []Tag) bool {
 	for _, ft := range c.filterTags {
 		for _, ot := range objectTags {
 			if ot.Category == ft.Category && ot.Name == ft.Name {

@@ -5,20 +5,14 @@ package collect
 
 import (
 	"context"
-	"time"
-
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
-	"github.com/newrelic/nri-vsphere/internal/tag"
-
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
 // Datastores collects data of all datastores
 func Datastores(config *config.Config) {
-	now := time.Now()
-
 	ctx := context.Background()
 	m := config.ViewManager
 
@@ -49,27 +43,21 @@ func Datastores(config *config.Config) {
 			continue
 		}
 
-		var objectTags tag.TagsByObject
+		// collect (and cache) the objects tags in bulk
 		if collectTags {
-			objectTags, err = config.TagCollector.FetchTagsForObjects(datastores)
+			_, err = config.TagCollector.FetchTagsForObjects(datastores)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for datastores", err)
 			} else {
-				logger.WithField("seconds", time.Since(now).Seconds()).Debug("datastores tags collected")
+				logger.WithField("seconds", config.Uptime()).Debug("datastores tags collected")
 			}
 		}
 
 		var dsRefs []types.ManagedObjectReference
 		for _, ds := range datastores {
-			if filterByTag && len(objectTags) == 0 {
+			if filterByTag && !config.TagCollector.MatchObjectTags(ds.Reference()) {
 				logger.WithField("datastore", ds.Name).
-					Debug("ignoring datastore since not tags were collected and we have filters configured")
-				continue
-			}
-			// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-			if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[ds.Reference()]) {
-				logger.WithField("datastore", ds.Name).
-					Debug("ignoring datastore since it does not match any configured tag")
+					Debug("ignoring datastore since no tags matched the configured filters")
 				continue
 			}
 
@@ -81,8 +69,8 @@ func Datastores(config *config.Config) {
 			metricsToCollect := config.PerfCollector.MetricDefinition.Datastore
 			collectedData := config.PerfCollector.Collect(dsRefs, metricsToCollect, performance.FiveMinutesInterval)
 			dc.AddPerfMetrics(collectedData)
-		}
 
-		logger.WithField("seconds", time.Since(now).Seconds()).Debug("datastores perf metrics collected")
+			logger.WithField("seconds", config.Uptime()).Debug("datastores perf metrics collected")
+		}
 	}
 }

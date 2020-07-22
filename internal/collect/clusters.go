@@ -5,11 +5,8 @@ package collect
 
 import (
 	"context"
-	"time"
-
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
-	"github.com/newrelic/nri-vsphere/internal/tag"
 	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/vmware/govmomi/vim25/mo"
@@ -17,8 +14,6 @@ import (
 
 // Clusters VMWare
 func Clusters(config *config.Config) {
-	now := time.Now()
-
 	ctx := context.Background()
 	m := config.ViewManager
 
@@ -49,27 +44,20 @@ func Clusters(config *config.Config) {
 			continue
 		}
 
-		var objectTags tag.TagsByObject
 		if collectTags {
-			objectTags, err = config.TagCollector.FetchTagsForObjects(clusters)
+			_, err = config.TagCollector.FetchTagsForObjects(clusters)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for clusters", err)
 			} else {
-				logger.WithField("seconds", time.Since(now).Seconds()).Debug("clusters tags collected")
+				logger.WithField("seconds", config.Uptime()).Debug("clusters tags collected")
 			}
 		}
 
 		var clusterRefs []types.ManagedObjectReference
 		for _, cluster := range clusters {
-			if filterByTag && len(objectTags) == 0 {
+			if filterByTag && !config.TagCollector.MatchObjectTags(cluster.Reference()) {
 				logger.WithField("cluster", cluster.Name).
-					Debugf("ignoring cluster since not tags were collected and we have filters configured")
-				continue
-			}
-			// if object has no tags attached or no tag matches any of the tag filters, object will be ignored
-			if filterByTag && !config.TagCollector.MatchObjectTags(objectTags[cluster.Reference()]) {
-				logger.WithField("cluster", cluster.Name).
-					Debugf("ignoring cluster since it does not match any configured tag")
+					Debug("ignoring cluster since no tags matched the configured filters")
 				continue
 			}
 
@@ -81,8 +69,8 @@ func Clusters(config *config.Config) {
 			metricsToCollect := config.PerfCollector.MetricDefinition.ClusterComputeResource
 			collectedData := config.PerfCollector.Collect(clusterRefs, metricsToCollect, performance.FiveMinutesInterval)
 			dc.AddPerfMetrics(collectedData)
-		}
 
-		logger.WithField("seconds", time.Since(now).Seconds()).Debug("clusters perf metrics collected")
+			logger.WithField("seconds", config.Uptime()).Debug("clusters perf metrics collected")
+		}
 	}
 }
