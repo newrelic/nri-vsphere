@@ -4,24 +4,20 @@ about: Suggest an idea for a future version of this project
 title: ''
 labels: enhancement, needs-triage
 assignees: ''
-
 ---
 
-[NOTE]: # ( ^^ Provide a general summary of the request in the title above. ^^ )
+## Is your enhancement request related to a problem? Please describe.
+A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 
-## Summary
+## Enhancement Description
+A clear and concise description of the feature you want or need.
 
-[NOTE]: # ( Provide a brief overview of what the new feature is all about. )
-
-## Desired Behaviour
-
-[NOTE]: # ( Tell us how the new feature should work. Be specific. )
-[TIP]:  # ( Do NOT give us access or passwords to your New Relic account or API keys! )
-
-## Possible Solution
-
-[NOTE]: # ( Not required. Suggest how to implement the addition or change. )
+## Describe Alternatives
+A clear and concise description of any alternative solutions or features you've considered. Are there examples you could link us to?
 
 ## Additional context
+Add any other context here.
 
-[TIP]:  # ( Why does this feature matter to you? What unique circumstances do you have? )
+## Priority
+Please help us better understand this enhancement request by choosing a priority from the following options: 
+[Nice to Have, Really Want, Must Have, Blocker]
