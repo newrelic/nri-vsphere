@@ -1,21 +1,20 @@
 // Copyright 2020 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package load
+package config
 
 import (
+	"github.com/newrelic/nri-vsphere/internal/model"
+	"github.com/newrelic/nri-vsphere/internal/performance"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 	"time"
 
 	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
 	"github.com/newrelic/infra-integrations-sdk/integration"
 	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi"
-	"github.com/vmware/govmomi/vapi/rest"
-	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/view"
 )
-
-var Now = time.Now()
 
 // ArgumentList Available Arguments
 type ArgumentList struct {
@@ -46,11 +45,12 @@ type ArgumentList struct {
 	EnableVsphereSnapshots bool `default:"false" help:"Set to collect and process VMs Snapshots data"`
 	ValidateSSL            bool `default:"false" help:"Set to validates SSL when connecting to vCenter or Esxi Host"`
 	Version                bool `default:"false" help:"Set to print vSphere integration version and exit"`
+
+	IncludeTags string `default:"" help:"Comma-separated list of tag categories and values for resource inclusion. \nIf defined, only resources tagged with any of the tags will be included in the results. \nYou must also include 'enable_vsphere_tags' in order for this option to work. \nExample: --include_tags env=prod dc=us,eu"`
 }
 
 type Config struct {
 	Args                 ArgumentList
-	StartTime            int64                    // StartTime time Flex starts in Nanoseconds
 	Integration          *integration.Integration // Integration Infrastructure SDK Integration
 	Entity               *integration.Entity      // Entity Infrastructure SDK Entity
 	Hostname             string                   // Hostname current host
@@ -59,23 +59,22 @@ type Config struct {
 	IntegrationNameShort string                   // IntegrationNameShort Short Name
 	IntegrationVersion   string                   // IntegrationVersion Version
 	VMWareClient         *govmomi.Client          // VMWareClient Client
-	VMWareClientRest     *rest.Client             // VMWareClientRest Client
 	ViewManager          *view.Manager            // ViewManager Client
-	TagsManager          *tags.Manager            // TagsManager Client
-	Datacenters          []*Datacenter            // Datacenters VMWare
-	TagsByID             TagsByID                 // Lists of tags by id
+	TagCollector         *tag.Collector           // TagsManager Client
+	Datacenters          []*model.Datacenter      // Datacenters VMWare
 	IsVcenterAPIType     bool                     // IsVcenterAPIType true if connecting to vcenter
+	PerfCollector        *performance.PerfCollector
+	startTime            time.Time // start time the integration started.
 }
 
-func NewConfig(buildVersion string) *Config {
+func New(buildVersion string) *Config {
 	return &Config{
 		Logrus:               logrus.New(),
 		IntegrationName:      "com.newrelic.vsphere",
 		IntegrationNameShort: "vsphere",
 		IntegrationVersion:   buildVersion,
-		StartTime:            time.Now().UnixNano() / int64(time.Millisecond),
 		IsVcenterAPIType:     false,
-		TagsByID:             make(map[string]Tag),
+		startTime:            time.Now(),
 	}
 }
 
@@ -83,3 +82,23 @@ const (
 	WindowsPerfMetricFile      = "C:\\Program Files\\New Relic\\newrelic-infra\\integrations.d\\vsphere-performance.metrics"
 	LinuxDefaultPerfMetricFile = "/etc/newrelic-infra/integrations.d/vsphere-performance.metrics"
 )
+
+func (c *Config) TagCollectionEnabled() bool {
+	return c.IsVcenterAPIType && c.Args.EnableVsphereTags
+}
+
+func (c *Config) EventCollectionEnabled() bool {
+	return c.IsVcenterAPIType && c.Args.EnableVsphereEvents
+}
+
+func (c *Config) TagFilteringEnabled() bool {
+	return c.TagCollectionEnabled() && len(c.Args.IncludeTags) > 0
+}
+
+func (c *Config) PerfMetricsCollectionEnabled() bool {
+	return c.Args.EnableVspherePerfMetrics
+}
+
+func (c *Config) Uptime() time.Duration {
+	return time.Since(c.startTime)
+}

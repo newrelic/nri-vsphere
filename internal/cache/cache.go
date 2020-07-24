@@ -2,8 +2,9 @@ package cache
 
 import (
 	"fmt"
-	"github.com/newrelic/infra-integrations-sdk/persist"
 	"time"
+
+	"github.com/newrelic/infra-integrations-sdk/persist"
 )
 
 type Cache struct {

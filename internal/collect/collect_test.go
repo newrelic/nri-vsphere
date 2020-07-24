@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/newrelic/nri-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/config"
+
 	logrus "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,7 +16,7 @@ import (
 )
 
 func TestCollectData(t *testing.T) {
-	c := &load.Config{
+	c := &config.Config{
 		Logrus: logrus.New(),
 	}
 

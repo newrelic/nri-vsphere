@@ -5,23 +5,25 @@ package collect
 
 import (
 	"context"
-
+	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/types"
 
-	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
 // Clusters VMWare
-func Clusters(config *load.Config) {
+func Clusters(config *config.Config) {
 	ctx := context.Background()
 	m := config.ViewManager
 
+	propertiesToRetrieve := []string{"summary", "host", "datastore", "name", "network", "configuration"}
 	for i, dc := range config.Datacenters {
-		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"ComputeResource"}, true)
+		logger := config.Logrus.WithField("datacenter", dc.Datacenter.Name)
+
+		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{CLUSTER}, true)
 		if err != nil {
-			config.Logrus.WithError(err).Error("failed to create ComputeResource container view")
+			logger.WithError(err).Error("failed to create ComputeResource container view")
 			continue
 		}
 		defer func() {
@@ -33,29 +35,39 @@ func Clusters(config *load.Config) {
 
 		var clusters []mo.ClusterComputeResource
 		// Reference: https://code.vmware.com/apis/704/vsphere/vim.ClusterComputeResource.html
-		err = cv.Retrieve(
-			ctx,
-			[]string{"ClusterComputeResource"},
-			[]string{"summary", "host", "datastore", "name", "network", "configuration"},
-			&clusters)
+		err = cv.Retrieve(ctx, []string{CLUSTER}, propertiesToRetrieve, &clusters)
 		if err != nil {
-			config.Logrus.WithError(err).Error("failed to retrieve ClusterComputeResource")
+			logger.WithError(err).Error("failed to retrieve ClusterComputeResource")
 			continue
 		}
-		if err := collectTags(config, clusters, config.Datacenters[i]); err != nil {
-			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
-		}
-		var refSlice []types.ManagedObjectReference
 
-		for j := 0; j < len(clusters); j++ {
-			config.Datacenters[i].Clusters[clusters[j].Self] = &clusters[j]
-			refSlice = append(refSlice, clusters[j].Self)
+		if config.TagCollectionEnabled() {
+			_, err = config.TagCollector.FetchTagsForObjects(clusters)
+			if err != nil {
+				logger.WithError(err).Warn("failed to retrieve tags for clusters", err)
+			} else {
+				logger.WithField("seconds", config.Uptime()).Debug("clusters tags collected")
+			}
 		}
 
-		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.ClusterComputeResource, performance.FiveMinutesInterval)
+		var clusterRefs []types.ManagedObjectReference
+		for _, cluster := range clusters {
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(cluster.Reference()) {
+				logger.WithField("cluster", cluster.Name).
+					Debug("ignoring cluster since no tags matched the configured filters")
+				continue
+			}
+
+			config.Datacenters[i].Clusters[cluster.Self] = &cluster
+			clusterRefs = append(clusterRefs, cluster.Self)
+		}
+
+		if config.PerfMetricsCollectionEnabled() {
+			metricsToCollect := config.PerfCollector.MetricDefinition.ClusterComputeResource
+			collectedData := config.PerfCollector.Collect(clusterRefs, metricsToCollect, performance.FiveMinutesInterval)
 			dc.AddPerfMetrics(collectedData)
-		}
 
+			logger.WithField("seconds", config.Uptime()).Debug("clusters perf metrics collected")
+		}
 	}
 }

@@ -45,7 +45,7 @@ type PerfMetric struct {
 	Counter string
 }
 
-func NewPerfCollector(client *govmomi.Client, logger *logrus.Logger, perfMetricFile string, logAvailableCounters bool, collectionLevel int, batchSizePerfEntitiesString string, batchSizePerfMetricsString string) (*PerfCollector, error) {
+func NewCollector(client *govmomi.Client, logger *logrus.Logger, perfMetricFile string, logAvailableCounters bool, collectionLevel int, batchSizePerfEntitiesString string, batchSizePerfMetricsString string) (*PerfCollector, error) {
 
 	batchSizePerfEntities, batchSizePerfMetrics, err := sanitizeArgs(batchSizePerfEntitiesString, batchSizePerfMetricsString)
 	if err != nil {

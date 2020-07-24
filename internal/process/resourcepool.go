@@ -5,10 +5,10 @@ package process
 
 import (
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
-	"github.com/newrelic/nri-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/config"
 )
 
-func createResourcePoolSamples(config *load.Config) {
+func createResourcePoolSamples(config *config.Config) {
 	for _, dc := range config.Datacenters {
 		for _, rp := range dc.ResourcePools {
 			// Skip root default ResourcePool (not created by user)
@@ -35,48 +35,52 @@ func createResourcePoolSamples(config *load.Config) {
 				continue
 			}
 
-			checkError(config, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
 			if config.Args.DatacenterLocation != "" {
-				checkError(config, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
+				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
 			if config.IsVcenterAPIType {
-				checkError(config, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
+				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
 				if cluster, ok := dc.Clusters[rp.Owner]; ok {
-					checkError(config, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
+					checkError(config.Logrus, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
 				}
 			}
 
 			memTotal := (rp.Runtime.Memory.ReservationUsed + rp.Runtime.Memory.UnreservedForPool) / (1 << 20)
-			checkError(config, ms.SetMetric("mem.size", memTotal, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("mem.size", memTotal, metric.GAUGE))
 
 			summary := rp.Summary.GetResourcePoolSummary()
 			// esxi api reports nil quickstats
 			if summary.QuickStats != nil {
-				checkError(config, ms.SetMetric("mem.usage", summary.QuickStats.GuestMemoryUsage, metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("mem.usage", summary.QuickStats.GuestMemoryUsage, metric.GAUGE))
 				memFree := memTotal - summary.QuickStats.GuestMemoryUsage
-				checkError(config, ms.SetMetric("mem.free", memFree, metric.GAUGE))
-				checkError(config, ms.SetMetric("mem.ballooned", summary.QuickStats.BalloonedMemory, metric.GAUGE))
-				checkError(config, ms.SetMetric("mem.swapped", summary.QuickStats.SwappedMemory, metric.GAUGE))
-				checkError(config, ms.SetMetric("cpu.overallUsage", summary.QuickStats.OverallCpuUsage, metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("mem.free", memFree, metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("mem.ballooned", summary.QuickStats.BalloonedMemory, metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("mem.swapped", summary.QuickStats.SwappedMemory, metric.GAUGE))
+				checkError(config.Logrus, ms.SetMetric("cpu.overallUsage", summary.QuickStats.OverallCpuUsage, metric.GAUGE))
 			}
 			cpuTotal := rp.Runtime.Cpu.ReservationUsed + rp.Runtime.Cpu.UnreservedForPool
-			checkError(config, ms.SetMetric("cpu.totalMHz", cpuTotal, metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("cpu.totalMHz", cpuTotal, metric.GAUGE))
 
-			checkError(config, ms.SetMetric("vmCount", len(rp.Vm), metric.GAUGE))
+			checkError(config.Logrus, ms.SetMetric("vmCount", len(rp.Vm), metric.GAUGE))
 
-			checkError(config, ms.SetMetric("overallStatus", string(rp.OverallStatus), metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("overallStatus", string(rp.OverallStatus), metric.ATTRIBUTE))
 
 			// Tags
-			tagsByCategory := dc.GetTagsByCategories(rp.Self)
-			for k, v := range tagsByCategory {
-				checkError(config, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
-				// add tags to inventory due to the inventory workaround
-				checkError(config, e.SetInventoryItem("tags", tagsPrefix+k, v))
+			if config.TagCollectionEnabled() {
+				tagsByCategory := config.TagCollector.GetTagsByCategories(rp.Self)
+				for k, v := range tagsByCategory {
+					checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
+					// add tags to inventory due to the inventory workaround
+					checkError(config.Logrus, e.SetInventoryItem("tags", tagsPrefix+k, v))
+				}
 			}
 			// Performance metrics
-			perfMetrics := dc.GetPerfMetrics(rp.Self)
-			for _, perfMetric := range perfMetrics {
-				checkError(config, ms.SetMetric(perfMetricPrefix+perfMetric.Counter, perfMetric.Value, metric.GAUGE))
+			if config.PerfMetricsCollectionEnabled() {
+				perfMetrics := dc.GetPerfMetrics(rp.Self)
+				for _, perfMetric := range perfMetrics {
+					checkError(config.Logrus, ms.SetMetric(perfMetricPrefix+perfMetric.Counter, perfMetric.Value, metric.GAUGE))
+				}
 			}
 		}
 	}

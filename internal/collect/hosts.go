@@ -5,24 +5,32 @@ package collect
 
 import (
 	"context"
+	"time"
 
+	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
-	"github.com/vmware/govmomi/vim25/types"
-
-	"github.com/newrelic/nri-vsphere/internal/load"
 	"github.com/vmware/govmomi/vim25/mo"
+	"github.com/vmware/govmomi/vim25/types"
 )
 
 // Hosts VMWare
-func Hosts(config *load.Config) {
+func Hosts(config *config.Config) {
+	now := time.Now()
+
 	ctx := context.Background()
 	m := config.ViewManager
 
-	for i, dc := range config.Datacenters {
+	collectTags := config.TagCollectionEnabled()
+	filterByTag := config.TagFilteringEnabled()
 
-		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{"HostSystem"}, true)
+	// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html
+	propertiesToRetrieve := []string{"summary", "overallStatus", "config", "network", "vm", "runtime", "parent", "datastore"}
+	for i, dc := range config.Datacenters {
+		logger := config.Logrus.WithField("datacenter", dc.Datacenter.Name)
+
+		cv, err := m.CreateContainerView(ctx, dc.Datacenter.Reference(), []string{HOST}, true)
 		if err != nil {
-			config.Logrus.WithError(err).Error("failed to create HostSystem container view")
+			logger.WithError(err).Error("failed to create HostSystem container view")
 			continue
 		}
 
@@ -34,29 +42,39 @@ func Hosts(config *load.Config) {
 		}()
 
 		var hosts []mo.HostSystem
-		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html
-		err = cv.Retrieve(
-			ctx,
-			[]string{"HostSystem"},
-			[]string{"summary", "overallStatus", "config", "network", "vm", "runtime", "parent", "datastore"},
-			&hosts)
+		err = cv.Retrieve(ctx, []string{HOST}, propertiesToRetrieve, &hosts)
 		if err != nil {
-			config.Logrus.WithError(err).Error("failed to retrieve HostSystems")
+			logger.WithError(err).Error("failed to retrieve HostSystems")
 			continue
 		}
-		if err := collectTags(config, hosts, config.Datacenters[i]); err != nil {
-			config.Logrus.WithError(err).Errorf("failed to retrieve tags:%v", err)
+
+		if collectTags {
+			_, err = config.TagCollector.FetchTagsForObjects(hosts)
+			if err != nil {
+				logger.WithError(err).Warn("failed to retrieve tags for hosts", err)
+			} else {
+				logger.WithField("seconds", time.Since(now).Seconds()).Debug("hosts tags collected")
+			}
 		}
 
-		var refSlice []types.ManagedObjectReference
-		for j := 0; j < len(hosts); j++ {
-			config.Datacenters[i].Hosts[hosts[j].Self] = &hosts[j]
-			refSlice = append(refSlice, hosts[j].Self)
+		var hostsRefs []types.ManagedObjectReference
+		for _, host := range hosts {
+			if filterByTag && !config.TagCollector.MatchObjectTags(host.Reference()) {
+				config.Logrus.WithField("host", host.Name).
+					Debug("ignoring host since no tags matched the configured filters")
+				continue
+			}
+
+			config.Datacenters[i].Hosts[host.Self] = &host
+			hostsRefs = append(hostsRefs, host.Self)
 		}
 
-		if config.Args.EnableVspherePerfMetrics && dc.PerfCollector != nil {
-			collectedData := dc.PerfCollector.Collect(refSlice, dc.PerfCollector.MetricDefinition.Host, performance.RealTimeInterval)
+		if config.PerfMetricsCollectionEnabled() {
+			metricsToCollect := config.PerfCollector.MetricDefinition.Host
+			collectedData := config.PerfCollector.Collect(hostsRefs, metricsToCollect, performance.RealTimeInterval)
 			dc.AddPerfMetrics(collectedData)
+
+			logger.WithField("seconds", time.Since(now).Seconds()).Debug("hosts perf metrics collected")
 		}
 	}
 }

@@ -4,12 +4,14 @@
 package process
 
 import (
+	logrus "github.com/sirupsen/logrus"
 	"strings"
 	"sync"
 
+	"github.com/newrelic/nri-vsphere/internal/config"
+
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
-	"github.com/newrelic/nri-vsphere/internal/load"
 )
 
 const (
@@ -28,7 +30,7 @@ const (
 )
 
 // Run process samples
-func ProcessData(config *load.Config) {
+func ProcessData(config *config.Config) {
 	// create samples async
 	var wg sync.WaitGroup
 	wg.Add(6)
@@ -98,13 +100,13 @@ func determineOS(guestFullName string) string {
 	return "unknown"
 }
 
-func checkError(config *load.Config, err error) {
+func checkError(logger *logrus.Logger, err error) {
 	if err != nil {
-		config.Logrus.WithError(err).Error("failed to set")
+		logger.WithError(err).Error("failed to set")
 	}
 }
 
-func sanitizeEntityName(config *load.Config, entityName string, datacenterName string) string {
+func sanitizeEntityName(config *config.Config, entityName string, datacenterName string) string {
 	if config.IsVcenterAPIType && (datacenterName != "") {
 		entityName = datacenterName + ":" + entityName
 	}
@@ -118,7 +120,7 @@ func sanitizeEntityName(config *load.Config, entityName string, datacenterName s
 	return entityName
 }
 
-func createNewEntityWithMetricSet(config *load.Config, typeEntity string, entityName string, uniqueIdentifier string) (*integration.Entity, *metric.Set, error) {
+func createNewEntityWithMetricSet(config *config.Config, typeEntity string, entityName string, uniqueIdentifier string) (*integration.Entity, *metric.Set, error) {
 	workingEntity, err := config.Integration.Entity(uniqueIdentifier, "vsphere-"+strings.ToLower(typeEntity))
 	if err != nil {
 		config.Logrus.WithError(err).Error("failed to create entity")
@@ -126,7 +128,7 @@ func createNewEntityWithMetricSet(config *load.Config, typeEntity string, entity
 	}
 
 	// entity displayName
-	checkError(config, workingEntity.SetInventoryItem("vsphere"+typeEntity, "name", entityName))
+	checkError(config.Logrus, workingEntity.SetInventoryItem("vsphere"+typeEntity, "name", entityName))
 	ms := workingEntity.NewMetricSet("VSphere" + typeEntity + "Sample")
 	return workingEntity, ms, nil
 }

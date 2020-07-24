@@ -1,43 +1,30 @@
 // Copyright 2020 New Relic Corporation. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package load
+package model
 
 import (
-	"sort"
 	"sync"
 
 	"github.com/newrelic/nri-vsphere/internal/events"
 	"github.com/newrelic/nri-vsphere/internal/performance"
-
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
 type mor = types.ManagedObjectReference
 
-type Tag struct {
-	Name     string
-	Category string
-}
-
-// TagsByID maps the tag ID with the Tag
-type TagsByID map[string]Tag
-
 // Datacenter struct
 type Datacenter struct {
 	Datacenter      *mo.Datacenter
 	EventDispacher  *events.EventDispacher
-	PerfCollector   *performance.PerfCollector
 	Hosts           map[mor]*mo.HostSystem
 	Clusters        map[mor]*mo.ClusterComputeResource
 	ResourcePools   map[mor]*mo.ResourcePool
 	Datastores      map[mor]*mo.Datastore
 	Networks        map[mor]*mo.Network
 	VirtualMachines map[mor]*mo.VirtualMachine
-	Tags            map[mor][]Tag
 	PerfMetrics     map[mor][]performance.PerfMetric
-	tagMux          sync.Mutex
 	PerfMetricsMux  sync.Mutex
 }
 
@@ -51,7 +38,6 @@ func NewDatacenter(datacenter *mo.Datacenter) *Datacenter {
 		Datastores:      make(map[mor]*mo.Datastore),
 		Networks:        make(map[mor]*mo.Network),
 		VirtualMachines: make(map[mor]*mo.VirtualMachine),
-		Tags:            make(map[mor][]Tag),
 		PerfMetrics:     make(map[mor][]performance.PerfMetric),
 	}
 }
@@ -98,15 +84,6 @@ func (dc *Datacenter) IsDefaultResourcePool(resourcePoolReference mor) bool {
 }
 
 // AddTags appends a tag batch to dc Tags map
-func (dc *Datacenter) AddTags(tagsByObject map[mor][]Tag) {
-	dc.tagMux.Lock()
-	defer dc.tagMux.Unlock()
-	for mor, tags := range tagsByObject {
-		dc.Tags[mor] = append(dc.Tags[mor], tags...)
-	}
-}
-
-// AddPerfMetrics appends a perfMetric batch to dc Tags map
 func (dc *Datacenter) AddPerfMetrics(data map[types.ManagedObjectReference][]performance.PerfMetric) {
 	dc.PerfMetricsMux.Lock()
 	defer dc.PerfMetricsMux.Unlock()
@@ -121,22 +98,4 @@ func (dc *Datacenter) GetPerfMetrics(ref mor) []performance.PerfMetric {
 		return perfMetrics
 	}
 	return nil
-}
-
-// GetTagsByCategories return a map of tags categories and the corresponding tags associated to the mor
-func (dc *Datacenter) GetTagsByCategories(ref mor) map[string]string {
-	tagsByCategory := make(map[string]string)
-	if tags, ok := dc.Tags[ref]; ok {
-		sort.Slice(tags, func(i, j int) bool {
-			return tags[i].Name < tags[j].Name
-		})
-		for _, t := range tags {
-			if _, ok := tagsByCategory[t.Category]; ok {
-				tagsByCategory[t.Category] = tagsByCategory[t.Category] + "|" + t.Name
-			} else {
-				tagsByCategory[t.Category] = t.Name
-			}
-		}
-	}
-	return tagsByCategory
 }

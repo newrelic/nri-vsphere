@@ -5,20 +5,22 @@ package main
 
 import (
 	"fmt"
+	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/nri-vsphere/internal/performance"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
-	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vsphere/internal/client"
 	"github.com/newrelic/nri-vsphere/internal/collect"
-	"github.com/newrelic/nri-vsphere/internal/load"
+	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/process"
-	logrus "github.com/sirupsen/logrus"
+	"github.com/newrelic/nri-vsphere/internal/tag"
 	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/view"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -27,95 +29,106 @@ var (
 
 func main() {
 
-	config := load.NewConfig(buildVersion)
+	cfg := config.New(buildVersion)
 
-	err := infraIntegration(config)
+	err := infraIntegration(cfg)
 	if err != nil {
-		config.Logrus.WithError(err).Fatal("failed to initialize integration")
+		cfg.Logrus.WithError(err).Fatal("failed to initialize integration")
 	}
-	setupLogger(config)
-	if config.Args.Version {
-		config.Logrus.Infof("integration version: %s", buildVersion)
+	setupLogger(cfg)
+
+	// print integration version and exit
+	if cfg.Args.Version {
+		cfg.Logrus.Infof("integration version: %s", buildVersion)
 		return
 	}
-	config.Logrus.Debugf("integration version: %s", buildVersion)
+	cfg.Logrus.Debugf("integration version: %s", buildVersion)
 
-	checkAndSanitizeConfig(config)
+	checkAndSanitizeConfig(cfg)
 
-	config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("before creating client")
-
-	config.VMWareClient, err = client.New(config.Args.URL, config.Args.User, config.Args.Pass, config.Args.ValidateSSL)
+	cfg.VMWareClient, err = client.New(cfg.Args.URL, cfg.Args.User, cfg.Args.Pass, cfg.Args.ValidateSSL)
 	if err != nil {
-		config.Logrus.WithError(err).Fatal("failed to create client")
+		cfg.Logrus.WithError(err).Fatal("failed to create client")
 	}
 	defer func() {
-		err := client.Logout(config.VMWareClient)
+		err := client.Logout(cfg.VMWareClient)
 		if err != nil {
-			config.Logrus.WithError(err).Error("error while logging out client")
+			cfg.Logrus.WithError(err).Error("error while logging out client")
 		}
 	}()
 
-	if config.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter" {
-		config.IsVcenterAPIType = true
-	}
+	cfg.IsVcenterAPIType = cfg.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter"
 
-	if !config.IsVcenterAPIType && config.Args.EnableVsphereEvents {
-		config.Logrus.Warn("It is not possible to fetch events from the vCenter if the integration is pointing to an host")
-	}
+	cfg.ViewManager = view.NewManager(cfg.VMWareClient.Client)
 
-	if !config.IsVcenterAPIType && config.Args.EnableVsphereTags {
-		config.Logrus.Warn("It is not possible to fetch Tags from the vCenter if the integration is pointing to an host")
-	}
-
-	if config.IsVcenterAPIType && config.Args.EnableVsphereTags {
-		config.VMWareClientRest, err = client.NewRest(config.VMWareClient, config.Args.User, config.Args.Pass)
+	if cfg.TagCollectionEnabled() {
+		restClient, err := client.NewRest(cfg.VMWareClient, cfg.Args.User, cfg.Args.Pass)
 		if err != nil {
-			config.Logrus.WithError(err).Fatal("failed to create client rest")
+			cfg.Logrus.WithError(err).Fatal("failed to create client rest")
 		}
-
 		defer func() {
-			err := client.LogoutRest(config.VMWareClientRest)
+			err := client.LogoutRest(restClient)
 			if err != nil {
-				config.Logrus.WithError(err).Error("error while logging out RestClient")
+				cfg.Logrus.WithError(err).Error("error while logging out RestClient")
 			}
 		}()
 
-		config.TagsManager = tags.NewManager(config.VMWareClientRest)
+		tm := tags.NewManager(restClient)
+		tagCollector := tag.NewCollector(tm, cfg.Logrus)
+		if len(cfg.Args.IncludeTags) > 0 {
+			tagCollector.ParseFilterTagExpression(cfg.Args.IncludeTags)
+		}
+		cfg.TagCollector = tagCollector
 	}
 
-	config.ViewManager = view.NewManager(config.VMWareClient.Client)
+	if cfg.PerfMetricsCollectionEnabled() {
+		perfCollector, err := performance.NewCollector(cfg.VMWareClient, cfg.Logrus, cfg.Args.PerfMetricFile,
+			cfg.Args.LogAvailableCounters, cfg.Args.PerfLevel, cfg.Args.BatchSizePerfEntities,
+			cfg.Args.BatchSizePerfMetrics)
+		if err != nil {
+			cfg.Logrus.WithError(err).Fatal("failed to create performance collector")
+		}
+		cfg.PerfCollector = perfCollector
+	}
 
-	runIntegration(config)
+	runIntegration(cfg)
 
 }
 
-func checkAndSanitizeConfig(config *load.Config) {
-	if config.Args.URL == "" {
-		config.Logrus.Fatal("missing argument `url`, please check if URL has been supplied in the config file")
+func checkAndSanitizeConfig(cfg *config.Config) {
+	if cfg.Args.URL == "" {
+		cfg.Logrus.Fatal("missing argument `url`, please check if URL has been supplied in the config file")
 	}
-	if config.Args.User == "" {
-		config.Logrus.Fatal("missing argument `user`, please check if username has been supplied in the config file")
+	if cfg.Args.User == "" {
+		cfg.Logrus.Fatal("missing argument `user`, please check if username has been supplied in the config file")
 	}
-	if config.Args.Pass == "" {
-		config.Logrus.Fatal("missing argument `pass`, please check if password has been supplied")
+	if cfg.Args.Pass == "" {
+		cfg.Logrus.Fatal("missing argument `pass`, please check if password has been supplied")
 	}
 
-	if config.Args.EnableVspherePerfMetrics && config.Args.PerfMetricFile == "" {
+	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereEvents {
+		cfg.Logrus.Warn("It is not possible to fetch events from the vCenter if the integration is pointing to an host")
+	}
+	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereTags {
+		cfg.Logrus.Warn("It is not possible to fetch Tags from the vCenter if the integration is pointing to an host")
+	}
+
+	if cfg.Args.EnableVspherePerfMetrics && cfg.Args.PerfMetricFile == "" {
 		var err error
 		if runtime.GOOS == "windows" {
-			config.Args.PerfMetricFile, err = filepath.Abs(load.WindowsPerfMetricFile)
+			cfg.Args.PerfMetricFile, err = filepath.Abs(config.WindowsPerfMetricFile)
 		} else {
-			config.Args.PerfMetricFile, err = filepath.Abs(load.LinuxDefaultPerfMetricFile)
+			cfg.Args.PerfMetricFile, err = filepath.Abs(config.LinuxDefaultPerfMetricFile)
 		}
 		if err != nil {
-			config.Logrus.Fatal("error while setting default path for performance metrics configuration file")
+			cfg.Logrus.Fatal("error while setting default path for performance metrics configuration file")
 		}
 	}
 
-	config.Args.DatacenterLocation = strings.ToLower(config.Args.DatacenterLocation)
+	cfg.Args.DatacenterLocation = strings.ToLower(cfg.Args.DatacenterLocation)
 }
 
-func setupLogger(config *load.Config) {
+func setupLogger(config *config.Config) {
 	verboseLogging := os.Getenv("VERBOSE")
 	if config.Args.Verbose || verboseLogging == "true" || verboseLogging == "1" {
 		config.Logrus.SetLevel(logrus.TraceLevel)
@@ -123,13 +136,12 @@ func setupLogger(config *load.Config) {
 	config.Logrus.Out = os.Stderr
 }
 
-func runIntegration(config *load.Config) {
-
-	config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("before collecting data")
+func runIntegration(config *config.Config) {
+	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("before collecting data")
 	collect.CollectData(config)
-	config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("before processing data")
+	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("before processing data")
 	process.ProcessData(config)
-	config.Logrus.WithField("seconds", time.Since(load.Now).Seconds()).Debug("after processing data")
+	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("after processing data")
 
 	err := config.Integration.Publish()
 	if err != nil {
@@ -138,7 +150,7 @@ func runIntegration(config *load.Config) {
 
 }
 
-func infraIntegration(config *load.Config) error {
+func infraIntegration(config *config.Config) error {
 	var err error
 	config.Hostname, err = os.Hostname() // set hostname
 	if err != nil {

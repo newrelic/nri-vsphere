@@ -3,14 +3,15 @@ package events
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	logrus "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/simulator"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"
-	"testing"
-	"time"
 )
 
 func TestEvents(t *testing.T) {

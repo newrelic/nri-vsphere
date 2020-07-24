@@ -1,6 +1,5 @@
 PACKAGE_TYPES     ?= deb rpm tarball
 PROJECT_NAME       = nri-$(INTEGRATION)
-BINS_DIR           = $(TARGET_DIR)/bin/linux_amd64
 SOURCE_DIR         = $(TARGET_DIR)/source
 PACKAGES_DIR       = $(TARGET_DIR)/packages
 TARBALL_DIR       ?= $(PACKAGES_DIR)/tarball
@@ -41,9 +40,9 @@ prep-pkg-env:
 	@echo "=== Main === [ prep-pkg-env ]: adding built binaries and configuration and definition files..."
 	@cp $(BINS_DIR)/$(BINARY_NAME) $(SOURCE_DIR)/var/db/newrelic-infra/newrelic-integrations/bin
 	@chmod 755 $(SOURCE_DIR)/var/db/newrelic-infra/newrelic-integrations/bin/*
-	@cp ./config/$(SHORT_INTEGRATION)-config.yml.sample $(SOURCE_DIR)/etc/newrelic-infra/integrations.d/$(SHORT_INTEGRATION)-config.yml.sample
+	@cp ./configs/$(SHORT_INTEGRATION)-config.yml.sample $(SOURCE_DIR)/etc/newrelic-infra/integrations.d/$(SHORT_INTEGRATION)-config.yml.sample
 	@chmod 644 $(SOURCE_DIR)/etc/newrelic-infra/integrations.d/$(SHORT_INTEGRATION)-config.yml.sample
-	@cp ./config/vsphere-performance.metrics $(SOURCE_DIR)/etc/newrelic-infra/integrations.d/vsphere-performance.metrics
+	@cp ./configs/vsphere-performance.metrics $(SOURCE_DIR)/etc/newrelic-infra/integrations.d/vsphere-performance.metrics
 	@chmod 644 $(SOURCE_DIR)/etc/newrelic-infra/integrations.d/vsphere-performance.metrics
 
 deb: prep-pkg-env
