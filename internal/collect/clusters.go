@@ -17,9 +17,6 @@ func Clusters(config *config.Config) {
 	ctx := context.Background()
 	m := config.ViewManager
 
-	collectTags := config.TagCollectionEnabled()
-	filterByTag := config.TagFilteringEnabled()
-
 	propertiesToRetrieve := []string{"summary", "host", "datastore", "name", "network", "configuration"}
 	for i, dc := range config.Datacenters {
 		logger := config.Logrus.WithField("datacenter", dc.Datacenter.Name)
@@ -44,7 +41,7 @@ func Clusters(config *config.Config) {
 			continue
 		}
 
-		if collectTags {
+		if config.TagCollectionEnabled() {
 			_, err = config.TagCollector.FetchTagsForObjects(clusters)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for clusters", err)
@@ -55,7 +52,7 @@ func Clusters(config *config.Config) {
 
 		var clusterRefs []types.ManagedObjectReference
 		for _, cluster := range clusters {
-			if filterByTag && !config.TagCollector.MatchObjectTags(cluster.Reference()) {
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(cluster.Reference()) {
 				logger.WithField("cluster", cluster.Name).
 					Debug("ignoring cluster since no tags matched the configured filters")
 				continue
