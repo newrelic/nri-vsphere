@@ -19,25 +19,25 @@ func createClusterSamples(config *config.Config) {
 
 			//Retrieving the list of host belonging to the cluster
 			hostList := ""
-			for _, hostReference := range cluster.Host {
-				if host, ok := dc.Hosts[hostReference.Reference()]; ok {
-					hostList = hostList + host.Summary.Config.Name + "|"
+			for _, hr := range cluster.Host {
+				if h := dc.GetHost(hr); h != nil {
+					hostList += h.Summary.Config.Name + "|"
 				}
 			}
 
 			//Retrieving the list of networks attached to the cluster
 			networkList := ""
-			for _, networkReference := range cluster.Network {
-				if network, ok := dc.Networks[networkReference]; ok {
-					networkList = networkList + network.Name + "|"
+			for _, nr := range cluster.Network {
+				if n := dc.GetNetwork(nr); n != nil {
+					networkList += n.Name + "|"
 				}
 			}
 
 			//Retrieving the list of datastores attached to the cluster
 			datastoreList := ""
-			for _, datastoreReference := range cluster.Datastore {
-				if datastore, ok := dc.Datastores[datastoreReference]; ok {
-					datastoreList = datastoreList + datastore.Name + "|"
+			for _, dr := range cluster.Datastore {
+				if ds := dc.GetDatastore(dr); ds != nil {
+					datastoreList += ds.Name + "|"
 				}
 			}
 

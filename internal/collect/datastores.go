@@ -17,9 +17,6 @@ func Datastores(config *config.Config) {
 	ctx := context.Background()
 	m := config.ViewManager
 
-	collectTags := config.TagCollectionEnabled()
-	filterByTag := config.TagFilteringEnabled()
-
 	// Reference: https://code.vmware.com/apis/42/vsphere/doc/vim.Datastore.html
 	propertiesToRetrieve := []string{"name", "summary", "overallStatus", "vm", "host", "info"}
 	for i, dc := range config.Datacenters {
@@ -33,7 +30,7 @@ func Datastores(config *config.Config) {
 		defer func() {
 			err := cv.Destroy(ctx)
 			if err != nil {
-				config.Logrus.WithError(err).Error("error while cleaning up datastores container view")
+				logger.WithError(err).Error("error while cleaning up datastores container view")
 			}
 		}()
 
@@ -45,7 +42,7 @@ func Datastores(config *config.Config) {
 		}
 
 		// collect (and cache) the objects tags in bulk
-		if collectTags {
+		if config.TagCollectionEnabled() {
 			_, err = config.TagCollector.FetchTagsForObjects(datastores)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for datastores", err)
@@ -56,7 +53,7 @@ func Datastores(config *config.Config) {
 
 		var dsRefs []types.ManagedObjectReference
 		for j, ds := range datastores {
-			if filterByTag && !config.TagCollector.MatchObjectTags(ds.Reference()) {
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(ds.Reference()) {
 				logger.WithField("datastore", ds.Name).
 					Debug("ignoring datastore since no tags matched the configured filters")
 				continue

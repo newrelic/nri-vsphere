@@ -65,12 +65,12 @@ func (dc *Datacenter) FindHost(computeResourceReference mor) *mo.HostSystem {
 	return nil
 }
 
-// GetResourcePoolName returns the name of the Resource Pool if is not the default
-func (dc *Datacenter) GetResourcePoolName(resourcePoolReference mor) string {
+// GetResourcePool returns the name of the Resource Pool if is not the default
+func (dc *Datacenter) GetResourcePool(resourcePoolReference mor) *mo.ResourcePool {
 	if !dc.IsDefaultResourcePool(resourcePoolReference) {
-		return dc.ResourcePools[resourcePoolReference].Name
+		return dc.ResourcePools[resourcePoolReference]
 	}
-	return ""
+	return nil
 }
 
 // IsDefaultResourcePool returns true if the resource pool is the default
@@ -98,4 +98,20 @@ func (dc *Datacenter) GetPerfMetrics(ref mor) []performance.PerfMetric {
 		return perfMetrics
 	}
 	return nil
+}
+
+func (dc *Datacenter) GetDatastore(ds mor) *mo.Datastore {
+	return dc.Datastores[ds]
+}
+
+func (dc *Datacenter) GetNetwork(n mor) *mo.Network {
+	return dc.Networks[n]
+}
+
+func (dc *Datacenter) GetHost(h mor) *mo.HostSystem {
+	return dc.Hosts[h]
+}
+
+func (dc *Datacenter) GetCluster(c mor) *mo.ClusterComputeResource {
+	return dc.Clusters[c]
 }

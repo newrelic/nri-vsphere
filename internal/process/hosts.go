@@ -25,7 +25,7 @@ func createHostSamples(config *config.Config) {
 			entityName := hostConfigName
 			datacenterName := dc.Datacenter.Name
 
-			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
+			if cluster := dc.GetCluster(host.Parent.Reference()); cluster != nil {
 				entityName = cluster.Name + ":" + entityName
 			}
 
@@ -37,14 +37,16 @@ func createHostSamples(config *config.Config) {
 				continue
 			}
 
-			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
-				checkError(config.Logrus, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
-			}
-			checkError(config.Logrus, ms.SetMetric("overallStatus", string(host.OverallStatus), metric.ATTRIBUTE))
-
 			if config.IsVcenterAPIType {
 				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
 			}
+
+			if cluster := dc.GetCluster(host.Parent.Reference()); cluster != nil {
+				checkError(config.Logrus, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
+			}
+
+			checkError(config.Logrus, ms.SetMetric("overallStatus", string(host.OverallStatus), metric.ATTRIBUTE))
+
 			resourcePools := dc.FindResourcePool(host.Parent.Reference())
 			resourcePoolList := ""
 			for _, rp := range resourcePools {
@@ -54,9 +56,12 @@ func createHostSamples(config *config.Config) {
 
 			datastoreList := ""
 			for _, ds := range host.Datastore {
-				datastoreList += dc.Datastores[ds].Name + "|"
+				if d := dc.GetDatastore(ds); d != nil {
+					datastoreList += d.Name + "|"
+				}
 			}
 			checkError(config.Logrus, ms.SetMetric("datastoreNameList", datastoreList, metric.ATTRIBUTE))
+
 			if config.Args.DatacenterLocation != "" {
 				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
@@ -67,9 +72,11 @@ func createHostSamples(config *config.Config) {
 			if host.Runtime.InQuarantineMode != nil {
 				checkError(config.Logrus, ms.SetMetric("inQuarantineMode", strconv.FormatBool(*host.Runtime.InQuarantineMode), metric.ATTRIBUTE))
 			}
+
 			if host.Runtime.BootTime != nil {
 				checkError(config.Logrus, ms.SetMetric("bootTime", host.Runtime.BootTime.String(), metric.ATTRIBUTE))
 			}
+
 			checkError(config.Logrus, ms.SetMetric("connectionState", string(host.Runtime.ConnectionState), metric.ATTRIBUTE))
 			checkError(config.Logrus, ms.SetMetric("inMaintenanceMode", strconv.FormatBool(host.Runtime.InMaintenanceMode), metric.ATTRIBUTE))
 			checkError(config.Logrus, ms.SetMetric("powerState", string(host.Runtime.PowerState), metric.ATTRIBUTE))
@@ -78,7 +85,9 @@ func createHostSamples(config *config.Config) {
 
 			networkList := ""
 			for _, nw := range host.Network {
-				networkList += dc.Networks[nw].Name + "|"
+				if n := dc.GetNetwork(nw); n != nil {
+					networkList += n.Name + "|"
+				}
 			}
 			checkError(config.Logrus, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
 

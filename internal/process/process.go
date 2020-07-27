@@ -4,14 +4,14 @@
 package process
 
 import (
-	logrus "github.com/sirupsen/logrus"
 	"strings"
 	"sync"
 
-	"github.com/newrelic/nri-vsphere/internal/config"
-
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/nri-vsphere/internal/config"
+
+	logrus "github.com/sirupsen/logrus"
 )
 
 const (

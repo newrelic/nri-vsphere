@@ -46,8 +46,6 @@ func Datacenters(config *config.Config) error {
 		}
 	}
 
-	filterByTag := config.TagFilteringEnabled()
-
 	// cache store for events
 	cs, err := newCacheStore(config)
 	if err != nil {
@@ -55,7 +53,7 @@ func Datacenters(config *config.Config) error {
 	}
 
 	for _, d := range datacenters {
-		if filterByTag && !config.TagCollector.MatchObjectTags(d.Reference()) {
+		if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(d.Reference()) {
 			config.Logrus.WithField("datacenter", d.Name).
 				Debug("ignoring datacenter since no tags matched the configured filters")
 			continue

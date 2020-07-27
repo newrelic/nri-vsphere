@@ -5,8 +5,6 @@ package collect
 
 import (
 	"context"
-	"time"
-
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -15,13 +13,9 @@ import (
 
 // Hosts VMWare
 func Hosts(config *config.Config) {
-	now := time.Now()
 
 	ctx := context.Background()
 	m := config.ViewManager
-
-	collectTags := config.TagCollectionEnabled()
-	filterByTag := config.TagFilteringEnabled()
 
 	// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html
 	propertiesToRetrieve := []string{"summary", "overallStatus", "config", "network", "vm", "runtime", "parent", "datastore"}
@@ -37,7 +31,7 @@ func Hosts(config *config.Config) {
 		defer func() {
 			err := cv.Destroy(ctx)
 			if err != nil {
-				config.Logrus.WithError(err).Error("error while cleaning up host container view")
+				logger.WithError(err).Error("error while cleaning up host container view")
 			}
 		}()
 
@@ -48,19 +42,19 @@ func Hosts(config *config.Config) {
 			continue
 		}
 
-		if collectTags {
+		if config.TagCollectionEnabled() {
 			_, err = config.TagCollector.FetchTagsForObjects(hosts)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for hosts", err)
 			} else {
-				logger.WithField("seconds", time.Since(now).Seconds()).Debug("hosts tags collected")
+				logger.WithField("seconds", config.Uptime()).Debug("hosts tags collected")
 			}
 		}
 
 		var hostsRefs []types.ManagedObjectReference
 		for j, host := range hosts {
-			if filterByTag && !config.TagCollector.MatchObjectTags(host.Reference()) {
-				config.Logrus.WithField("host", host.Name).
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(host.Reference()) {
+				logger.WithField("host", host.Name).
 					Debug("ignoring host since no tags matched the configured filters")
 				continue
 			}
@@ -74,7 +68,7 @@ func Hosts(config *config.Config) {
 			collectedData := config.PerfCollector.Collect(hostsRefs, metricsToCollect, performance.RealTimeInterval)
 			dc.AddPerfMetrics(collectedData)
 
-			logger.WithField("seconds", time.Since(now).Seconds()).Debug("hosts perf metrics collected")
+			logger.WithField("seconds", config.Uptime()).Debug("hosts perf metrics collected")
 		}
 	}
 }

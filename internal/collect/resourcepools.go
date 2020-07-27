@@ -17,9 +17,6 @@ func ResourcePools(config *config.Config) {
 	ctx := context.Background()
 	m := config.ViewManager
 
-	collectTags := config.TagCollectionEnabled()
-	filterByTag := config.TagFilteringEnabled()
-
 	propertiesToRetrieve := []string{"summary", "owner", "parent", "runtime", "name", "overallStatus", "vm", "resourcePool"}
 	for i, dc := range config.Datacenters {
 		logger := config.Logrus.WithField("datacenter", dc.Datacenter.Name)
@@ -33,7 +30,7 @@ func ResourcePools(config *config.Config) {
 		defer func() {
 			err := cv.Destroy(ctx)
 			if err != nil {
-				config.Logrus.WithError(err).Error("error while cleaning up resourcePools container view")
+				logger.WithError(err).Error("error while cleaning up resourcePools container view")
 			}
 		}()
 
@@ -44,19 +41,19 @@ func ResourcePools(config *config.Config) {
 			continue
 		}
 
-		if collectTags {
+		if config.TagCollectionEnabled() {
 			_, err = config.TagCollector.FetchTagsForObjects(resourcePools)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for resourcePools", err)
 			} else {
-				logger.WithField("seconds", config.Uptime().Seconds()).Debug("resourcePools tags collected")
+				logger.WithField("seconds", config.Uptime()).Debug("resourcePools tags collected")
 			}
 		}
 
 		var rpRefs []types.ManagedObjectReference
 		for j, rp := range resourcePools {
-			if filterByTag && !config.TagCollector.MatchObjectTags(rp.Reference()) {
-				config.Logrus.WithField("resource pool", rp.Name).
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(rp.Reference()) {
+				logger.WithField("resource pool", rp.Name).
 					Debug("ignoring resource pool since no tags matched the configured filters")
 				continue
 			}
@@ -70,7 +67,7 @@ func ResourcePools(config *config.Config) {
 			collectedData := config.PerfCollector.Collect(rpRefs, metricsToCollect, performance.FiveMinutesInterval)
 			dc.AddPerfMetrics(collectedData)
 
-			logger.WithField("seconds", config.Uptime().Seconds()).Debug("resource pools perf metrics collected")
+			logger.WithField("seconds", config.Uptime()).Debug("resource pools perf metrics collected")
 		}
 	}
 }

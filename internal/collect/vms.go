@@ -17,9 +17,6 @@ func VirtualMachines(config *config.Config) {
 	ctx := context.Background()
 	m := config.ViewManager
 
-	collectTags := config.TagCollectionEnabled()
-	filterByTag := config.TagFilteringEnabled()
-
 	// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
 	propertiesToRetrieve := []string{"name", "summary", "network", "config", "guest", "runtime", "resourcePool", "datastore", "overallStatus"}
 	if config.Args.EnableVsphereSnapshots {
@@ -52,30 +49,24 @@ func VirtualMachines(config *config.Config) {
 				Error("failed to retrieve VM data for datacenter")
 			continue
 		}
-		logger.WithField("seconds", config.Uptime().Seconds()).WithField("count", len(vms)).Debug("after collecting vm data method.Retrieve")
+		logger.WithField("seconds", config.Uptime().Seconds()).Debug("after collecting vm data method.Retrieve")
 
-		if collectTags {
+		if config.TagCollectionEnabled() {
 			_, err = config.TagCollector.FetchTagsForObjects(vms)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for virtual machines")
 			} else {
-				logger.WithField("seconds", config.Uptime().Seconds()).Debug("vms tags collected")
+				logger.WithField("seconds", config.Uptime()).Debug("vms tags collected")
 			}
 		}
 
 		var vmRefs []types.ManagedObjectReference
 		for j, vm := range vms {
-			tags := config.TagCollector.GetTagsForObject(vms[j].Reference())
-			if filterByTag && !config.TagCollector.MatchObjectTags(vms[j].Reference()) {
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(vms[j].Reference()) {
 				logger.WithField("virtual machine", vm.Name).
-					WithField("tags", tags).
-					Warn("ignoring virtual machine since no tags matched the configured filters")
+					Debug("ignoring virtual machine since no tags matched the configured filters")
 				continue
 			}
-
-			logger.WithField("virtual machine", vm.Name).
-				WithField("tags", tags).
-				Info("virtual machine collected")
 
 			config.Datacenters[i].VirtualMachines[vm.Self] = &vms[j]
 			vmRefs = append(vmRefs, vm.Self)
@@ -86,7 +77,7 @@ func VirtualMachines(config *config.Config) {
 			collectedData := config.PerfCollector.Collect(vmRefs, metricsToCollect, performance.RealTimeInterval)
 			dc.AddPerfMetrics(collectedData)
 
-			logger.WithField("seconds", config.Uptime().Seconds()).Debug("vms perf metrics collected")
+			logger.WithField("seconds", config.Uptime()).Debug("vms perf metrics collected")
 		}
 	}
 }

@@ -29,6 +29,7 @@ func createDatastoreSamples(config *config.Config) {
 			if config.Args.DatacenterLocation != "" {
 				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
+
 			if config.IsVcenterAPIType {
 				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
 			}
@@ -49,7 +50,6 @@ func createDatastoreSamples(config *config.Config) {
 				if info.Nas != nil {
 					checkError(config.Logrus, ms.SetMetric("nas.remoteHost", info.Nas.RemoteHost, metric.ATTRIBUTE))
 					checkError(config.Logrus, ms.SetMetric("nas.remotePath", info.Nas.RemotePath, metric.ATTRIBUTE))
-
 				}
 			}
 
@@ -62,6 +62,7 @@ func createDatastoreSamples(config *config.Config) {
 					checkError(config.Logrus, e.SetInventoryItem("tags", tagsPrefix+k, v))
 				}
 			}
+
 			// Performance metrics
 			if config.PerfMetricsCollectionEnabled() {
 				perfMetrics := dc.GetPerfMetrics(ds.Self)

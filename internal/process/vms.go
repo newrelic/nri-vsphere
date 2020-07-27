@@ -25,12 +25,10 @@ func createVirtualMachineSamples(config *config.Config) {
 			if vm.Summary.Runtime.Host == nil {
 				continue // This property is null if the virtual machine is not running and is not assigned to run on a particular host.
 			}
-			if _, ok := dc.Hosts[*vm.Summary.Runtime.Host]; !ok {
+			if h := dc.GetHost(vm.Summary.Runtime.Host.Reference()); h == nil || h.Parent == nil {
 				continue
 			}
-			if dc.Hosts[*vm.Summary.Runtime.Host].Parent == nil {
-				continue
-			}
+
 			vmHost := dc.Hosts[*vm.Summary.Runtime.Host]
 			vmHostParent := *vmHost.Parent
 			vmResourcePool := *vm.ResourcePool
@@ -39,8 +37,8 @@ func createVirtualMachineSamples(config *config.Config) {
 			datacenterName := dc.Datacenter.Name
 			entityName := hostConfigName + ":" + vmConfigName
 
-			if cluster, ok := dc.Clusters[vmHostParent]; ok {
-				entityName = cluster.Name + ":" + entityName
+			if c := dc.GetCluster(vmHostParent); c != nil {
+				entityName = c.Name + ":" + entityName
 			}
 
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
@@ -60,8 +58,8 @@ func createVirtualMachineSamples(config *config.Config) {
 				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
 
-			if cluster, ok := dc.Clusters[vmHostParent]; ok {
-				checkError(config.Logrus, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
+			if c := dc.GetCluster(vmHostParent); c != nil {
+				checkError(config.Logrus, ms.SetMetric("clusterName", c.Name, metric.ATTRIBUTE))
 			}
 
 			if config.IsVcenterAPIType {
@@ -69,12 +67,15 @@ func createVirtualMachineSamples(config *config.Config) {
 			}
 			checkError(config.Logrus, ms.SetMetric("hypervisorHostname", hostConfigName, metric.ATTRIBUTE))
 
-			resourcePoolName := dc.GetResourcePoolName(vmResourcePool)
-			checkError(config.Logrus, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
-
+			resourcePool := dc.GetResourcePool(vmResourcePool)
+			if resourcePool != nil {
+				checkError(config.Logrus, ms.SetMetric("resourcePoolName", resourcePool.Name, metric.ATTRIBUTE))
+			}
 			datastoreList := ""
 			for _, ds := range vm.Datastore {
-				datastoreList += dc.Datastores[ds].Name + "|"
+				if d := dc.GetDatastore(ds); d != nil {
+					datastoreList += d.Name + "|"
+				}
 			}
 			checkError(config.Logrus, ms.SetMetric("datastoreNameList", datastoreList, metric.ATTRIBUTE))
 			// vm
@@ -87,7 +88,9 @@ func createVirtualMachineSamples(config *config.Config) {
 
 			networkList := ""
 			for _, nw := range vm.Network {
-				networkList += dc.Networks[nw].Name + "|"
+				if n := dc.GetNetwork(nw); n != nil {
+					networkList += n.Name + "|"
+				}
 			}
 			checkError(config.Logrus, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
 

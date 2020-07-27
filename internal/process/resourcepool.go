@@ -36,9 +36,11 @@ func createResourcePoolSamples(config *config.Config) {
 			}
 
 			checkError(config.Logrus, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
+
 			if config.Args.DatacenterLocation != "" {
 				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
+
 			if config.IsVcenterAPIType {
 				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
 				if cluster, ok := dc.Clusters[rp.Owner]; ok {

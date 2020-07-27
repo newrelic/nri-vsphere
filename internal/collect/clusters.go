@@ -30,7 +30,7 @@ func Clusters(config *config.Config) {
 		defer func() {
 			err := cv.Destroy(ctx)
 			if err != nil {
-				config.Logrus.WithError(err).Error("error while cleaning up cluster container view")
+				logger.WithError(err).Error("error while cleaning up cluster container view")
 			}
 		}()
 
