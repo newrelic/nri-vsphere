@@ -58,14 +58,14 @@ func Hosts(config *config.Config) {
 		}
 
 		var hostsRefs []types.ManagedObjectReference
-		for _, host := range hosts {
+		for j, host := range hosts {
 			if filterByTag && !config.TagCollector.MatchObjectTags(host.Reference()) {
 				config.Logrus.WithField("host", host.Name).
 					Debug("ignoring host since no tags matched the configured filters")
 				continue
 			}
 
-			config.Datacenters[i].Hosts[host.Self] = &host
+			config.Datacenters[i].Hosts[host.Self] = &hosts[j]
 			hostsRefs = append(hostsRefs, host.Self)
 		}
 

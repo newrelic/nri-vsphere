@@ -5,6 +5,7 @@ package collect
 
 import (
 	"context"
+
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -54,14 +55,14 @@ func Datastores(config *config.Config) {
 		}
 
 		var dsRefs []types.ManagedObjectReference
-		for _, ds := range datastores {
+		for j, ds := range datastores {
 			if filterByTag && !config.TagCollector.MatchObjectTags(ds.Reference()) {
 				logger.WithField("datastore", ds.Name).
 					Debug("ignoring datastore since no tags matched the configured filters")
 				continue
 			}
 
-			config.Datacenters[i].Datastores[ds.Self] = &ds
+			config.Datacenters[i].Datastores[ds.Self] = &datastores[j]
 			dsRefs = append(dsRefs, ds.Self)
 		}
 

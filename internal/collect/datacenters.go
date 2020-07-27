@@ -61,7 +61,7 @@ func Datacenters(config *config.Config) error {
 			continue
 		}
 
-		newDatacenter := model.NewDatacenter(&d)
+		newDatacenter := model.NewDatacenter(d)
 
 		if config.EventCollectionEnabled() {
 			c := cache.NewCache(d.Name, cs)

@@ -5,6 +5,7 @@ package collect
 
 import (
 	"context"
+
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -51,7 +52,7 @@ func VirtualMachines(config *config.Config) {
 				Error("failed to retrieve VM data for datacenter")
 			continue
 		}
-		logger.WithField("seconds", config.Uptime().Seconds()).Debug("after collecting vm data method.Retrieve")
+		logger.WithField("seconds", config.Uptime().Seconds()).WithField("count", len(vms)).Debug("after collecting vm data method.Retrieve")
 
 		if collectTags {
 			_, err = config.TagCollector.FetchTagsForObjects(vms)
@@ -62,17 +63,21 @@ func VirtualMachines(config *config.Config) {
 			}
 		}
 
-		logger.WithField("seconds", config.Uptime().Seconds()).Debug("vm tags collected")
-
 		var vmRefs []types.ManagedObjectReference
-		for _, vm := range vms {
-			if filterByTag && !config.TagCollector.MatchObjectTags(vm.Reference()) {
+		for j, vm := range vms {
+			tags := config.TagCollector.GetTagsForObject(vms[j].Reference())
+			if filterByTag && !config.TagCollector.MatchObjectTags(vms[j].Reference()) {
 				logger.WithField("virtual machine", vm.Name).
-					Debug("ignoring virtual machine since no tags matched the configured filters")
+					WithField("tags", tags).
+					Warn("ignoring virtual machine since no tags matched the configured filters")
 				continue
 			}
 
-			config.Datacenters[i].VirtualMachines[vm.Self] = &vm
+			logger.WithField("virtual machine", vm.Name).
+				WithField("tags", tags).
+				Info("virtual machine collected")
+
+			config.Datacenters[i].VirtualMachines[vm.Self] = &vms[j]
 			vmRefs = append(vmRefs, vm.Self)
 		}
 

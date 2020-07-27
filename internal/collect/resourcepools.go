@@ -5,6 +5,7 @@ package collect
 
 import (
 	"context"
+
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -53,14 +54,14 @@ func ResourcePools(config *config.Config) {
 		}
 
 		var rpRefs []types.ManagedObjectReference
-		for _, rp := range resourcePools {
+		for j, rp := range resourcePools {
 			if filterByTag && !config.TagCollector.MatchObjectTags(rp.Reference()) {
 				config.Logrus.WithField("resource pool", rp.Name).
 					Debug("ignoring resource pool since no tags matched the configured filters")
 				continue
 			}
 
-			config.Datacenters[i].ResourcePools[rp.Self] = &rp
+			config.Datacenters[i].ResourcePools[rp.Self] = &resourcePools[j]
 			rpRefs = append(rpRefs, rp.Self)
 		}
 

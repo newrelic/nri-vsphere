@@ -29,9 +29,9 @@ type Datacenter struct {
 }
 
 // NewDatacenter Initialize datacenter struct
-func NewDatacenter(datacenter *mo.Datacenter) *Datacenter {
+func NewDatacenter(datacenter mo.Datacenter) *Datacenter {
 	return &Datacenter{
-		Datacenter:      datacenter,
+		Datacenter:      &datacenter,
 		Hosts:           make(map[mor]*mo.HostSystem),
 		Clusters:        make(map[mor]*mo.ClusterComputeResource),
 		ResourcePools:   make(map[mor]*mo.ResourcePool),
