@@ -5,6 +5,7 @@ package process
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
 
@@ -14,6 +15,11 @@ import (
 func createHostSamples(config *config.Config) {
 	for _, dc := range config.Datacenters {
 		for _, host := range dc.Hosts {
+
+			// filtering here will to avoid sending data to backend
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(host.Self) {
+				continue
+			}
 
 			if host.Summary.Hardware == nil {
 				continue
@@ -47,21 +53,6 @@ func createHostSamples(config *config.Config) {
 
 			checkError(config.Logrus, ms.SetMetric("overallStatus", string(host.OverallStatus), metric.ATTRIBUTE))
 
-			resourcePools := dc.FindResourcePool(host.Parent.Reference())
-			resourcePoolList := ""
-			for _, rp := range resourcePools {
-				resourcePoolList += rp.Name + "|"
-			}
-			checkError(config.Logrus, ms.SetMetric("resourcePoolNameList", resourcePoolList, metric.ATTRIBUTE))
-
-			datastoreList := ""
-			for _, ds := range host.Datastore {
-				if d := dc.GetDatastore(ds); d != nil {
-					datastoreList += d.Name + "|"
-				}
-			}
-			checkError(config.Logrus, ms.SetMetric("datastoreNameList", datastoreList, metric.ATTRIBUTE))
-
 			if config.Args.DatacenterLocation != "" {
 				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
@@ -83,12 +74,30 @@ func createHostSamples(config *config.Config) {
 			checkError(config.Logrus, ms.SetMetric("standbyMode", host.Runtime.StandbyMode, metric.ATTRIBUTE))
 			checkError(config.Logrus, ms.SetMetric("cryptoState", host.Runtime.CryptoState, metric.ATTRIBUTE))
 
+			resourcePools := dc.FindResourcePools(host.Parent.Reference())
+			resourcePoolList := ""
+			for _, rp := range resourcePools {
+				resourcePoolList += rp.Name + "|"
+			}
+			resourcePoolList = strings.TrimSuffix(resourcePoolList, "|")
+			checkError(config.Logrus, ms.SetMetric("resourcePoolNameList", resourcePoolList, metric.ATTRIBUTE))
+
+			datastoreList := ""
+			for _, ds := range host.Datastore {
+				if d := dc.GetDatastore(ds); d != nil {
+					datastoreList += d.Name + "|"
+				}
+			}
+			datastoreList = strings.TrimSuffix(datastoreList, "|")
+			checkError(config.Logrus, ms.SetMetric("datastoreNameList", datastoreList, metric.ATTRIBUTE))
+
 			networkList := ""
 			for _, nw := range host.Network {
 				if n := dc.GetNetwork(nw); n != nil {
 					networkList += n.Name + "|"
 				}
 			}
+			networkList = strings.TrimSuffix(networkList, "|")
 			checkError(config.Logrus, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
 
 			checkError(config.Logrus, ms.SetMetric("uuid", host.Summary.Hardware.Uuid, metric.ATTRIBUTE))

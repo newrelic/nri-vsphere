@@ -5,9 +5,9 @@ package process
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/newrelic/nri-vsphere/internal/config"
+	"strconv"
+	"strings"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 )
@@ -16,31 +16,42 @@ func createVirtualMachineSamples(config *config.Config) {
 	for _, dc := range config.Datacenters {
 		for _, vm := range dc.VirtualMachines {
 
+			// filtering here will to avoid sending data to backend
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(vm.Self) {
+				continue
+			}
+
+			// The virtual machine configuration is not guaranteed to be available. For example, the configuration
+			// information would be unavailable if the server is unable to access the virtual machine files on disk,
+			// and is often also unavailable during the initial phases of virtual machine creation.
 			if vm.Config == nil {
-				continue // The virtual machine configuration is not guaranteed to be available. For example, the configuration information would be unavailable if the server is unable to access the virtual machine files on disk, and is often also unavailable during the initial phases of virtual machine creation.
+				continue
 			}
+
+			// resourcePool Returns null if the virtual machine is a template or the session has no access to the resource pool.
 			if vm.ResourcePool == nil {
-				continue // resourcePool Returns null if the virtual machine is a template or the session has no access to the resource pool.
+				continue
 			}
+
+			// This property is null if the virtual machine is not running and is not assigned to run on a particular host.
 			if vm.Summary.Runtime.Host == nil {
-				continue // This property is null if the virtual machine is not running and is not assigned to run on a particular host.
+				continue
 			}
+
 			if h := dc.GetHost(vm.Summary.Runtime.Host.Reference()); h == nil || h.Parent == nil {
 				continue
 			}
 
 			vmHost := dc.Hosts[*vm.Summary.Runtime.Host]
 			vmHostParent := *vmHost.Parent
-			vmResourcePool := *vm.ResourcePool
 			hostConfigName := vmHost.Summary.Config.Name
 			vmConfigName := vm.Summary.Config.Name
 			datacenterName := dc.Datacenter.Name
-			entityName := hostConfigName + ":" + vmConfigName
 
+			entityName := hostConfigName + ":" + vmConfigName
 			if c := dc.GetCluster(vmHostParent); c != nil {
 				entityName = c.Name + ":" + entityName
 			}
-
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
 			// Unique identifier for the vm entity
@@ -48,7 +59,10 @@ func createVirtualMachineSamples(config *config.Config) {
 
 			e, ms, err := createNewEntityWithMetricSet(config, entityTypeVm, entityName, instanceUuid)
 			if err != nil {
-				config.Logrus.WithError(err).WithField("vmName", entityName).WithField("instanceUuid", instanceUuid).Error("failed to create metricSet")
+				config.Logrus.WithError(err).
+					WithField("vmName", entityName).
+					WithField("instanceUuid", instanceUuid).
+					Error("failed to create metricSet")
 				continue
 			}
 
@@ -58,39 +72,46 @@ func createVirtualMachineSamples(config *config.Config) {
 				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
 
+			if config.IsVcenterAPIType {
+				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
+			}
+
 			if c := dc.GetCluster(vmHostParent); c != nil {
 				checkError(config.Logrus, ms.SetMetric("clusterName", c.Name, metric.ATTRIBUTE))
 			}
 
-			if config.IsVcenterAPIType {
-				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
-			}
 			checkError(config.Logrus, ms.SetMetric("hypervisorHostname", hostConfigName, metric.ATTRIBUTE))
 
+			// vm
+			checkError(config.Logrus, ms.SetMetric("vmConfigName", vmConfigName, metric.ATTRIBUTE))
+			checkError(config.Logrus, ms.SetMetric("instanceUuid", instanceUuid, metric.ATTRIBUTE))
+
+			// not available if VM is offline
+			if vm.Summary.Guest != nil {
+				checkError(config.Logrus, ms.SetMetric("vmHostname", vm.Summary.Guest.HostName, metric.ATTRIBUTE))
+			}
+
+			vmResourcePool := *vm.ResourcePool
 			resourcePool := dc.GetResourcePool(vmResourcePool)
 			if resourcePool != nil {
 				checkError(config.Logrus, ms.SetMetric("resourcePoolName", resourcePool.Name, metric.ATTRIBUTE))
 			}
+
 			datastoreList := ""
 			for _, ds := range vm.Datastore {
 				if d := dc.GetDatastore(ds); d != nil {
 					datastoreList += d.Name + "|"
 				}
+				datastoreList = strings.TrimSuffix(datastoreList, "|")
 			}
 			checkError(config.Logrus, ms.SetMetric("datastoreNameList", datastoreList, metric.ATTRIBUTE))
-			// vm
-			// not available if VM is offline
-			if vm.Summary.Guest != nil {
-				checkError(config.Logrus, ms.SetMetric("vmHostname", vm.Summary.Guest.HostName, metric.ATTRIBUTE))
-			}
-			checkError(config.Logrus, ms.SetMetric("vmConfigName", vmConfigName, metric.ATTRIBUTE))
-			checkError(config.Logrus, ms.SetMetric("instanceUuid", instanceUuid, metric.ATTRIBUTE))
 
 			networkList := ""
 			for _, nw := range vm.Network {
 				if n := dc.GetNetwork(nw); n != nil {
 					networkList += n.Name + "|"
 				}
+				networkList = strings.TrimSuffix(networkList, "|")
 			}
 			checkError(config.Logrus, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
 
@@ -108,7 +129,6 @@ func createVirtualMachineSamples(config *config.Config) {
 			memoryFree := memorySize - memoryUsed
 			checkError(config.Logrus, ms.SetMetric("mem.free", memoryFree, metric.GAUGE))
 			checkError(config.Logrus, ms.SetMetric("mem.hostUsage", vm.Summary.QuickStats.HostMemoryUsage, metric.GAUGE))
-
 			checkError(config.Logrus, ms.SetMetric("mem.balloned", vm.Summary.QuickStats.BalloonedMemory, metric.GAUGE))
 			checkError(config.Logrus, ms.SetMetric("mem.swapped", vm.Summary.QuickStats.SwappedMemory, metric.GAUGE))
 			swappedSsd := float64(vm.Summary.QuickStats.SsdSwappedMemory) / (1 << 10)
@@ -152,11 +172,12 @@ func createVirtualMachineSamples(config *config.Config) {
 			if vm.Guest != nil {
 				checkError(config.Logrus, ms.SetMetric("ipAddress", vm.Guest.IpAddress, metric.ATTRIBUTE))
 			}
+
 			// vm state
 			checkError(config.Logrus, ms.SetMetric("connectionState", fmt.Sprintf("%v", vm.Runtime.ConnectionState), metric.ATTRIBUTE))
 			checkError(config.Logrus, ms.SetMetric("powerState", fmt.Sprintf("%v", vm.Runtime.PowerState), metric.ATTRIBUTE))
 
-			//Tags
+			// Tags
 			if config.TagCollectionEnabled() {
 				tagsByCategory := config.TagCollector.GetTagsByCategories(vm.Self)
 				for k, v := range tagsByCategory {
@@ -165,6 +186,7 @@ func createVirtualMachineSamples(config *config.Config) {
 					checkError(config.Logrus, e.SetInventoryItem("tags", tagsPrefix+k, v))
 				}
 			}
+
 			// Performance metrics
 			if config.PerfMetricsCollectionEnabled() {
 				perfMetrics := dc.GetPerfMetrics(vm.Self)
@@ -173,6 +195,7 @@ func createVirtualMachineSamples(config *config.Config) {
 				}
 			}
 
+			// Snapshots
 			if vm.Snapshot != nil && config.Args.EnableVsphereSnapshots {
 				infoSnapshot, suspendMemory, suspendMemoryUnique := processLayoutEx(vm.LayoutEx)
 				checkError(config.Logrus, ms.SetMetric("disk.suspendMemory", strconv.FormatInt(suspendMemory, 10), metric.GAUGE))

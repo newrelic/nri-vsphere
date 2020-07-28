@@ -97,12 +97,12 @@ func createDatacenterSamples(config *config.Config) {
 		checkError(config.Logrus, ms.SetMetric("datastore.totalUsedGiB", (totalDatastoreCapacity-totalDatastoreFreeSpace)/(1<<30), metric.GAUGE))
 
 		checkError(config.Logrus, ms.SetMetric("overallStatus", string(dc.Datacenter.OverallStatus), metric.ATTRIBUTE))
-		checkError(config.Logrus, ms.SetMetric("datastores", len(dc.Datastores), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("datastoreCount", len(dc.Datastores), metric.GAUGE))
 		checkError(config.Logrus, ms.SetMetric("hostCount", len(dc.Hosts), metric.GAUGE))
-		checkError(config.Logrus, ms.SetMetric("vmCount", len(dc.VirtualMachines), metric.GAUGE))
-		checkError(config.Logrus, ms.SetMetric("networks", len(dc.Networks), metric.GAUGE))
-		checkError(config.Logrus, ms.SetMetric("resourcePools", countResourcePools, metric.GAUGE))
-		checkError(config.Logrus, ms.SetMetric("clusters", len(dc.Clusters), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("virtualMachineCount", len(dc.VirtualMachines), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("networkCount", len(dc.Networks), metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("resourcePoolCount", countResourcePools, metric.GAUGE))
+		checkError(config.Logrus, ms.SetMetric("clusterCount", len(dc.Clusters), metric.GAUGE))
 
 		// Tags
 		if config.TagCollectionEnabled() {

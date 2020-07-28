@@ -14,6 +14,12 @@ import (
 func createDatastoreSamples(config *config.Config) {
 	for _, dc := range config.Datacenters {
 		for _, ds := range dc.Datastores {
+
+			// filtering here will to avoid sending data to backend
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(ds.Self) {
+				continue
+			}
+
 			datacenterName := dc.Datacenter.Name
 
 			entityName := sanitizeEntityName(config, ds.Summary.Name, datacenterName)
