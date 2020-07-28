@@ -53,13 +53,12 @@ func Clusters(config *config.Config) {
 
 		var clusterRefs []types.ManagedObjectReference
 		for j, cluster := range clusters {
+			config.Datacenters[i].Clusters[cluster.Self] = &clusters[j]
+
+			// filtering here only affects performance metrics collection
 			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(cluster.Reference()) {
-				logger.WithField("cluster", cluster.Name).
-					Debug("ignoring cluster since no tags matched the configured filters")
 				continue
 			}
-
-			config.Datacenters[i].Clusters[cluster.Self] = &clusters[j]
 			clusterRefs = append(clusterRefs, cluster.Self)
 		}
 

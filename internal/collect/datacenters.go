@@ -53,6 +53,7 @@ func Datacenters(config *config.Config) error {
 	}
 
 	for _, d := range datacenters {
+		// for datacenters we keep the filtering here since there it is the root of the resource tree
 		if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(d.Reference()) {
 			config.Logrus.WithField("datacenter", d.Name).
 				Debug("ignoring datacenter since no tags matched the configured filters")

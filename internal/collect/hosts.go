@@ -53,13 +53,12 @@ func Hosts(config *config.Config) {
 
 		var hostsRefs []types.ManagedObjectReference
 		for j, host := range hosts {
+			config.Datacenters[i].Hosts[host.Self] = &hosts[j]
+
+			// filtering here only affects performance metrics collection
 			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(host.Reference()) {
-				logger.WithField("host", host.Name).
-					Debug("ignoring host since no tags matched the configured filters")
 				continue
 			}
-
-			config.Datacenters[i].Hosts[host.Self] = &hosts[j]
 			hostsRefs = append(hostsRefs, host.Self)
 		}
 

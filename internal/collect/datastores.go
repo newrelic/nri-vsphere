@@ -53,13 +53,12 @@ func Datastores(config *config.Config) {
 
 		var dsRefs []types.ManagedObjectReference
 		for j, ds := range datastores {
+			config.Datacenters[i].Datastores[ds.Self] = &datastores[j]
+
+			// filtering here only affects performance metrics collection
 			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(ds.Reference()) {
-				logger.WithField("datastore", ds.Name).
-					Debug("ignoring datastore since no tags matched the configured filters")
 				continue
 			}
-
-			config.Datacenters[i].Datastores[ds.Self] = &datastores[j]
 			dsRefs = append(dsRefs, ds.Self)
 		}
 

@@ -52,13 +52,12 @@ func ResourcePools(config *config.Config) {
 
 		var rpRefs []types.ManagedObjectReference
 		for j, rp := range resourcePools {
+			config.Datacenters[i].ResourcePools[rp.Self] = &resourcePools[j]
+
+			// filtering here only affects performance metrics collection
 			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(rp.Reference()) {
-				logger.WithField("resource pool", rp.Name).
-					Debug("ignoring resource pool since no tags matched the configured filters")
 				continue
 			}
-
-			config.Datacenters[i].ResourcePools[rp.Self] = &resourcePools[j]
 			rpRefs = append(rpRefs, rp.Self)
 		}
 

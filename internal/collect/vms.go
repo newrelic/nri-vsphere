@@ -62,13 +62,12 @@ func VirtualMachines(config *config.Config) {
 
 		var vmRefs []types.ManagedObjectReference
 		for j, vm := range vms {
+			config.Datacenters[i].VirtualMachines[vm.Self] = &vms[j]
+
+			// filtering here only affects performance metrics collection
 			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(vms[j].Reference()) {
-				logger.WithField("virtual machine", vm.Name).
-					Debug("ignoring virtual machine since no tags matched the configured filters")
 				continue
 			}
-
-			config.Datacenters[i].VirtualMachines[vm.Self] = &vms[j]
 			vmRefs = append(vmRefs, vm.Self)
 		}
 
