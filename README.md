@@ -1,10 +1,10 @@
 [![Community Project header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Community_Project.png)](https://opensource.newrelic.com/oss-category/#community-project)
 
-# New Relic VMware vShpere integration
+# New Relic VMware vSphere integration
 
 [![Known Vulnerabilities](https://snyk.io/test/github/newrelic/nri-vsphere/badge.svg?targetFile=vendor/vendor.json)](https://snyk.io/test/github/newrelic/nri-vsphere?targetFile=vendor/vendor.json)
 
-New Relic's VMware vShpere integration captures critical summary and performance metrics data by connecting to VMware vCenter or an ESXi Host. For more information, see [the official New Relic docs](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-vsphere-monitoring-integration).
+New Relic's VMware vSphere integration captures critical summary and performance metrics data by connecting to VMware vCenter or an ESXi Host. For more information, see [the official New Relic docs](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-vsphere-monitoring-integration).
 
 The integration collects data about data centers, clusters, virtual machines, hosts, datastores, resource pools, and networks. In addition to metrics, the integration can also capture vSphere events and VM snapshot information when enabled by the appropriate flags.
 
@@ -90,7 +90,7 @@ Please review [New Relic’s General Data Privacy Notice](https://newrelic.com/t
 
 ## Contributing
 
-We encourage your contributions to improve New Relic's VMware vShpere integration. Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
+We encourage your contributions to improve New Relic's VMware vSphere integration. Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
 If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company,  please drop us an email at opensource@newrelic.com.
 
 **A note about vulnerabilities**
@@ -102,10 +102,10 @@ If you believe you have found a security vulnerability in this project or any of
 If you would like to contribute to this project, please review [these guidelines](./CONTRIBUTING.md).
 
 To [all contributors](https://github.com/newrelic/nri-vsphere/graphs/contributors), we thank you!  Without your contribution, this project would not be what it is today.  We also host a community project page dedicated to 
-the [New Relic's VMware vShpere integration](https://opensource.newrelic.com/projects/newrelic/nri-vsphere).
+the [New Relic's VMware vSphere integration](https://opensource.newrelic.com/projects/newrelic/nri-vsphere).
 
 ## License
 
-New Relic's VMware vShpere integration is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
+New Relic's VMware vSphere integration is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
 
 New Relic Infrastructure Integration for VMware vSphere also uses source code from third-party libraries. You can find full details on which libraries are used and the terms under which they are licensed in the [third-party notices document](https://github.com/newrelic/nri-vsphere/blob/master/THIRD_PARTY_NOTICES.md).
