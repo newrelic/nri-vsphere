@@ -72,27 +72,27 @@ func Test_ListVirtualMachines_WithNonEmptyFilter(t *testing.T) {
 		tests := []struct {
 			name string
 			args string
-			want int
+			want bool
 		}{
 			{
 				name: "ByNonExistingTag",
 				args: "key=value",
-				want: 0,
+				want: false,
 			},
 			{
 				name: "ByExistingTag",
 				args: "region=eu",
-				want: 4,
+				want: true,
 			},
 			{
 				name: "ByMultipleMixedTags",
 				args: "key=value env=test",
-				want: 4,
+				want: true,
 			},
 			{
 				name: "ByMultipleExistingTags",
 				args: "region=eu env=test",
-				want: 4,
+				want: true,
 			},
 		}
 		for _, tt := range tests {
@@ -107,7 +107,10 @@ func Test_ListVirtualMachines_WithNonEmptyFilter(t *testing.T) {
 				VirtualMachines(cfg)
 
 				// then
-				assert.Equal(t, tt.want, len(cfg.Datacenters[0].VirtualMachines))
+				for k := range cfg.Datacenters[0].VirtualMachines {
+					actual := collector.MatchObjectTags(k)
+					assert.Equal(t, tt.want, actual)
+				}
 			})
 		}
 
