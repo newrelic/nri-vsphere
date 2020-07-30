@@ -38,7 +38,8 @@ func createVirtualMachineSamples(config *config.Config) {
 				continue
 			}
 
-			if h := dc.GetHost(vm.Summary.Runtime.Host.Reference()); h == nil || h.Parent == nil {
+			// we need the host and it's parent
+			if h, ok := dc.Hosts[vm.Summary.Runtime.Host.Reference()]; !ok || ok && h.Parent == nil {
 				continue
 			}
 
@@ -49,7 +50,7 @@ func createVirtualMachineSamples(config *config.Config) {
 			datacenterName := dc.Datacenter.Name
 
 			entityName := hostConfigName + ":" + vmConfigName
-			if c := dc.GetCluster(vmHostParent); c != nil {
+			if c, ok := dc.Clusters[vmHostParent]; ok {
 				entityName = c.Name + ":" + entityName
 			}
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
@@ -76,7 +77,7 @@ func createVirtualMachineSamples(config *config.Config) {
 				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
 			}
 
-			if c := dc.GetCluster(vmHostParent); c != nil {
+			if c, ok := dc.Clusters[vmHostParent]; ok {
 				checkError(config.Logrus, ms.SetMetric("clusterName", c.Name, metric.ATTRIBUTE))
 			}
 
@@ -92,14 +93,13 @@ func createVirtualMachineSamples(config *config.Config) {
 			}
 
 			vmResourcePool := *vm.ResourcePool
-			resourcePool := dc.GetResourcePool(vmResourcePool)
-			if resourcePool != nil {
+			if resourcePool, ok := dc.GetResourcePool(vmResourcePool); ok {
 				checkError(config.Logrus, ms.SetMetric("resourcePoolName", resourcePool.Name, metric.ATTRIBUTE))
 			}
 
 			datastoreList := ""
 			for _, ds := range vm.Datastore {
-				if d := dc.GetDatastore(ds); d != nil {
+				if d, ok := dc.Datastores[ds]; ok {
 					datastoreList += d.Name + "|"
 				}
 				datastoreList = strings.TrimSuffix(datastoreList, "|")
@@ -108,7 +108,7 @@ func createVirtualMachineSamples(config *config.Config) {
 
 			networkList := ""
 			for _, nw := range vm.Network {
-				if n := dc.GetNetwork(nw); n != nil {
+				if n, ok := dc.Networks[nw]; ok {
 					networkList += n.Name + "|"
 				}
 				networkList = strings.TrimSuffix(networkList, "|")

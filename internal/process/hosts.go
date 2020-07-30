@@ -31,7 +31,7 @@ func createHostSamples(config *config.Config) {
 			entityName := hostConfigName
 			datacenterName := dc.Datacenter.Name
 
-			if cluster := dc.GetCluster(host.Parent.Reference()); cluster != nil {
+			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
 				entityName = cluster.Name + ":" + entityName
 			}
 
@@ -47,7 +47,7 @@ func createHostSamples(config *config.Config) {
 				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
 			}
 
-			if cluster := dc.GetCluster(host.Parent.Reference()); cluster != nil {
+			if cluster, ok := dc.Clusters[host.Parent.Reference()]; ok {
 				checkError(config.Logrus, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
 			}
 
@@ -84,7 +84,7 @@ func createHostSamples(config *config.Config) {
 
 			datastoreList := ""
 			for _, ds := range host.Datastore {
-				if d := dc.GetDatastore(ds); d != nil {
+				if d, ok := dc.Datastores[ds]; ok {
 					datastoreList += d.Name + "|"
 				}
 			}
@@ -93,7 +93,7 @@ func createHostSamples(config *config.Config) {
 
 			networkList := ""
 			for _, nw := range host.Network {
-				if n := dc.GetNetwork(nw); n != nil {
+				if n, ok := dc.Networks[nw]; ok {
 					networkList += n.Name + "|"
 				}
 			}

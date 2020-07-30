@@ -138,12 +138,17 @@ func setupLogger(config *config.Config) {
 
 func runIntegration(config *config.Config) {
 	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("before collecting data")
-	collect.CollectData(config)
+	err := collect.CollectData(config)
+	if err != nil {
+		config.Logrus.Error(err)
+		return
+	}
+
 	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("before processing data")
 	process.ProcessData(config)
 	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("after processing data")
 
-	err := config.Integration.Publish()
+	err = config.Integration.Publish()
 	if err != nil {
 		config.Logrus.WithError(err).Fatal("failed to publish")
 	}

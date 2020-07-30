@@ -27,7 +27,7 @@ func createResourcePoolSamples(config *config.Config) {
 
 			// Resource Pool could be owned by Cluster or a Host
 			ownerName := ""
-			if cluster := dc.GetCluster(rp.Owner); cluster != nil {
+			if cluster, ok := dc.Clusters[rp.Owner]; ok {
 				ownerName = cluster.Name
 			} else if host := dc.FindHost(rp.Owner); host != nil {
 				ownerName = host.Summary.Config.Name
@@ -49,7 +49,7 @@ func createResourcePoolSamples(config *config.Config) {
 
 			if config.IsVcenterAPIType {
 				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
-				if cluster := dc.GetCluster(rp.Owner); cluster != nil {
+				if cluster, ok := dc.Clusters[rp.Owner]; ok {
 					checkError(config.Logrus, ms.SetMetric("clusterName", cluster.Name, metric.ATTRIBUTE))
 				}
 			}

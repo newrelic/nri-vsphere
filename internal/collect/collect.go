@@ -1,6 +1,7 @@
 package collect
 
 import (
+	"errors"
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"sync"
 )
@@ -15,7 +16,7 @@ const (
 	CLUSTER         = "ClusterComputeResource"
 )
 
-func CollectData(config *config.Config) {
+func CollectData(config *config.Config) error {
 
 	if config.TagCollectionEnabled() {
 		err := config.TagCollector.BuildTagCache()
@@ -27,14 +28,14 @@ func CollectData(config *config.Config) {
 
 	err := Datacenters(config)
 	if err != nil {
-		return
+		return err
 	}
 	config.Logrus.WithField("seconds", config.Uptime()).Debug("after collecting dc data")
 
 	if len(config.Datacenters) == 0 {
-		config.Logrus.Debug("returning early. no datacenter was collected.")
-		return
+		return errors.New("no datacenter was collected. this is most likely an error in your filter")
 	}
+
 	// fetch vmware data async
 	var wg sync.WaitGroup
 	wg.Add(6)
@@ -73,4 +74,6 @@ func CollectData(config *config.Config) {
 
 	}()
 	wg.Wait()
+
+	return nil
 }

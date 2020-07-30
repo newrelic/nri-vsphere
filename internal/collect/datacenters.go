@@ -52,7 +52,7 @@ func Datacenters(config *config.Config) error {
 		config.Logrus.WithError(err).Warn("could not create cache for vsphere events. all events will be returned")
 	}
 
-	for _, d := range datacenters {
+	for i, d := range datacenters {
 		// for datacenters we keep the filtering here since there it is the root of the resource tree
 		if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(d.Reference()) {
 			config.Logrus.WithField("datacenter", d.Name).
@@ -60,7 +60,7 @@ func Datacenters(config *config.Config) error {
 			continue
 		}
 
-		newDatacenter := model.NewDatacenter(d)
+		newDatacenter := model.NewDatacenter(&datacenters[i])
 
 		if config.EventCollectionEnabled() {
 			c := cache.NewCache(d.Name, cs)

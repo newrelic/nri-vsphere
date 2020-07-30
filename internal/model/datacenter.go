@@ -29,9 +29,9 @@ type Datacenter struct {
 }
 
 // NewDatacenter Initialize datacenter struct
-func NewDatacenter(datacenter mo.Datacenter) *Datacenter {
+func NewDatacenter(datacenter *mo.Datacenter) *Datacenter {
 	return &Datacenter{
-		Datacenter:      &datacenter,
+		Datacenter:      datacenter,
 		Hosts:           make(map[mor]*mo.HostSystem),
 		Clusters:        make(map[mor]*mo.ClusterComputeResource),
 		ResourcePools:   make(map[mor]*mo.ResourcePool),
@@ -66,11 +66,11 @@ func (dc *Datacenter) FindHost(computeResourceReference mor) *mo.HostSystem {
 }
 
 // GetResourcePool returns the name of the Resource Pool if is not the default
-func (dc *Datacenter) GetResourcePool(resourcePoolReference mor) *mo.ResourcePool {
+func (dc *Datacenter) GetResourcePool(resourcePoolReference mor) (*mo.ResourcePool, bool) {
 	if !dc.IsDefaultResourcePool(resourcePoolReference) {
-		return dc.ResourcePools[resourcePoolReference]
+		return dc.ResourcePools[resourcePoolReference], true
 	}
-	return nil
+	return nil, false
 }
 
 // IsDefaultResourcePool returns true if the resource pool is the default
@@ -98,20 +98,4 @@ func (dc *Datacenter) GetPerfMetrics(ref mor) []performance.PerfMetric {
 		return perfMetrics
 	}
 	return nil
-}
-
-func (dc *Datacenter) GetDatastore(ds mor) *mo.Datastore {
-	return dc.Datastores[ds]
-}
-
-func (dc *Datacenter) GetNetwork(n mor) *mo.Network {
-	return dc.Networks[n]
-}
-
-func (dc *Datacenter) GetHost(h mor) *mo.HostSystem {
-	return dc.Hosts[h]
-}
-
-func (dc *Datacenter) GetCluster(c mor) *mo.ClusterComputeResource {
-	return dc.Clusters[c]
 }

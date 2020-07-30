@@ -41,7 +41,7 @@ func createClusterSamples(config *config.Config) {
 			//Retrieving the list of host belonging to the cluster
 			hostList := ""
 			for _, hr := range cluster.Host {
-				if h := dc.GetHost(hr); h != nil {
+				if h, ok := dc.Hosts[hr]; ok {
 					hostList += h.Summary.Config.Name + "|"
 				}
 				hostList = strings.TrimSuffix(hostList, "|")
@@ -51,7 +51,7 @@ func createClusterSamples(config *config.Config) {
 			//Retrieving the list of networks attached to the cluster
 			networkList := ""
 			for _, nr := range cluster.Network {
-				if n := dc.GetNetwork(nr); n != nil {
+				if n, ok := dc.Networks[nr]; ok {
 					networkList += n.Name + "|"
 				}
 				networkList = strings.TrimSuffix(networkList, "|")
@@ -61,7 +61,7 @@ func createClusterSamples(config *config.Config) {
 			//Retrieving the list of datastores attached to the cluster
 			datastoreList := ""
 			for _, dr := range cluster.Datastore {
-				if ds := dc.GetDatastore(dr); ds != nil {
+				if ds, ok := dc.Datastores[dr]; ok {
 					datastoreList += ds.Name + "|"
 				}
 				datastoreList = strings.TrimSuffix(datastoreList, "|")
