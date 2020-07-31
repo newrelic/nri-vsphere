@@ -59,6 +59,13 @@ func main() {
 
 	cfg.IsVcenterAPIType = cfg.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter"
 
+	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereEvents {
+		cfg.Logrus.Warn("It is not possible to fetch events from the vCenter if the integration is pointing to an host")
+	}
+	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereTags {
+		cfg.Logrus.Warn("It is not possible to fetch Tags from the vCenter if the integration is pointing to an host")
+	}
+
 	cfg.ViewManager = view.NewManager(cfg.VMWareClient.Client)
 
 	if cfg.TagCollectionEnabled() {
@@ -104,13 +111,6 @@ func checkAndSanitizeConfig(cfg *config.Config) {
 	}
 	if cfg.Args.Pass == "" {
 		cfg.Logrus.Fatal("missing argument `pass`, please check if password has been supplied")
-	}
-
-	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereEvents {
-		cfg.Logrus.Warn("It is not possible to fetch events from the vCenter if the integration is pointing to an host")
-	}
-	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereTags {
-		cfg.Logrus.Warn("It is not possible to fetch Tags from the vCenter if the integration is pointing to an host")
 	}
 
 	if cfg.Args.EnableVspherePerfMetrics && cfg.Args.PerfMetricFile == "" {
