@@ -11,10 +11,17 @@ import (
 func createResourcePoolSamples(config *config.Config) {
 	for _, dc := range config.Datacenters {
 		for _, rp := range dc.ResourcePools {
+
+			// filtering here will to avoid sending data to backend
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(rp.Self) {
+				continue
+			}
+
 			// Skip root default ResourcePool (not created by user)
 			if dc.IsDefaultResourcePool(rp.Reference()) {
 				continue
 			}
+
 			resourcePoolName := rp.Name
 			datacenterName := dc.Datacenter.Name
 
@@ -26,7 +33,6 @@ func createResourcePoolSamples(config *config.Config) {
 				ownerName = host.Summary.Config.Name
 			}
 			entityName := ownerName + ":" + resourcePoolName
-
 			entityName = sanitizeEntityName(config, entityName, datacenterName)
 
 			e, ms, err := createNewEntityWithMetricSet(config, entityTypeResourcePool, entityName, entityName)
@@ -36,9 +42,11 @@ func createResourcePoolSamples(config *config.Config) {
 			}
 
 			checkError(config.Logrus, ms.SetMetric("resourcePoolName", resourcePoolName, metric.ATTRIBUTE))
+
 			if config.Args.DatacenterLocation != "" {
 				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
 			}
+
 			if config.IsVcenterAPIType {
 				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
 				if cluster, ok := dc.Clusters[rp.Owner]; ok {

@@ -5,6 +5,7 @@ package process
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/newrelic/nri-vsphere/internal/config"
 
@@ -14,51 +15,57 @@ import (
 func createClusterSamples(config *config.Config) {
 	for _, dc := range config.Datacenters {
 		for _, cluster := range dc.Clusters {
+
+			// filtering here will to avoid sending data to backend
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(cluster.Self) {
+				continue
+			}
+
 			// // resolve hypervisor host
 			datacenterName := dc.Datacenter.Name
-
-			//Retrieving the list of host belonging to the cluster
-			hostList := ""
-			for _, hostReference := range cluster.Host {
-				if host, ok := dc.Hosts[hostReference.Reference()]; ok {
-					hostList = hostList + host.Summary.Config.Name + "|"
-				}
-			}
-
-			//Retrieving the list of networks attached to the cluster
-			networkList := ""
-			for _, networkReference := range cluster.Network {
-				if network, ok := dc.Networks[networkReference]; ok {
-					networkList = networkList + network.Name + "|"
-				}
-			}
-
-			//Retrieving the list of datastores attached to the cluster
-			datastoreList := ""
-			for _, datastoreReference := range cluster.Datastore {
-				if datastore, ok := dc.Datastores[datastoreReference]; ok {
-					datastoreList = datastoreList + datastore.Name + "|"
-				}
-			}
-
 			entityName := sanitizeEntityName(config, cluster.Name, datacenterName)
-
 			e, ms, err := createNewEntityWithMetricSet(config, entityTypeCluster, entityName, entityName)
 			if err != nil {
 				config.Logrus.WithError(err).WithField("clusterName", entityName).Error("failed to create metricSet")
 				continue
 			}
 
-			if config.Args.DatacenterLocation != "" {
-				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
-			}
-
 			if config.IsVcenterAPIType {
 				checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
 			}
 
-			checkError(config.Logrus, ms.SetMetric("networkList", networkList, metric.ATTRIBUTE))
+			if config.Args.DatacenterLocation != "" {
+				checkError(config.Logrus, ms.SetMetric("datacenterLocation", config.Args.DatacenterLocation, metric.ATTRIBUTE))
+			}
+
+			//Retrieving the list of host belonging to the cluster
+			hostList := ""
+			for _, hr := range cluster.Host {
+				if h, ok := dc.Hosts[hr]; ok {
+					hostList += h.Summary.Config.Name + "|"
+				}
+				hostList = strings.TrimSuffix(hostList, "|")
+			}
 			checkError(config.Logrus, ms.SetMetric("hostList", hostList, metric.ATTRIBUTE))
+
+			//Retrieving the list of networks attached to the cluster
+			networkList := ""
+			for _, nr := range cluster.Network {
+				if n, ok := dc.Networks[nr]; ok {
+					networkList += n.Name + "|"
+				}
+				networkList = strings.TrimSuffix(networkList, "|")
+			}
+			checkError(config.Logrus, ms.SetMetric("networkList", networkList, metric.ATTRIBUTE))
+
+			//Retrieving the list of datastores attached to the cluster
+			datastoreList := ""
+			for _, dr := range cluster.Datastore {
+				if ds, ok := dc.Datastores[dr]; ok {
+					datastoreList += ds.Name + "|"
+				}
+				datastoreList = strings.TrimSuffix(datastoreList, "|")
+			}
 			checkError(config.Logrus, ms.SetMetric("datastoreList", datastoreList, metric.ATTRIBUTE))
 
 			summary := cluster.Summary.GetComputeResourceSummary()

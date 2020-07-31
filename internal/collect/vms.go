@@ -5,6 +5,7 @@ package collect
 
 import (
 	"context"
+
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -15,9 +16,6 @@ import (
 func VirtualMachines(config *config.Config) {
 	ctx := context.Background()
 	m := config.ViewManager
-
-	collectTags := config.TagCollectionEnabled()
-	filterByTag := config.TagFilteringEnabled()
 
 	// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
 	propertiesToRetrieve := []string{"name", "summary", "network", "config", "guest", "runtime", "resourcePool", "datastore", "overallStatus"}
@@ -53,26 +51,23 @@ func VirtualMachines(config *config.Config) {
 		}
 		logger.WithField("seconds", config.Uptime().Seconds()).Debug("after collecting vm data method.Retrieve")
 
-		if collectTags {
+		if config.TagCollectionEnabled() {
 			_, err = config.TagCollector.FetchTagsForObjects(vms)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for virtual machines")
 			} else {
-				logger.WithField("seconds", config.Uptime().Seconds()).Debug("vms tags collected")
+				logger.WithField("seconds", config.Uptime()).Debug("vms tags collected")
 			}
 		}
 
-		logger.WithField("seconds", config.Uptime().Seconds()).Debug("vm tags collected")
-
 		var vmRefs []types.ManagedObjectReference
-		for _, vm := range vms {
-			if filterByTag && !config.TagCollector.MatchObjectTags(vm.Reference()) {
-				logger.WithField("virtual machine", vm.Name).
-					Debug("ignoring virtual machine since no tags matched the configured filters")
+		for j, vm := range vms {
+			config.Datacenters[i].VirtualMachines[vm.Self] = &vms[j]
+
+			// filtering here only affects performance metrics collection
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(vms[j].Reference()) {
 				continue
 			}
-
-			config.Datacenters[i].VirtualMachines[vm.Self] = &vm
 			vmRefs = append(vmRefs, vm.Self)
 		}
 
@@ -81,7 +76,7 @@ func VirtualMachines(config *config.Config) {
 			collectedData := config.PerfCollector.Collect(vmRefs, metricsToCollect, performance.RealTimeInterval)
 			dc.AddPerfMetrics(collectedData)
 
-			logger.WithField("seconds", config.Uptime().Seconds()).Debug("vms perf metrics collected")
+			logger.WithField("seconds", config.Uptime()).Debug("vms perf metrics collected")
 		}
 	}
 }

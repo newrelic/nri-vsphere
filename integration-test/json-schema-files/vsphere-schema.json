@@ -168,7 +168,7 @@
                   "datastoreNameList": {
                     "type": "string",
                     "enum": [
-                      "LocalDS_0|"
+                      "LocalDS_0"
                     ]
                   },
                   "disk.totalMiB": {
@@ -222,8 +222,8 @@
                   "networkNameList": {
                     "type": "string",
                     "enum": [
-                      "DC0_DVPG0|",
-                      "VM Network|DVS0-DVUplinks-9|DC0_DVPG0|"
+                      "DC0_DVPG0",
+                      "VM Network|DVS0-DVUplinks-9|DC0_DVPG0"
                     ]
                   },
                   "operatingSystem": {

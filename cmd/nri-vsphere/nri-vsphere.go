@@ -59,6 +59,13 @@ func main() {
 
 	cfg.IsVcenterAPIType = cfg.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter"
 
+	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereEvents {
+		cfg.Logrus.Warn("It is not possible to fetch events from the vCenter if the integration is pointing to an host")
+	}
+	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereTags {
+		cfg.Logrus.Warn("It is not possible to fetch Tags from the vCenter if the integration is pointing to an host")
+	}
+
 	cfg.ViewManager = view.NewManager(cfg.VMWareClient.Client)
 
 	if cfg.TagCollectionEnabled() {
@@ -106,13 +113,6 @@ func checkAndSanitizeConfig(cfg *config.Config) {
 		cfg.Logrus.Fatal("missing argument `pass`, please check if password has been supplied")
 	}
 
-	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereEvents {
-		cfg.Logrus.Warn("It is not possible to fetch events from the vCenter if the integration is pointing to an host")
-	}
-	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereTags {
-		cfg.Logrus.Warn("It is not possible to fetch Tags from the vCenter if the integration is pointing to an host")
-	}
-
 	if cfg.Args.EnableVspherePerfMetrics && cfg.Args.PerfMetricFile == "" {
 		var err error
 		if runtime.GOOS == "windows" {
@@ -138,12 +138,17 @@ func setupLogger(config *config.Config) {
 
 func runIntegration(config *config.Config) {
 	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("before collecting data")
-	collect.CollectData(config)
+	err := collect.CollectData(config)
+	if err != nil {
+		config.Logrus.Error(err)
+		return
+	}
+
 	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("before processing data")
 	process.ProcessData(config)
 	config.Logrus.WithField("seconds", config.Uptime().Seconds()).Debug("after processing data")
 
-	err := config.Integration.Publish()
+	err = config.Integration.Publish()
 	if err != nil {
 		config.Logrus.WithError(err).Fatal("failed to publish")
 	}

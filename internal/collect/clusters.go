@@ -5,6 +5,7 @@ package collect
 
 import (
 	"context"
+
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/types"
@@ -29,7 +30,7 @@ func Clusters(config *config.Config) {
 		defer func() {
 			err := cv.Destroy(ctx)
 			if err != nil {
-				config.Logrus.WithError(err).Error("error while cleaning up cluster container view")
+				logger.WithError(err).Error("error while cleaning up cluster container view")
 			}
 		}()
 
@@ -51,14 +52,13 @@ func Clusters(config *config.Config) {
 		}
 
 		var clusterRefs []types.ManagedObjectReference
-		for _, cluster := range clusters {
+		for j, cluster := range clusters {
+			config.Datacenters[i].Clusters[cluster.Self] = &clusters[j]
+
+			// filtering here only affects performance metrics collection
 			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(cluster.Reference()) {
-				logger.WithField("cluster", cluster.Name).
-					Debug("ignoring cluster since no tags matched the configured filters")
 				continue
 			}
-
-			config.Datacenters[i].Clusters[cluster.Self] = &cluster
 			clusterRefs = append(clusterRefs, cluster.Self)
 		}
 

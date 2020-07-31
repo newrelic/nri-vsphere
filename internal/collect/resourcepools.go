@@ -5,6 +5,7 @@ package collect
 
 import (
 	"context"
+
 	"github.com/newrelic/nri-vsphere/internal/config"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -15,9 +16,6 @@ import (
 func ResourcePools(config *config.Config) {
 	ctx := context.Background()
 	m := config.ViewManager
-
-	collectTags := config.TagCollectionEnabled()
-	filterByTag := config.TagFilteringEnabled()
 
 	propertiesToRetrieve := []string{"summary", "owner", "parent", "runtime", "name", "overallStatus", "vm", "resourcePool"}
 	for i, dc := range config.Datacenters {
@@ -32,7 +30,7 @@ func ResourcePools(config *config.Config) {
 		defer func() {
 			err := cv.Destroy(ctx)
 			if err != nil {
-				config.Logrus.WithError(err).Error("error while cleaning up resourcePools container view")
+				logger.WithError(err).Error("error while cleaning up resourcePools container view")
 			}
 		}()
 
@@ -43,24 +41,23 @@ func ResourcePools(config *config.Config) {
 			continue
 		}
 
-		if collectTags {
+		if config.TagCollectionEnabled() {
 			_, err = config.TagCollector.FetchTagsForObjects(resourcePools)
 			if err != nil {
 				logger.WithError(err).Warn("failed to retrieve tags for resourcePools", err)
 			} else {
-				logger.WithField("seconds", config.Uptime().Seconds()).Debug("resourcePools tags collected")
+				logger.WithField("seconds", config.Uptime()).Debug("resourcePools tags collected")
 			}
 		}
 
 		var rpRefs []types.ManagedObjectReference
-		for _, rp := range resourcePools {
-			if filterByTag && !config.TagCollector.MatchObjectTags(rp.Reference()) {
-				config.Logrus.WithField("resource pool", rp.Name).
-					Debug("ignoring resource pool since no tags matched the configured filters")
+		for j, rp := range resourcePools {
+			config.Datacenters[i].ResourcePools[rp.Self] = &resourcePools[j]
+
+			// filtering here only affects performance metrics collection
+			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(rp.Reference()) {
 				continue
 			}
-
-			config.Datacenters[i].ResourcePools[rp.Self] = &rp
 			rpRefs = append(rpRefs, rp.Self)
 		}
 
@@ -69,7 +66,7 @@ func ResourcePools(config *config.Config) {
 			collectedData := config.PerfCollector.Collect(rpRefs, metricsToCollect, performance.FiveMinutesInterval)
 			dc.AddPerfMetrics(collectedData)
 
-			logger.WithField("seconds", config.Uptime().Seconds()).Debug("resource pools perf metrics collected")
+			logger.WithField("seconds", config.Uptime()).Debug("resource pools perf metrics collected")
 		}
 	}
 }

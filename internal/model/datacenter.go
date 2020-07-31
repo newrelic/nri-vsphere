@@ -42,8 +42,8 @@ func NewDatacenter(datacenter *mo.Datacenter) *Datacenter {
 	}
 }
 
-// FindResourcePool finds the ResourcePool associated to a Cluster except for the default resource pool
-func (dc *Datacenter) FindResourcePool(clusterReference mor) (rp []*mo.ResourcePool) {
+// FindResourcePools finds the ResourcePool associated to a Cluster except for the default resource pool
+func (dc *Datacenter) FindResourcePools(clusterReference mor) (rp []*mo.ResourcePool) {
 	for _, resourcePool := range dc.ResourcePools {
 		// Default ResourcePool is the root, the rest should be listed as child
 		if (resourcePool.Owner == clusterReference) && (len(resourcePool.ResourcePool) > 0) {
@@ -65,12 +65,12 @@ func (dc *Datacenter) FindHost(computeResourceReference mor) *mo.HostSystem {
 	return nil
 }
 
-// GetResourcePoolName returns the name of the Resource Pool if is not the default
-func (dc *Datacenter) GetResourcePoolName(resourcePoolReference mor) string {
+// GetResourcePool returns the name of the Resource Pool if is not the default
+func (dc *Datacenter) GetResourcePool(resourcePoolReference mor) (*mo.ResourcePool, bool) {
 	if !dc.IsDefaultResourcePool(resourcePoolReference) {
-		return dc.ResourcePools[resourcePoolReference].Name
+		return dc.ResourcePools[resourcePoolReference], true
 	}
-	return ""
+	return nil, false
 }
 
 // IsDefaultResourcePool returns true if the resource pool is the default

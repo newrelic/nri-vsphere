@@ -18,26 +18,6 @@ import (
 	"testing"
 )
 
-func Test_ListCluster_WithEmptyFilter_ReturnsAllClusters(t *testing.T) {
-	simulator.Run(func(ctx context.Context, vc *vim25.Client) error {
-		vmClient, err := client.New(vc.URL().String(), "user", "pass", false)
-		assert.NoError(t, err)
-		vm := view.NewManager(vc)
-		assert.NotNil(t, vm)
-		// given
-		cfg := &config.Config{VMWareClient: vmClient, ViewManager: vm, Logrus: logrus.StandardLogger()}
-		cfg.Datacenters = append(cfg.Datacenters, getDatacenter(ctx, vm))
-
-		// when
-		Clusters(cfg)
-
-		// then
-		assert.True(t, len(cfg.Datacenters[0].Clusters) > 0)
-
-		return nil
-	})
-}
-
 func Test_ListClusters_WithNonEmptyFilter(t *testing.T) {
 	simulator.Run(func(ctx context.Context, vc *vim25.Client) error {
 		vmClient, err := client.New(vc.URL().String(), "user", "pass", false)
@@ -69,27 +49,27 @@ func Test_ListClusters_WithNonEmptyFilter(t *testing.T) {
 		tests := []struct {
 			name string
 			args string
-			want int
+			want bool
 		}{
 			{
 				name: "ByNonExistingTag",
 				args: "key=value",
-				want: 0,
+				want: false,
 			},
 			{
 				name: "ByExistingTag",
 				args: "region=eu",
-				want: 1,
+				want: true,
 			},
 			{
 				name: "ByMultipleMixedTags",
 				args: "key=value env=test",
-				want: 1,
+				want: true,
 			},
 			{
 				name: "ByMultipleExistingTags",
 				args: "region=eu env=test",
-				want: 1,
+				want: true,
 			},
 		}
 		for _, tt := range tests {
@@ -105,7 +85,10 @@ func Test_ListClusters_WithNonEmptyFilter(t *testing.T) {
 				Clusters(cfg)
 
 				// then
-				assert.Equal(t, tt.want, len(cfg.Datacenters[0].Clusters))
+				for k := range cfg.Datacenters[0].Clusters {
+					actual := collector.MatchObjectTags(k)
+					assert.Equal(t, tt.want, actual)
+				}
 			})
 		}
 
