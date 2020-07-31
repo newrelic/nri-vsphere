@@ -26,7 +26,7 @@ func getDatacenter(ctx context.Context, vm *view.Manager) *model.Datacenter {
 
 	var datacenters []mo.Datacenter
 	_ = cv.Retrieve(ctx, []string{DATACENTER}, []string{"name"}, &datacenters)
-	return model.NewDatacenter(datacenters[0])
+	return model.NewDatacenter(&datacenters[0])
 }
 
 func Test_ListDatacenters_WithEmptyFilter_ReturnsAllDatacenters(t *testing.T) {
