@@ -78,7 +78,7 @@
                        NeverOverwrite="yes" Permanent="yes">
                 <File Id="FILE_NRI_VSPHERE_CONFIG_YML"
                       Name="vsphere-config.yml.sample"
-                      Source="$(var.ProjectRootPath)config\vsphere-config-win.yml.sample"
+                      Source="$(var.ProjectRootPath)configs\vsphere-config-win.yml.sample"
                       KeyPath="yes"/>
             </Component>
        </ComponentGroup>
@@ -87,7 +87,7 @@
                        NeverOverwrite="yes" Permanent="yes">
                 <File Id="FILE_NRI_VSPHERE_PERF_METRICS_CONFIG"
                       Name="vsphere-performance.metrics"
-                      Source="$(var.ProjectRootPath)config\vsphere-performance.metrics"
+                      Source="$(var.ProjectRootPath)configs\vsphere-performance.metrics"
                       KeyPath="yes"/>
             </Component>
        </ComponentGroup>
