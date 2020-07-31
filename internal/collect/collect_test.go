@@ -33,7 +33,7 @@ func TestCollectData(t *testing.T) {
 	require.NoError(t, err)
 
 	c.ViewManager = view.NewManager(c.VMWareClient.Client)
-	CollectData(c)
+	_ = CollectData(c)
 
 	assert.Len(t, c.Datacenters, model.Datacenter)
 	assert.Len(t, c.Datacenters[0].Datastores, model.Datastore)
