@@ -4,10 +4,14 @@
 package config
 
 import (
+	"flag"
+	"fmt"
+	"os"
+	"time"
+
 	"github.com/newrelic/nri-vsphere/internal/model"
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/newrelic/nri-vsphere/internal/tag"
-	"time"
 
 	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
 	"github.com/newrelic/infra-integrations-sdk/integration"
@@ -46,7 +50,7 @@ type ArgumentList struct {
 	ValidateSSL            bool `default:"false" help:"Set to validates SSL when connecting to vCenter or Esxi Host"`
 	Version                bool `default:"false" help:"Set to print vSphere integration version and exit"`
 
-	IncludeTags string `default:"" help:"Comma-separated list of tag categories and values for resource inclusion. \nIf defined, only resources tagged with any of the tags will be included in the results. \nYou must also include 'enable_vsphere_tags' in order for this option to work. \nExample: --include_tags env=prod dc=us,eu"`
+	IncludeTags string `default:"" help:"Space-separated list of tag categories and values for resource inclusion. \nIf defined, only resources tagged with any of the tags will be included in the results. \nYou must also include 'enable_vsphere_tags' in order for this option to work. \nExample: --include_tags env=prod dc=eu"`
 }
 
 type Config struct {
@@ -68,6 +72,10 @@ type Config struct {
 }
 
 func New(buildVersion string) *Config {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s:\nFlags -events and -metrics are discarded\n\n", os.Args[0])
+		flag.PrintDefaults()
+	}
 	return &Config{
 		Logrus:               logrus.New(),
 		IntegrationName:      "com.newrelic.vsphere",

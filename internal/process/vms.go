@@ -5,11 +5,11 @@ package process
 
 import (
 	"fmt"
-	"github.com/newrelic/nri-vsphere/internal/config"
 	"strconv"
 	"strings"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
+	"github.com/newrelic/nri-vsphere/internal/config"
 )
 
 func createVirtualMachineSamples(config *config.Config) {
@@ -183,7 +183,7 @@ func createVirtualMachineSamples(config *config.Config) {
 				for k, v := range tagsByCategory {
 					checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 					// add tags to inventory due to the inventory workaround
-					checkError(config.Logrus, e.SetInventoryItem("tags", tagsPrefix+k, v))
+					addTagsToInventory(config, e, k, v)
 				}
 			}
 

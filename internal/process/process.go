@@ -26,6 +26,7 @@ const (
 	sampleTypeSnapshotVm = "SnapshotVm"
 
 	tagsPrefix       = "label."
+	tagsInventoryKey = "tags"
 	perfMetricPrefix = "perf."
 )
 
@@ -128,7 +129,15 @@ func createNewEntityWithMetricSet(config *config.Config, typeEntity string, enti
 	}
 
 	// entity displayName
-	checkError(config.Logrus, workingEntity.SetInventoryItem("vsphere"+typeEntity, "name", entityName))
+	if config.Args.HasInventory() {
+		checkError(config.Logrus, workingEntity.SetInventoryItem("vsphere"+typeEntity, "name", entityName))
+	}
 	ms := workingEntity.NewMetricSet("VSphere" + typeEntity + "Sample")
 	return workingEntity, ms, nil
+}
+
+func addTagsToInventory(config *config.Config, e *integration.Entity, category, tag string) {
+	if config.Args.HasInventory() {
+		checkError(config.Logrus, e.SetInventoryItem(tagsInventoryKey, tagsPrefix+category, tag))
+	}
 }
