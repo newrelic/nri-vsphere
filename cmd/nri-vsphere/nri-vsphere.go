@@ -5,18 +5,19 @@ package main
 
 import (
 	"fmt"
-	"github.com/newrelic/infra-integrations-sdk/integration"
-	"github.com/newrelic/nri-vsphere/internal/performance"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 
+	"github.com/newrelic/infra-integrations-sdk/integration"
 	"github.com/newrelic/nri-vsphere/internal/client"
 	"github.com/newrelic/nri-vsphere/internal/collect"
 	"github.com/newrelic/nri-vsphere/internal/config"
+	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/newrelic/nri-vsphere/internal/process"
 	"github.com/newrelic/nri-vsphere/internal/tag"
+
 	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/view"
 
@@ -58,6 +59,7 @@ func main() {
 	}()
 
 	cfg.IsVcenterAPIType = cfg.VMWareClient.ServiceContent.About.ApiType == "VirtualCenter"
+	cfg.Logrus.Debugf("API type:%s", cfg.VMWareClient.ServiceContent.About.ApiType)
 
 	if !cfg.IsVcenterAPIType && cfg.Args.EnableVsphereEvents {
 		cfg.Logrus.Warn("It is not possible to fetch events from the vCenter if the integration is pointing to an host")
