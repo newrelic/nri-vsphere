@@ -80,7 +80,7 @@ func createResourcePoolSamples(config *config.Config) {
 				for k, v := range tagsByCategory {
 					checkError(config.Logrus, ms.SetMetric(tagsPrefix+k, v, metric.ATTRIBUTE))
 					// add tags to inventory due to the inventory workaround
-					checkError(config.Logrus, e.SetInventoryItem("tags", tagsPrefix+k, v))
+					addTagsToInventory(config, e, k, v)
 				}
 			}
 			// Performance metrics
