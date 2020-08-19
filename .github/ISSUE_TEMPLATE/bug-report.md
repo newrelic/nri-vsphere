@@ -1,8 +1,8 @@
 ---
-name: Bug report
-about: Describe a scenario in which this project behaves unexpectedly
+name: "Bug report \U0001F41B"
+about: Create a report to help us improve
 title: ''
-labels: bug, needs-triage
+labels: bug
 assignees: ''
 ---
 
@@ -19,7 +19,7 @@ assignees: ''
 [NOTE]: # ( Provide any other relevant log data. )
 [TIP]:  # ( Scrub logs and diagnostic information for sensitive information )
 
-## Steps to Reproduce**
+## Steps to Reproduce
 [NOTE]: # ( Please be as specific as possible. )
 [TIP]:  # ( Link a sample application that demonstrates the issue. )
 
