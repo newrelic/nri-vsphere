@@ -171,6 +171,23 @@ func createVirtualMachineSamples(config *config.Config) {
 			// network
 			if vm.Guest != nil {
 				checkError(config.Logrus, ms.SetMetric("ipAddress", vm.Guest.IpAddress, metric.ATTRIBUTE))
+				var ipAddresses strings.Builder
+				for _, nic := range vm.Guest.Net {
+					// available in api v5
+					if nic.IpConfig != nil {
+						for _, addr := range nic.IpConfig.IpAddress {
+							ipAddresses.WriteString(addr.IpAddress)
+							ipAddresses.WriteRune('|')
+						}
+					} else {
+						for _, ip := range nic.IpAddress {
+							ipAddresses.WriteString(ip)
+							ipAddresses.WriteRune('|')
+						}
+					}
+				}
+				// it might be empty but we still add the attribute for consistency
+				checkError(config.Logrus, ms.SetMetric("ipAddresses", ipAddresses.String(), metric.ATTRIBUTE))
 			}
 
 			// vm state

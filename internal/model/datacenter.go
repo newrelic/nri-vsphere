@@ -68,7 +68,8 @@ func (dc *Datacenter) FindHost(computeResourceReference mor) *mo.HostSystem {
 // GetResourcePool returns the name of the Resource Pool if is not the default
 func (dc *Datacenter) GetResourcePool(resourcePoolReference mor) (*mo.ResourcePool, bool) {
 	if !dc.IsDefaultResourcePool(resourcePoolReference) {
-		return dc.ResourcePools[resourcePoolReference], true
+		rp, ok := dc.ResourcePools[resourcePoolReference]
+		return rp, ok
 	}
 	return nil, false
 }
