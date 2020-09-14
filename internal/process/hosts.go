@@ -22,6 +22,7 @@ func createHostSamples(config *config.Config) {
 			}
 
 			if host.Summary.Hardware == nil {
+				config.Logrus.WithField("hostMOR", host.Self.String()).Debug("host.Summary.Hardware is nil for this host")
 				continue
 			}
 			// bios uuid identifies the host unequivocally and is available from vcenter/host api
