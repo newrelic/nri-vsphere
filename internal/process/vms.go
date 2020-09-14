@@ -25,21 +25,25 @@ func createVirtualMachineSamples(config *config.Config) {
 			// information would be unavailable if the server is unable to access the virtual machine files on disk,
 			// and is often also unavailable during the initial phases of virtual machine creation.
 			if vm.Config == nil {
+				config.Logrus.WithField("vmMOR", vm.Self.String()).Debug("vm.Config is nil for this vm")
 				continue
 			}
 
 			// resourcePool Returns null if the virtual machine is a template or the session has no access to the resource pool.
 			if vm.ResourcePool == nil {
+				config.Logrus.WithField("vmName", vm.Config.Name).Debug("vm.ResourcePool is nil for this vm")
 				continue
 			}
 
 			// This property is null if the virtual machine is not running and is not assigned to run on a particular host.
 			if vm.Summary.Runtime.Host == nil {
+				config.Logrus.WithField("vmName", vm.Config.Name).Debug("vm.Summary.Runtime.Host is nil for this vm")
 				continue
 			}
 
 			// we need the host and it's parent
 			if h, ok := dc.Hosts[vm.Summary.Runtime.Host.Reference()]; !ok || ok && h.Parent == nil {
+				config.Logrus.WithField("vmName", vm.Config.Name).Debug("host not found for this vm")
 				continue
 			}
 
@@ -171,6 +175,24 @@ func createVirtualMachineSamples(config *config.Config) {
 			// network
 			if vm.Guest != nil {
 				checkError(config.Logrus, ms.SetMetric("ipAddress", vm.Guest.IpAddress, metric.ATTRIBUTE))
+				var ipAddresses strings.Builder
+				for _, nic := range vm.Guest.Net {
+					// available in api v5
+					if nic.IpConfig != nil {
+						for _, addr := range nic.IpConfig.IpAddress {
+							ipAddresses.WriteString(addr.IpAddress)
+							ipAddresses.WriteRune('|')
+						}
+					} else {
+						for _, ip := range nic.IpAddress {
+							ipAddresses.WriteString(ip)
+							ipAddresses.WriteRune('|')
+						}
+					}
+				}
+				ipAddressesTrimmed := strings.TrimSuffix(ipAddresses.String(), "|")
+				// it might be empty but we still add the attribute for consistency
+				checkError(config.Logrus, ms.SetMetric("ipAddresses", ipAddressesTrimmed, metric.ATTRIBUTE))
 			}
 
 			// vm state
