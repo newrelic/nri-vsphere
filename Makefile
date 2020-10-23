@@ -117,5 +117,7 @@ endif
 
 # Import fragments
 include package.mk
+include $(CURDIR)/build/ci.mk
+include $(CURDIR)/build/release.mk
 
 .PHONY: all build

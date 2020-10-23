@@ -27,6 +27,7 @@ versioninfo.json
 *.prof
 *.syso
 *.wxs
+*.gpg
 target/
 !Dockerfile.test
 
