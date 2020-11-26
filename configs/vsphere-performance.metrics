@@ -12,6 +12,12 @@
 # For more information on performance metrics, see the official VMware docs:
 # https://docs.vmware.com/en/VMware-vSphere/6.7/vsphere-esxi-vcenter-server-67-monitoring-performance-guide.pdf
 # https://vdc-repo.vmware.com/vmwb-repository/dcr-public/790263bc-bd30-48f1-af12-ed36055d718b/e5f17bfc-ecba-40bf-a04f-376bbb11e811/vim.PerformanceManager.html
+#
+# Notice that the integration fetches multiple values for a single performance metrics related to different "instances"
+# belonging to a single object, but only the average value is stored.
+# For example, the counter `cpu.usage.average` returns multiple values: one for each CPU core of an host.
+# The integration uses these values to compute the average, that is then included in the `VSphereHostSample` sample.
+#
 
 host:
   level_1:
