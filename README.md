@@ -30,6 +30,12 @@ Use the flag `--perf_level` to select which level of **performance metrics** you
 
 Please note that the more performance metrics you enable the more load you add to your environment.
 
+Notice that the integration fetches multiple values for a single performance metrics related to different "instances" 
+belonging to a single object, but only the average value is stored.
+
+For example, the counter `cpu.usage.average` returns multiple values: one for each CPU core of an host.
+The integration uses these values to compute the average, that is then included in the `VSphereHostSample` sample.
+
 ## Building
 
 If you have downloaded the source code and installed the Go toolchain, you can build and run the vSphere integration locally.
