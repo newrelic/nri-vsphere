@@ -220,6 +220,73 @@ func TestPerfMetrics(t *testing.T) {
 
 }
 
+func TestMultipleEntities(t *testing.T) {
+
+	p := PerfCollector{
+		logger:                 logrus.New(),
+		metricsAvaliableByID:   map[int32]string{99: "SingleInstanceCounter", 100: "MultipleInstanceCounter", 3: "NotUsed"},
+		metricsAvaliableByName: map[string]int32{"SingleInstanceCounter": 99, "MultipleInstanceCounter": 100, "NotUsed": 3},
+	}
+
+	//No Panic expected if passing nil
+	assert.NotPanics(t, func() { p.processEntityMetrics(nil, nil) }, "we expect the function not to panic")
+
+	pem := &types.PerfEntityMetric{}
+	perfMetricsByRef := map[types.ManagedObjectReference][]PerfMetric{}
+	//No panic expected if passing empty struct
+	assert.NotPanics(t, func() { p.processEntityMetrics(pem, perfMetricsByRef) }, "we expect the function not to panic")
+
+	hostEntity := types.ManagedObjectReference{Type: "Host", Value: "Host-155"}
+
+	pemPopulated := &types.PerfEntityMetric{
+		PerfEntityMetricBase: types.PerfEntityMetricBase{
+			Entity: hostEntity,
+		},
+		SampleInfo: []types.PerfSampleInfo{},
+		Value: append([]types.BasePerfMetricSeries{},
+			returnPerfMetricIntSeries(100, "Instance1", 75),
+			returnPerfMetricIntSeries(100, "Instance2", 225),
+			returnPerfMetricIntSeries(100, "", 300),
+			returnPerfMetricIntSeries(99, "", 15)),
+	}
+	assert.NotPanics(t, func() { p.processEntityMetrics(pemPopulated, perfMetricsByRef) }, "we expect the function not to panic")
+	testTwoCunters(t, perfMetricsByRef, hostEntity)
+
+	// Testing retrieving data regarding a different host, it should not change any previous value
+	differentHost := types.ManagedObjectReference{Type: "Host", Value: "Different host"}
+	pemPopulated.Entity = differentHost
+	assert.NotPanics(t, func() { p.processEntityMetrics(pemPopulated, perfMetricsByRef) }, "we expect the function not to panic")
+	testTwoCunters(t, perfMetricsByRef, hostEntity)
+	testTwoCunters(t, perfMetricsByRef, differentHost)
+
+}
+
+func returnPerfMetricIntSeries(counter int32, instanceName string, value int64) *types.PerfMetricIntSeries {
+	return &types.PerfMetricIntSeries{
+		PerfMetricSeries: types.PerfMetricSeries{
+			Id: types.PerfMetricId{
+				CounterId: counter,
+				Instance:  instanceName,
+			},
+		},
+		Value: []int64{value},
+	}
+}
+
+func testTwoCunters(t *testing.T, perfMetricsByRef map[types.ManagedObjectReference][]PerfMetric, hostEntity types.ManagedObjectReference) {
+	for _, val := range perfMetricsByRef[hostEntity] {
+		if val.Counter == "MultipleInstanceCounter" {
+			assert.Equal(t, int64(200), val.Value)
+		}
+		if val.Counter == "SingleInstanceCounter" {
+			assert.Equal(t, int64(15), val.Value)
+		}
+		if val.Counter == "NotUsed" {
+			assert.Fail(t, "Not used counter should not be present")
+		}
+	}
+}
+
 func TestSanitize(t *testing.T) {
 	_, _, err := sanitizeArgs("1", "2")
 	assert.NoError(t, err)
