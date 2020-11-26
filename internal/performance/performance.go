@@ -125,7 +125,15 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 	return perfMetricsByRef
 }
 
+type Accumulator struct {
+	Occurrences int64
+	Sum         int64
+}
+
 func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetric, perfMetricsByRef map[types.ManagedObjectReference][]PerfMetric) {
+
+	// If for the same metrics multiple instances are returned we perform the average of the values
+	accumulateMetrics := map[string]*Accumulator{}
 	for _, metricValue := range metricsValues.Value {
 		metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries)
 		if !ok2 || metricValueSeries == nil {
@@ -133,7 +141,7 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 		}
 		name, ok := c.metricsAvaliableByID[metricValueSeries.Id.CounterId]
 		if !ok {
-			c.logger.Debugf("The perf metric Id:%v is not present in the map", metricValueSeries.Id.CounterId)
+			c.logger.Debugf("The perf metric Id: %v is not present in the map", metricValueSeries.Id.CounterId)
 			continue
 		}
 		if metricValueSeries.Value == nil {
@@ -145,14 +153,26 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 			c.logger.Debugf("The metric: %v is not containing at least one sample, this is not expected", name)
 			continue
 		}
-		// MaxSamples is set to 1 but the API is retreiving multiple samples with the same value for historical interval metrics.
+
+		// MaxSamples is set to 1 but the API is retrieving multiple samples with the same value for historical interval metrics.
 		// We will take just first one.
 		metricVal = metricValueSeries.Value[0]
+
+		// This is a short-lived object, the purpose is to compute the average of the different performance metrics
+		// when more than one instance per entity returns a value
+		if _, ok := accumulateMetrics[name]; !ok {
+			accumulateMetrics[name] = &Accumulator{}
+		}
+		accumulateMetrics[name].Occurrences++
+		accumulateMetrics[name].Sum += metricVal
+	}
+	for key, val := range accumulateMetrics {
 		perfMetricsByRef[metricsValues.Entity] = append(perfMetricsByRef[metricsValues.Entity], PerfMetric{
-			Counter: name,
-			Value:   metricVal,
+			Counter: key,
+			Value:   val.Sum / val.Occurrences,
 		})
 	}
+
 }
 
 func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) error {
@@ -217,10 +237,9 @@ func (c *PerfCollector) buildPerMetricID(countersByLevel map[string][]string) []
 		}
 		for _, metricName := range metrics {
 			if counterID, ok := c.metricsAvaliableByName[metricName]; ok {
-				//““ – A string of length zero directs the vSphere Server to return only aggregated instance
-				//data or rollup type data
-				//https://vdc-download.vmware.com/vmwb-repository/dcr-public/cdbbd51c-4824-4a1b-ad43-45df55a76a76/8cb3ed93-cac2-46aa-b329-db5a096af5bc/vsphere-web-services-sdk-67-programming-guide.pdf
-				pfi := types.PerfMetricId{CounterId: counterID, Instance: ""}
+				// For the instance property, specify an asterisk (“*”) to retrieve instance and aggregate data
+				// https://vdc-download.vmware.com/vmwb-repository/dcr-public/cdbbd51c-4824-4a1b-ad43-45df55a76a76/8cb3ed93-cac2-46aa-b329-db5a096af5bc/vsphere-web-services-sdk-67-programming-guide.pdf
+				pfi := types.PerfMetricId{CounterId: counterID, Instance: "*"}
 
 				tmp = append(tmp, pfi)
 			} else {
