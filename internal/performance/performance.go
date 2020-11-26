@@ -115,7 +115,7 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 				//The query return a generic inside a generic, however there is only one type we ca cast to:
 				// More info: https://vdc-repo.vmware.com/vmwb-repository/dcr-public/790263bc-bd30-48f1-af12-ed36055d718b/e5f17bfc-ecba-40bf-a04f-376bbb11e811/vim.PerformanceManager.html#queryStats
 				metricsValues, ok := returnVal.(*types.PerfEntityMetric)
-				if !ok || metricsValues == nil {
+				if !ok {
 					continue
 				}
 				c.processEntityMetrics(metricsValues, perfMetricsByRef)
@@ -134,6 +134,10 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 
 	// If for the same metrics multiple instances are returned we perform the average of the values
 	accumulateMetrics := map[string]*Accumulator{}
+	if metricsValues == nil {
+		return
+	}
+
 	for _, metricValue := range metricsValues.Value {
 		metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries)
 		if !ok2 || metricValueSeries == nil {
