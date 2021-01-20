@@ -25,12 +25,12 @@ import (
 )
 
 var (
-	buildVersion = "0.0.0" // set by -ldflags on build
+	integrationVersion = "0.0.0" // set by -ldflags on build
 )
 
 func main() {
 
-	cfg := config.New(buildVersion)
+	cfg := config.New(integrationVersion)
 
 	err := infraIntegration(cfg)
 	if err != nil {
@@ -40,10 +40,10 @@ func main() {
 
 	// print integration version and exit
 	if cfg.Args.Version {
-		cfg.Logrus.Infof("integration version: %s", buildVersion)
+		cfg.Logrus.Infof("integration version: %s", integrationVersion)
 		return
 	}
-	cfg.Logrus.Debugf("integration version: %s", buildVersion)
+	cfg.Logrus.Debugf("integration version: %s", integrationVersion)
 
 	checkAndSanitizeConfig(cfg)
 

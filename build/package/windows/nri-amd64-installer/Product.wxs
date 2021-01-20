@@ -2,7 +2,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <?define Version = "$(var.IntegrationVersion)" ?>
     <?define ProductId = "*" ?>
-    <?define UpgradeCode = "{5fb70e00-df86-4f73-bbe0-d7ee67f039d3}" ?>
+    <?define UpgradeCode = "{27cf7682-b909-4940-8368-ce4719af1b82}" ?>
 
     <Product Id="$(var.ProductId)"
              Name="New Relic Infrastructure Integration, nri-$(var.IntegrationName)"
@@ -27,8 +27,8 @@
             <ComponentRef Id="CMP_V1_CUSTOM_PLUGINS"/>
             <ComponentRef Id="CMP_V1_CUSTOM_PLUGINS_BIN"/>
             <ComponentGroupRef Id="CustomPluginsBinComponent"/>
-            <ComponentGroupRef Id="CustomPluginsComponent"/>
             <ComponentGroupRef Id="PluginConfigsComponent"/>
+            <ComponentGroupRef Id="PluginPerfMetricsConfigsComponent"/>
         </Feature>
     </Product>
 
@@ -78,22 +78,22 @@
                       KeyPath="yes"/>
             </Component>
         </ComponentGroup>
-        <ComponentGroup Id="CustomPluginsComponent" Directory="CustomPluginsFolder">
-            <Component Id="CMP_NRI_$(var.IntegrationName)_DEFINITION_YML" Guid="a63ea26f-b386-4410-9291-ecee4624eec9" Win64="yes">
-                <File Id="FILE_NRI_$(var.IntegrationName)_DEFINITION_YML"
-                      Name="$(var.IntegrationName)-win-definition.yml"
-                      Source="$(var.BinariesPath)New Relic\newrelic-infra\newrelic-integrations\$(var.IntegrationName)-win-definition.yml"
-                      KeyPath="yes"/>
-            </Component>
-        </ComponentGroup>
         <ComponentGroup Id="PluginConfigsComponent" Directory="PluginConfigsFolder">
-            <Component Id="CMP_NRI_$(var.IntegrationName)_CONFIG_YML" Guid="35fb6fa0-778b-4722-abe2-f243026ccbbe" Win64="yes"
-                       NeverOverwrite="yes" Permanent="yes">
+            <Component Id="CMP_NRI_$(var.IntegrationName)_CONFIG_YML" Guid="35fb6fa0-778b-4722-abe2-f243026ccbbe" Win64="yes">
                 <File Id="FILE_NRI_$(var.IntegrationName)_CONFIG_YML"
-                      Name="$(var.IntegrationName)-win-config.yml.sample"
+                      Name="$(var.IntegrationName)-config.yml.sample"
                       Source="$(var.BinariesPath)New Relic\newrelic-infra\integrations.d\$(var.IntegrationName)-win-config.yml.sample"
                       KeyPath="yes"/>
             </Component>
         </ComponentGroup>
+        <ComponentGroup Id="PluginPerfMetricsConfigsComponent" Directory="PluginConfigsFolder">
+            <Component Id="CMP_NRI_VSPHERE_PERF_METRICS_CONFIG" Guid="2951c9e2-e78c-497d-9884-0bb505b34d5a" Win64="yes"
+                       NeverOverwrite="yes" Permanent="yes">
+                <File Id="FILE_NRI_VSPHERE_PERF_METRICS_CONFIG"
+                      Name="vsphere-performance.metrics"
+                      Source="$(var.ProjectRootPath)config\vsphere-performance.metrics"
+                      KeyPath="yes"/>
+            </Component>
+       </ComponentGroup>
     </Fragment>
 </Wix>

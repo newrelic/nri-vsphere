@@ -1,7 +1,5 @@
 integrations:
-  - name: com.newrelic.vsphere
-    exec:
-      - C:\Program Files\New Relic\newrelic-infra\newrelic-integrations\bin\nri-vsphere.exe
+  - name: nri-vsphere
     env:
       # vSphere API connection data (vCenter or ESXi servers)
       URL: https://<YOUR_VSPHERE_API_URL>/sdk
@@ -36,7 +34,7 @@ integrations:
 
       # Path to the performance metrics config file. This file contains the
       # performance counters that are going to be collected if available.
-      # PERF_METRIC_FILE: C:\Program Files\New Relic\newrelic-infra\integrations.d\vsphere-performance.metrics
+      # PERF_METRIC_FILE: /etc/newrelic-infra/integrations.d/vsphere-performance.metrics
 
       # Enable if you require SSL validation
       # VALIDATE_SSL: true 

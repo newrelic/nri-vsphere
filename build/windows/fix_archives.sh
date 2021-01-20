@@ -7,8 +7,9 @@ set -e
 #
 PROJECT_PATH=$1
 
-for zip_dirty in $(find dist -regex ".*_dirty\.\(zip\)");do
-  zip_file_name=${zip_dirty:5:${#zip_dirty}-(5+10)} # Strips begining and end chars
+find dist -regex ".*_dirty\.zip" | while read zip_dirty; do
+  zip_file_name=${zip_dirty/_dirty.zip} # Strips suffix
+  zip_file_name=${zip_file_name/dist\/} # Strip folder name
   ZIP_CLEAN="${zip_file_name}.zip"
   ZIP_TMP="dist/zip_temp"
   ZIP_CONTENT_PATH="${ZIP_TMP}/${zip_file_name}_content"
@@ -26,8 +27,8 @@ for zip_dirty in $(find dist -regex ".*_dirty\.\(zip\)");do
 
   echo "===> Move files inside ${zip_file_name}"
   mv ${ZIP_CONTENT_PATH}/nri-${INTEGRATION}.exe "${AGENT_DIR_IN_ZIP_PATH}/bin"
-  mv ${ZIP_CONTENT_PATH}/${INTEGRATION}-win-definition.yml "${AGENT_DIR_IN_ZIP_PATH}"
   mv ${ZIP_CONTENT_PATH}/${INTEGRATION}-win-config.yml.sample "${CONF_IN_ZIP_PATH}"
+  mv ${ZIP_CONTENT_PATH}/vsphere-performance.metrics "${CONF_IN_ZIP_PATH}"
 
   echo "===> Creating zip ${ZIP_CLEAN}"
   cd "${ZIP_CONTENT_PATH}"
