@@ -1,8 +1,7 @@
 builds:
   - id: nri-vsphere-nix
-    main: ./src
+    main: ./cmd/nri-vsphere
     binary: nri-vsphere
-    gobinary: "go1.9.7"
     ldflags:
       - -s -w -X main.integrationVersion={{.Version}} -X main.gitCommit={{.Commit}} -X main.buildDate={{.Date}}
     goos:
@@ -18,9 +17,8 @@ builds:
         goarch: 386
 
   - id: nri-vsphere-win
-    main: ./src
+    main: ./cmd/nri-vsphere
     binary: nri-vsphere
-    gobinary: "go1.9.7"
     ldflags:
       - -s -w -X main.integrationVersion={{.Version}} -X main.gitCommit={{.Commit}} -X main.buildDate={{.Date}}
     goos:
