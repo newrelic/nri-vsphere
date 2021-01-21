@@ -1,7 +1,5 @@
 integrations:
-  - name: com.newrelic.vsphere
-    exec:
-      - C:\Program Files\New Relic\newrelic-infra\newrelic-integrations\bin\nri-vsphere.exe
+  - name: nri-vsphere
     env:
       # vSphere API connection data (vCenter or ESXi servers)
       URL: https://<YOUR_VSPHERE_API_URL>/sdk

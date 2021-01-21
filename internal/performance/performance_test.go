@@ -55,6 +55,7 @@ vm:
 
 	err = c.parseConfigFile(tmpfile.Name())
 	require.NoError(t, err)
+	tmpfile.Close()
 
 	// - cpu.costop.summation is discarded since is not in c.metricsAvaliableByName
 	assert.Len(t, c.MetricDefinition.Host, 2)
@@ -97,6 +98,7 @@ vm:
 
 	pc, err := NewCollector(c, logrus.New(), tmpfile.Name(), false, 2, "100", "50")
 	assert.NoError(t, err)
+	tmpfile.Close()
 	assert.Len(t, pc.MetricDefinition.Host, 2)
 	assert.Len(t, pc.MetricDefinition.VM, 1)
 	assert.Equal(t, 50, pc.batchSizePerfMetrics)

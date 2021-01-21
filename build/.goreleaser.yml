@@ -1,0 +1,90 @@
+builds:
+  - id: nri-vsphere-nix
+    main: ./cmd/nri-vsphere
+    binary: nri-vsphere
+    ldflags:
+      - -s -w -X main.integrationVersion={{.Version}} -X main.gitCommit={{.Commit}} -X main.buildDate={{.Date}}
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: 386
+
+  - id: nri-vsphere-win
+    main: ./cmd/nri-vsphere
+    binary: nri-vsphere
+    ldflags:
+      - -s -w -X main.integrationVersion={{.Version}} -X main.gitCommit={{.Commit}} -X main.buildDate={{.Date}}
+    goos:
+      - windows
+    goarch:
+      - 386
+      - amd64
+    hooks:
+      pre: build/windows/set_exe_properties.sh {{ .Env.TAG }} "vsphere"
+
+nfpms:
+  - id: linux
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}-1_{{ .Arch }}"
+    vendor: "New Relic, Inc."
+    homepage: "https://www.newrelic.com/infrastructure"
+    maintainer: "New Relic Infrastructure Team <infrastructure-eng@newrelic.com>"
+    description: "New Relic Infrastructure vsphere Integration extend the core New Relic\nInfrastructure agent's capabilities to allow you to collect metric and\nlive state data from vsphere components."
+    license: "https://newrelic.com/terms (also see LICENSE installed with this package)"
+
+    dependencies:
+      - "newrelic-infra"
+
+    bindir: "/var/db/newrelic-infra/newrelic-integrations/bin"
+
+    contents:
+      - src: "vsphere-config.yml.sample"
+        dst: "/etc/newrelic-infra/integrations.d/vsphere-config.yml.sample"
+        type: config
+      - src: "vsphere-performance.metrics"
+        dst: "/etc/newrelic-infra/integrations.d/vsphere-performance.metrics"
+        type: config
+      - src: "CHANGELOG.md"
+        dst: "/usr/share/doc/nri-vsphere/CHANGELOG.md"
+      - src: "README.md"
+        dst: "/usr/share/doc/nri-vsphere/README.md"
+      - src: "LICENSE"
+        dst: "/usr/share/doc/nri-vsphere/LICENSE"
+
+    overrides:
+      rpm:
+        replacements:
+          amd64: 1.x86_64
+
+    formats:
+      - deb
+      - rpm
+
+archives:
+  - id: nri-vsphere-nix
+    builds:
+      - nri-vsphere-nix
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Version }}_{{ .Arch }}_dirty"
+    files:
+      - vsphere-config.yml.sample
+      - vsphere-performance.metrics
+    format: tar.gz
+
+  - id: nri-vsphere-win
+    builds:
+      - nri-vsphere-win
+    name_template: "{{ .ProjectName }}-{{ .Arch }}.{{ .Version }}_dirty"
+    files:
+      - vsphere-win-config.yml.sample
+      - vsphere-performance.metrics
+    format: zip
+
+# we use custom publisher for fixing archives and signing them
+release:
+  disable: true
