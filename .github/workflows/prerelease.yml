@@ -125,6 +125,11 @@ jobs:
           slack-bot-user-oauth-access-token: ${{ secrets.COREINT_SLACK_TOKEN }}
           slack-channel: ${{ secrets.COREINT_SLACK_CHANNEL }}
           slack-text: "❌ `${{ env.REPO_FULL_NAME }}`: prerelease pipeline failed."
+      - name: Test package installability
+        uses: newrelic/integrations-pkg-test-action/linux@v1.0.0
+        with:
+          tag: ${{ env.TAG }}
+          integration: nri-${{ env.INTEGRATION }}
 
   package-win:
     name: Create MSI & Upload into GH Release assets
@@ -165,7 +170,7 @@ jobs:
         run: |
           build\windows\package_msi.ps1 -integration "$env:INTEGRATION" -arch ${{ matrix.goarch }} -tag "$env:TAG" -pfx_passphrase "$env:PFX_PASSPHRASE" -pfx_certificate_description "$env:PFX_CERTIFICATE_DESCRIPTION"
       - name: Test win packages installation
-        uses: paologallinaharbur/test-packages-action/windows@add_win_test
+        uses: newrelic/integrations-pkg-test-action/windows@v1.0.0
         with:
           tag: ${{ env.TAG }}
           integration: nri-${{ env.INTEGRATION }}
