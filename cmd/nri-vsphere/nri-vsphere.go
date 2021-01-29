@@ -26,6 +26,8 @@ import (
 
 var (
 	integrationVersion = "0.0.0" // set by -ldflags on build
+	gitCommit          = ""
+	buildDate          = ""
 )
 
 func main() {
@@ -38,11 +40,18 @@ func main() {
 	}
 	setupLogger(cfg)
 
-	// print integration version and exit
-	if cfg.Args.Version {
-		cfg.Logrus.Infof("integration version: %s", integrationVersion)
-		return
+	if cfg.Args.ShowVersion {
+		fmt.Printf(
+			"New Relic %s integration Version: %s, Platform: %s, GoVersion: %s, GitCommit: %s, BuildDate: %s\n",
+			strings.Title(strings.Replace(cfg.IntegrationName, "com.newrelic.", "", 1)),
+			integrationVersion,
+			fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+			runtime.Version(),
+			gitCommit,
+			buildDate)
+		os.Exit(0)
 	}
+
 	cfg.Logrus.Debugf("integration version: %s", integrationVersion)
 
 	checkAndSanitizeConfig(cfg)

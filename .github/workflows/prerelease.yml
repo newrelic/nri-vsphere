@@ -10,14 +10,8 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GO_VERSION: '1.15.7'
-  GPG_MAIL: 'infrastructure-eng@newrelic.com'
-  GPG_PASSPHRASE: ${{ secrets.OHAI_GPG_PASSPHRASE }}
-  GPG_PRIVATE_KEY_BASE64: ${{ secrets.OHAI_GPG_PRIVATE_KEY_BASE64 }} # base64 encoded
   INTEGRATION: "vsphere"
   ORIGINAL_REPO_NAME: 'newrelic/nri-vsphere'
-  PFX_CERTIFICATE_BASE64: ${{ secrets.OHAI_PFX_CERTIFICATE_BASE64 }} # base64 encoded
-  PFX_CERTIFICATE_DESCRIPTION: 'New Relic'
-  PFX_PASSPHRASE:  ${{ secrets.OHAI_PFX_PASSPHRASE }}
   REPO_FULL_NAME: ${{ github.event.repository.full_name }}
   TAG: ${{ github.event.release.tag_name }}
 
@@ -111,6 +105,10 @@ jobs:
     name: Build binary for *Nix/Win, create archives for *Nix/Win, create packages for *Nix, upload all artifacts into GH Release assets
     runs-on: ubuntu-20.04
     needs: [validate, test-nix, test-windows, snyk, test-integration-nix]
+    env:
+      GPG_MAIL: 'infrastructure-eng@newrelic.com'
+      GPG_PASSPHRASE: ${{ secrets.OHAI_GPG_PASSPHRASE }}
+      GPG_PRIVATE_KEY_BASE64: ${{ secrets.OHAI_GPG_PRIVATE_KEY_BASE64 }} # base64 encoded
     steps:
       - uses: actions/checkout@v2
       - name: Login to DockerHub
@@ -127,6 +125,12 @@ jobs:
           slack-bot-user-oauth-access-token: ${{ secrets.COREINT_SLACK_TOKEN }}
           slack-channel: ${{ secrets.COREINT_SLACK_CHANNEL }}
           slack-text: "❌ `${{ env.REPO_FULL_NAME }}`: prerelease pipeline failed."
+      - name: Test package installability
+        uses: newrelic/integrations-pkg-test-action/linux@v1.0.0
+        with:
+          tag: ${{ env.TAG }}
+          integration: nri-${{ env.INTEGRATION }}
+          postInstall: /var/db/newrelic-infra/newrelic-integrations/bin/nri-${{ env.INTEGRATION }} -show_version 2>&1
 
   package-win:
     name: Create MSI & Upload into GH Release assets
@@ -134,12 +138,22 @@ jobs:
     needs: [prerelease]
     env:
       GOPATH: ${{ github.workspace }}
+      PFX_CERTIFICATE_BASE64: ${{ secrets.OHAI_PFX_CERTIFICATE_BASE64 }} # base64 encoded
+      PFX_CERTIFICATE_DESCRIPTION: 'New Relic'
+      PFX_PASSPHRASE:  ${{ secrets.OHAI_PFX_PASSPHRASE }}
     defaults:
       run:
         working-directory: src/github.com/${{env.ORIGINAL_REPO_NAME}}
     strategy:
+      fail-fast: false
       matrix:
         goarch: [amd64,386]
+        # We need a clean runner to execute each test installation.
+        test-upgrade: [true,false]
+        exclude:
+          # 386 packages are not available for integrations. This should be removed after the first package is uploaded.
+          - goarch: 386
+            test-upgrade: true
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -156,7 +170,16 @@ jobs:
         shell: pwsh
         run: |
           build\windows\package_msi.ps1 -integration "$env:INTEGRATION" -arch ${{ matrix.goarch }} -tag "$env:TAG" -pfx_passphrase "$env:PFX_PASSPHRASE" -pfx_certificate_description "$env:PFX_CERTIFICATE_DESCRIPTION"
+      - name: Test win packages installation
+        uses: newrelic/integrations-pkg-test-action/windows@v1.0.0
+        with:
+          tag: ${{ env.TAG }}
+          integration: nri-${{ env.INTEGRATION }}
+          arch: ${{ matrix.goarch }}
+          upgrade: ${{ matrix.test-upgrade }}
       - name: Upload MSI to GH
+        # To avoid upload packages twice
+        if: startsWith(matrix.test-upgrade, 'false')
         shell: bash
         run: |
           build/windows/upload_msi.sh ${INTEGRATION} ${{ matrix.goarch }} ${TAG}

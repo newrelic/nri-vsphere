@@ -48,7 +48,7 @@ type ArgumentList struct {
 	EnableVsphereTags      bool `default:"false" help:"Set to collect tags. Tags are available when connecting to vcenter"`
 	EnableVsphereSnapshots bool `default:"false" help:"Set to collect and process VMs Snapshots data"`
 	ValidateSSL            bool `default:"false" help:"Set to validates SSL when connecting to vCenter or Esxi Host"`
-	Version                bool `default:"false" help:"Set to print vSphere integration version and exit"`
+	ShowVersion            bool `default:"false" help:"Print build information and exit"`
 
 	IncludeTags string `default:"" help:"Space-separated list of tag categories and values for resource inclusion. \nIf defined, only resources tagged with any of the tags will be included in the results. \nYou must also include 'enable_vsphere_tags' in order for this option to work. \nExample: --include_tags env=prod dc=eu"`
 }
