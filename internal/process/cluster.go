@@ -44,8 +44,8 @@ func createClusterSamples(config *config.Config) {
 				if h, ok := dc.Hosts[hr]; ok {
 					hostList += h.Summary.Config.Name + "|"
 				}
-				hostList = strings.TrimSuffix(hostList, "|")
 			}
+			hostList = strings.TrimSuffix(hostList, "|")
 			checkError(config.Logrus, ms.SetMetric("hostList", hostList, metric.ATTRIBUTE))
 
 			//Retrieving the list of networks attached to the cluster
@@ -54,8 +54,8 @@ func createClusterSamples(config *config.Config) {
 				if n, ok := dc.Networks[nr]; ok {
 					networkList += n.Name + "|"
 				}
-				networkList = strings.TrimSuffix(networkList, "|")
 			}
+			networkList = strings.TrimSuffix(networkList, "|")
 			checkError(config.Logrus, ms.SetMetric("networkList", networkList, metric.ATTRIBUTE))
 
 			//Retrieving the list of datastores attached to the cluster
@@ -64,8 +64,8 @@ func createClusterSamples(config *config.Config) {
 				if ds, ok := dc.Datastores[dr]; ok {
 					datastoreList += ds.Name + "|"
 				}
-				datastoreList = strings.TrimSuffix(datastoreList, "|")
 			}
+			datastoreList = strings.TrimSuffix(datastoreList, "|")
 			checkError(config.Logrus, ms.SetMetric("datastoreList", datastoreList, metric.ATTRIBUTE))
 
 			summary := cluster.Summary.GetComputeResourceSummary()

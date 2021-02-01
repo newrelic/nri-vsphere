@@ -106,8 +106,8 @@ func createVirtualMachineSamples(config *config.Config) {
 				if d, ok := dc.Datastores[ds]; ok {
 					datastoreList += d.Name + "|"
 				}
-				datastoreList = strings.TrimSuffix(datastoreList, "|")
 			}
+			datastoreList = strings.TrimSuffix(datastoreList, "|")
 			checkError(config.Logrus, ms.SetMetric("datastoreNameList", datastoreList, metric.ATTRIBUTE))
 
 			networkList := ""
@@ -115,8 +115,8 @@ func createVirtualMachineSamples(config *config.Config) {
 				if n, ok := dc.Networks[nw]; ok {
 					networkList += n.Name + "|"
 				}
-				networkList = strings.TrimSuffix(networkList, "|")
 			}
+			networkList = strings.TrimSuffix(networkList, "|")
 			checkError(config.Logrus, ms.SetMetric("networkNameList", networkList, metric.ATTRIBUTE))
 
 			operatingSystem := determineOS(vm.Summary.Config.GuestFullName)
