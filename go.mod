@@ -13,5 +13,5 @@ require (
 	github.com/vmware/govmomi v0.22.2
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 // indirect
-	gopkg.in/yaml.v2 v2.2.7
+	gopkg.in/yaml.v2 v2.4.0
 )
