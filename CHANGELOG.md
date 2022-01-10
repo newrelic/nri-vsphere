@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## v1.2.3 (2022-01-10)
+
+### Changed
+
+- bump github.com/vmware/govmomi from 0.27.1 to 0.27.2.
+
+## v1.2.2 (2021-11-16)
+
+### Changed
+
+- Upgrade dependency version for govmomi, testify, yaml.v2.
+
 ## v1.2.1 (2021-03-24)
 
 ### Changed
