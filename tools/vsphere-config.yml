@@ -1,0 +1,18 @@
+integrations:
+  - name: nri-vsphere
+    env:
+      # vSphere API connection data (vCenter or ESXi servers)
+      URL: https://vcsim:8989/sdk
+      USER: user
+      PASS: pass
+
+      # Collect events data
+      ENABLE_VSPHERE_EVENTS: true
+
+      # Collect vSphere tags
+      ENABLE_VSPHERE_TAGS: true
+
+      PERF_LEVEL: 1
+
+    # Execution interval. Set a value higher than 20s, as real-time vSphere samples are run every 20s.
+    interval: 60s

@@ -1,0 +1,15 @@
+version: '2'
+services:
+  vcsim:
+    image: vmware/vcsim
+    ports:
+      - "8989"
+
+  vshpere_agent:
+    container_name: vsphere_agent
+    build:
+      context: ../
+      dockerfile: tools/Dockerfile
+      args:
+        - NRIA_LICENSE_KEY=${NRIA_LICENSE_KEY}
+        - NRIA_STAGING=${NRIA_STAGING:-false}

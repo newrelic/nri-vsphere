@@ -1,0 +1,407 @@
+# The following list specifies the performance counters grouped by entity type
+# and level. It contains a subset of the performance counter metrics available;
+# the list can vary depending on the vCenter version and configuration.
+#
+# Only the data that you need should be collected, since the amount of metrics
+# and their level (1 to 4 - 4 being the heaviest) affects vCenter's performance. 
+#
+# Host and VM metrics are collected in 20-second intervals (real time), and
+# resourcePool, cluster and datastore performance metrics are collected in
+# 300-second intervals (historical metrics).
+#
+# For more information on performance metrics, see the official VMware docs:
+# https://docs.vmware.com/en/VMware-vSphere/6.7/vsphere-esxi-vcenter-server-67-monitoring-performance-guide.pdf
+# https://vdc-repo.vmware.com/vmwb-repository/dcr-public/790263bc-bd30-48f1-af12-ed36055d718b/e5f17bfc-ecba-40bf-a04f-376bbb11e811/vim.PerformanceManager.html
+#
+# Notice that the integration fetches multiple values for a single performance metrics related to different "instances"
+# belonging to a single object, but only the average value is stored.
+# For example, the counter `cpu.usage.average` returns multiple values: one for each CPU core of an host.
+# The integration uses these values to compute the average, that is then included in the `VSphereHostSample` sample.
+#
+
+host:
+  level_1:
+    - cpu.ready.summation
+    - cpu.usage.average
+    - cpu.usagemhz.average
+    - datastore.datastoreIops.average
+    - datastore.datastoreMaxQueueDepth.latest
+    - datastore.datastoreReadIops.latest
+    - datastore.datastoreReadOIO.latest
+    - datastore.datastoreVMObservedLatency.latest
+    - datastore.datastoreWriteIops.latest
+    - datastore.datastoreWriteOIO.latest
+    - datastore.numberReadAveraged.average
+    - datastore.numberWriteAveraged.average
+    - datastore.siocActiveTimePercentage.average
+    - datastore.sizeNormalizedDatastoreLatency.average
+    - datastore.totalReadLatency.average
+    - datastore.totalWriteLatency.average
+    - disk.deviceLatency.average
+    - disk.maxQueueDepth.average
+    - disk.maxTotalLatency.latest
+    - disk.numberReadAveraged.average
+    - disk.numberWriteAveraged.average
+    - disk.usage.average
+    - mem.consumed.average
+    - mem.overhead.average
+    - mem.swapinRate.average
+    - mem.swapoutRate.average
+    - mem.usage.average
+    - mem.vmmemctl.average
+    - net.usage.average
+    - sys.uptime.latest
+  level_2:
+    - cpu.coreUtilization.average
+    - cpu.costop.summation
+    - cpu.demand.average
+    - cpu.idle.summation
+    - cpu.latency.average
+    - cpu.reservedCapacity.average
+    - cpu.totalCapacity.average
+    - cpu.utilization.average
+    - datastore.datastoreNormalReadLatency.latest
+    - datastore.datastoreNormalWriteLatency.latest
+    - datastore.datastoreReadBytes.latest
+    - datastore.datastoreWriteBytes.latest
+    - datastore.read.average
+    - datastore.write.average
+    - disk.busResets.summation
+    - disk.commands.summation
+    - disk.commandsAborted.summation
+    - disk.commandsAveraged.average
+    - disk.deviceReadLatency.average
+    - disk.deviceWriteLatency.average
+    - disk.kernelLatency.average
+    - disk.kernelReadLatency.average
+    - disk.kernelWriteLatency.average
+    - disk.queueLatency.average
+    - disk.queueReadLatency.average
+    - disk.queueWriteLatency.average
+    - disk.read.average
+    - disk.totalReadLatency.average
+    - disk.totalWriteLatency.average
+    - disk.write.average
+    - mem.active.average
+    - mem.activewrite.average
+    - mem.compressed.average
+    - mem.compressionRate.average
+    - mem.decompressionRate.average
+    - mem.granted.average
+    - mem.latency.average
+    - mem.llSwapInRate.average
+    - mem.llSwapOutRate.average
+    - mem.lowfreethreshold.average
+    - mem.reservedCapacity.average
+    - mem.shared.average
+    - mem.sharedcommon.average
+    - mem.state.latest
+    - mem.swapin.average
+    - mem.swapout.average
+    - mem.swapused.average
+    - mem.sysUsage.average
+    - mem.totalCapacity.average
+    - mem.unreserved.average
+    - mem.zero.average
+    - net.broadcastRx.summation
+    - net.broadcastTx.summation
+    - net.bytesRx.average
+    - net.bytesTx.average
+    - net.droppedRx.summation
+    - net.droppedTx.summation
+    - net.errorsRx.summation
+    - net.errorsTx.summation
+    - net.multicastRx.summation
+    - net.multicastTx.summation
+    - net.packetsRx.summation
+    - net.packetsTx.summation
+    - net.received.average
+    - net.transmitted.average
+    - net.unknownProtos.summation
+    - power.power.average
+    - storageAdapter.commandsAveraged.average
+    - storageAdapter.numberReadAveraged.average
+    - storageAdapter.numberWriteAveraged.average
+    - storageAdapter.read.average
+    - storageAdapter.totalReadLatency.average
+    - storageAdapter.totalWriteLatency.average
+    - storageAdapter.write.average
+  level_3:
+    - cpu.swapwait.summation
+    - cpu.used.summation
+    - cpu.wait.summation
+    - datastore.maxTotalLatency.latest
+    - disk.numberRead.summation
+    - disk.numberWrite.summation
+    - disk.totalLatency.average
+    - power.energy.summation
+    - power.powerCap.average
+    - storageAdapter.maxTotalLatency.latest
+    - storagePath.commandsAveraged.average
+    - storagePath.maxTotalLatency.latest
+    - storagePath.numberReadAveraged.average
+    - storagePath.numberWriteAveraged.average
+    - storagePath.read.average
+    - storagePath.totalReadLatency.average
+    - storagePath.totalWriteLatency.average
+    - storagePath.write.average
+  level_4:
+    - cpu.readiness.average
+    - datastore.datastoreReadLoadMetric.latest
+    - datastore.datastoreWriteLoadMetric.latest
+    - hbr.hbrNetRx.average
+    - hbr.hbrNetTx.average
+    - hbr.hbrNumVms.average
+    - mem.heap.average
+    - mem.heapfree.average
+    - mem.llSwapIn.average
+    - mem.llSwapOut.average
+    - mem.llSwapUsed.average
+    - mem.vmfs.pbc.capMissRatio.latest
+    - mem.vmfs.pbc.overhead.latest
+    - mem.vmfs.pbc.size.latest
+    - mem.vmfs.pbc.sizeMax.latest
+    - mem.vmfs.pbc.workingSet.latest
+    - mem.vmfs.pbc.workingSetMax.latest
+    - sys.resourceFdUsage.latest
+    - sys.resourceMemConsumed.latest
+    - vflashModule.numActiveVMDKs.latest
+
+vm:
+  level_1:
+    - cpu.ready.summation
+    - cpu.usage.average
+    - cpu.usagemhz.average
+    - datastore.numberReadAveraged.average
+    - datastore.numberWriteAveraged.average
+    - datastore.totalReadLatency.average
+    - datastore.totalWriteLatency.average
+    - disk.maxTotalLatency.latest
+    - mem.consumed.average
+    - mem.overhead.average
+    - mem.swapinRate.average
+    - mem.swapoutRate.average
+    - mem.usage.average
+    - mem.vmmemctl.average
+    - net.usage.average
+    - sys.uptime.latest
+  level_2:
+    - cpu.costop.summation
+    - cpu.demand.average
+    - cpu.entitlement.latest
+    - cpu.idle.summation
+    - cpu.latency.average
+    - cpu.maxlimited.summation
+    - cpu.run.summation
+    - datastore.read.average
+    - datastore.write.average
+    - mem.active.average
+    - mem.activewrite.average
+    - mem.compressed.average
+    - mem.compressionRate.average
+    - mem.decompressionRate.average
+    - mem.entitlement.average
+    - mem.granted.average
+    - mem.latency.average
+    - mem.llSwapInRate.average
+    - mem.llSwapOutRate.average
+    - mem.overheadMax.average
+    - mem.shared.average
+    - mem.swapin.average
+    - mem.swapout.average
+    - mem.swapped.average
+    - mem.swaptarget.average
+    - mem.vmmemctltarget.average
+    - mem.zero.average
+    - mem.zipSaved.latest
+    - mem.zipped.latest
+    - net.broadcastRx.summation
+    - net.broadcastTx.summation
+    - net.bytesRx.average
+    - net.bytesTx.average
+    - net.droppedRx.summation
+    - net.droppedTx.summation
+    - net.multicastRx.summation
+    - net.multicastTx.summation
+    - net.packetsRx.summation
+    - net.packetsTx.summation
+    - net.received.average
+    - net.transmitted.average
+    - power.power.average
+    - virtualDisk.read.average
+    - virtualDisk.write.average
+  level_3:
+    - cpu.overlap.summation
+    - cpu.swapwait.summation
+    - cpu.system.summation
+    - cpu.used.summation
+    - cpu.wait.summation
+    - datastore.maxTotalLatency.latest
+    - power.energy.summation
+  level_4:
+    - cpu.demandEntitlementRatio.latest
+    - cpu.readiness.average
+    - mem.llSwapUsed.average
+    - mem.overheadTouched.average
+    - net.pnicBytesRx.average
+    - net.pnicBytesTx.average
+    - sys.heartbeat.latest
+    - sys.osUptime.latest
+
+resourcePool:
+  level_1:
+    - cpu.usagemhz.average
+    - mem.consumed.average
+    - mem.overhead.average
+    - mem.vmmemctl.average
+  level_2:
+    - cpu.cpuentitlement.latest
+    - mem.active.average
+    - mem.compressed.average
+    - mem.compressionRate.average
+    - mem.decompressionRate.average
+    - mem.granted.average
+    - mem.mementitlement.latest
+    - mem.shared.average
+    - mem.swapped.average
+    - mem.zero.average
+    - power.power.average
+  level_3:
+    - power.energy.summation
+  level_4:
+    - cpu.capacity.contention.average
+    - cpu.capacity.demand.average
+    - cpu.capacity.entitlement.average
+    - cpu.capacity.usage.average
+    - cpu.corecount.contention.average
+    - cpu.corecount.provisioned.average
+    - cpu.usagemhz.maximum
+    - cpu.usagemhz.minimum
+    - disk.throughput.contention.average
+    - disk.throughput.usage.average
+    - mem.active.maximum
+    - mem.active.minimum
+    - mem.capacity.contention.average
+    - mem.capacity.entitlement.average
+    - mem.capacity.provisioned.average
+    - mem.capacity.usage.average
+    - mem.consumed.maximum
+    - mem.consumed.minimum
+    - mem.granted.maximum
+    - mem.granted.minimum
+    - mem.overhead.maximum
+    - mem.overhead.minimum
+    - mem.shared.maximum
+    - mem.shared.minimum
+    - mem.swapped.maximum
+    - mem.swapped.minimum
+    - mem.vmmemctl.maximum
+    - mem.vmmemctl.minimum
+    - mem.zero.maximum
+    - mem.zero.minimum
+    - net.throughput.contention.summation
+    - net.throughput.usage.average
+
+clusterComputeResource:
+  level_1:
+    - cpu.usage.average
+    - cpu.usagemhz.average
+    - mem.consumed.average
+    - mem.overhead.average
+    - mem.usage.average
+    - mem.vmmemctl.average
+    - vmop.numChangeDS.latest
+    - vmop.numChangeHost.latest
+    - vmop.numChangeHostDS.latest
+    - vmop.numClone.latest
+    - vmop.numCreate.latest
+    - vmop.numDeploy.latest
+    - vmop.numDestroy.latest
+    - vmop.numPoweroff.latest
+    - vmop.numPoweron.latest
+    - vmop.numRebootGuest.latest
+    - vmop.numReconfigure.latest
+    - vmop.numRegister.latest
+    - vmop.numReset.latest
+    - vmop.numSVMotion.latest
+    - vmop.numShutdownGuest.latest
+    - vmop.numStandbyGuest.latest
+    - vmop.numSuspend.latest
+    - vmop.numUnregister.latest
+    - vmop.numVMotion.latest
+    - vmop.numXVMotion.latest
+  level_2:
+    - cpu.reservedCapacity.average
+    - mem.active.average
+    - mem.compressed.average
+    - mem.compressionRate.average
+    - mem.decompressionRate.average
+    - mem.granted.average
+    - mem.reservedCapacity.average
+    - mem.shared.average
+    - mem.swapused.average
+    - mem.zero.average
+    - power.power.average
+  level_3:
+    - power.energy.summation
+    - power.powerCap.average
+  level_4:
+    - cpu.capacity.contention.average
+    - cpu.capacity.demand.average
+    - cpu.capacity.provisioned.average
+    - cpu.capacity.usage.average
+    - cpu.corecount.contention.average
+    - cpu.corecount.provisioned.average
+    - cpu.corecount.usage.average
+    - cpu.usage.maximum
+    - cpu.usage.minimum
+    - cpu.usagemhz.maximum
+    - cpu.usagemhz.minimum
+    - disk.throughput.contention.average
+    - disk.throughput.usage.average
+    - mem.active.maximum
+    - mem.active.minimum
+    - mem.capacity.contention.average
+    - mem.capacity.entitlement.average
+    - mem.capacity.provisioned.average
+    - mem.capacity.usable.average
+    - mem.capacity.usage.average
+    - mem.consumed.maximum
+    - mem.consumed.minimum
+    - mem.granted.maximum
+    - mem.granted.minimum
+    - mem.overhead.maximum
+    - mem.overhead.minimum
+    - mem.shared.maximum
+    - mem.shared.minimum
+    - mem.swapused.maximum
+    - mem.swapused.minimum
+    - mem.usage.maximum
+    - mem.usage.minimum
+    - mem.vmmemctl.maximum
+    - mem.vmmemctl.minimum
+    - mem.zero.maximum
+    - mem.zero.minimum
+    - net.throughput.contention.summation
+    - net.throughput.provisioned.average
+    - net.throughput.usable.average
+    - net.throughput.usage.average
+
+datastore:
+  level_1:
+    - datastore.numberReadAveraged.average
+    - datastore.numberWriteAveraged.average
+    - disk.capacity.latest
+    - disk.provisioned.latest
+    - disk.unshared.latest
+    - disk.used.latest
+  level_2:
+    - datastore.read.average
+    - datastore.write.average
+  level_3:
+  level_4:
+    - datastore.throughput.contention.average
+    - datastore.throughput.usage.average
+    - disk.capacity.contention.average
+    - disk.capacity.provisioned.average
+    - disk.capacity.usage.average

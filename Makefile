@@ -38,6 +38,16 @@ compile-darwin: deps-only
 compile-windows: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-windows    ]: building commands:"
 	@GOOS=windows $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME).exe ./cmd/...
+tools-vcsim-run:
+	@echo "=== $(PROJECT_NAME) === Running vcsim with an agent:"
+	@if [ "$(NRIA_LICENSE_KEY)" = "" ]; then \
+	    echo "Error: missing required env-var: NRIA_LICENSE_KEY\n" ;\
+        exit 1 ;\
+	fi
+	@docker-compose -f tools/docker-compose.yml up -d --build
+tools-vcsim-stop:
+	@echo "=== $(PROJECT_NAME) === Stopping vcsim with agent:"
+	@docker-compose -f tools/docker-compose.yml down
 
 
 test: deps validate test-unit test-integration

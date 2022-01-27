@@ -76,6 +76,26 @@ make test
 
 You need `docker-compose` to run the integration tests.
 
+## Running the integration locally with a vCenter simulator
+
+For testing purposes there is the possibility to run a docker compose cluster with 2 containers:
+- One NewRelic Infrastructure agent with the integration installed.
+- One container with [VCSIM](https://github.com/vmware/govmomi/tree/master/vcsim) running with the defaults to simulate a VCenter in port 8989.
+
+This will emit VSphere metrics to NRONE based on the license key provided. A License Key (NRIA_LICENSE_KEY) env var must be provided.
+
+Example:
+
+```bash
+NRIA_LICENSE_KEY=xxx make tools-vcsim-run
+```
+
+In order to stop the cluster you will need to run the following command:
+
+```bash
+make tools-vcsim-stop
+```
+
 ## Support
 
 Should you need assistance with New Relic products, you are in good hands with several support channels.
