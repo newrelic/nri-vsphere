@@ -9,8 +9,8 @@ github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/newrelic/infra-integrations-sdk v3.7.0+incompatible h1:DErIlRt4xGwgcR4N/LkzvH/c9xOituAtnEgwFUwfVSs=
-github.com/newrelic/infra-integrations-sdk v3.7.0+incompatible/go.mod h1:tMUHRMq6mJS0YyBnbWrTXAnREnQqC1AGO6Lu45u5xAM=
+github.com/newrelic/infra-integrations-sdk v3.7.1+incompatible h1:bpgQxYPKdnOiDIPFnKQzAf5qMPwPEUKQwrmnuUyT4Og=
+github.com/newrelic/infra-integrations-sdk v3.7.1+incompatible/go.mod h1:tMUHRMq6mJS0YyBnbWrTXAnREnQqC1AGO6Lu45u5xAM=
 github.com/pkg/errors v0.8.2-0.20191109102316-7f95ac13edff h1:t8HrPGxv+T5aQouXpNfSM0PkTG4WQ0P3NTtfXzIJaio=
 github.com/pkg/errors v0.8.2-0.20191109102316-7f95ac13edff/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
