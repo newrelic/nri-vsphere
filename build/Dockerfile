@@ -1,6 +1,6 @@
 FROM golang:1.15.7
 
-ARG GH_VERSION='1.4.0'
+ARG GH_VERSION='2.4.0'
 
 RUN apt-get update \
     && apt-get -y install \
