@@ -82,7 +82,10 @@ For testing purposes there is the possibility to run a docker compose cluster wi
 - One NewRelic Infrastructure agent with the integration installed.
 - One container with [VCSIM](https://github.com/vmware/govmomi/tree/master/vcsim) running with the defaults to simulate a VCenter in port 8989.
 
-This will emit VSphere metrics to NRONE based on the license key provided. A License Key (NRIA_LICENSE_KEY) env var must be provided.
+This will emit VSphere metrics to NRONE based on the license key provided. 
+
+A License Key (NRIA_LICENSE_KEY) env var must be provided.
+
 You can also set the following env vars:
 - STAGING   # To use a staging account 
 - VS_HOSTS  # To set the number of simulated hosts per cluster (default: 1)
