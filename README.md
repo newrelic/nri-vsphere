@@ -83,11 +83,22 @@ For testing purposes there is the possibility to run a docker compose cluster wi
 - One container with [VCSIM](https://github.com/vmware/govmomi/tree/master/vcsim) running with the defaults to simulate a VCenter in port 8989.
 
 This will emit VSphere metrics to NRONE based on the license key provided. A License Key (NRIA_LICENSE_KEY) env var must be provided.
+You can also set the following env vars:
+- STAGING   # To use a staging account 
+- VS_HOSTS  # To set the number of simulated hosts per cluster (default: 1)
+- VS_VMS    # To set the number of simulated Virtual Machines per resource pool (default: 10)
+- VS_DS     # To set the number of simulated Data stores (default: 4)
 
 Example:
 
 ```bash
 NRIA_LICENSE_KEY=xxx make tools-vcsim-run
+```
+
+Example with hosts, vm, and ds custom:
+
+```bash
+NRIA_LICENSE_KEY=xxx VS_HOSTS=2 VS_VMS=20 VS_DS=10 make tools-vcsim-run
 ```
 
 In order to stop the cluster you will need to run the following command:

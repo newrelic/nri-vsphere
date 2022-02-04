@@ -4,12 +4,22 @@ services:
     image: vmware/vcsim
     ports:
       - "8989"
+    entrypoint: ["/vcsim", "-host", "${VS_HOSTS:-1}", "-vm", "${VS_VMS:-10}", "-ds", "${VS_DS:-4}", "-l", "0.0.0.0:8989"]
 
   vshpere_agent:
     container_name: vsphere_agent
-    build:
-      context: ../
-      dockerfile: tools/Dockerfile
-      args:
-        - NRIA_LICENSE_KEY=${NRIA_LICENSE_KEY}
-        - NRIA_STAGING=${NRIA_STAGING:-false}
+    image: newrelic/infrastructure:latest
+    cap_add:
+      - SYS_PTRACE
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /:/host:ro
+      - $PWD/bin:/var/db/newrelic-infra/newrelic-integrations/bin
+      - $PWD/tools/vsphere-config.yml:/etc/newrelic-infra/integrations.d/vsphere-config.yml
+      - $PWD/vsphere-performance.metrics:/etc/newrelic-infra/integrations.d/vsphere-performance.metrics
+    environment:
+      - NRIA_LICENSE_KEY=${NRIA_LICENSE_KEY}
+      - NRIA_STAGING=${NRIA_STAGING:-false}
+      - NRIA_VERBOSE=1

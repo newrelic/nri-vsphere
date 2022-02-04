@@ -38,7 +38,7 @@ compile-darwin: deps-only
 compile-windows: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile-windows    ]: building commands:"
 	@GOOS=windows $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME).exe ./cmd/...
-tools-vcsim-run:
+tools-vcsim-run: clean compile-linux
 	@echo "=== $(PROJECT_NAME) === Running vcsim with an agent:"
 	@if [ "$(NRIA_LICENSE_KEY)" = "" ]; then \
 	    echo "Error: missing required env-var: NRIA_LICENSE_KEY\n" ;\
