@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/newrelic/infra-integrations-sdk v3.7.1+incompatible
+	github.com/newrelic/infra-integrations-sdk v3.7.2+incompatible
 	github.com/pkg/errors v0.8.2-0.20191109102316-7f95ac13edff // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/sirupsen/logrus v1.8.1
