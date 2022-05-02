@@ -70,7 +70,7 @@ tidy:
 deps: tools deps-only
 tools: check-version
 	@echo "=== $(PROJECT_NAME) === [ tools ]: Installing tools required by the project..."
-	@$(GO_CMD) get $(GO_TOOLS)
+	@$(GO_CMD) install $(GO_TOOLS)
 tools-update: check-version
 	@echo "=== $(PROJECT_NAME) === [ tools-update ]: Updating tools required by the project..."
 	@$(GO_CMD) get -u $(GO_TOOLS)
