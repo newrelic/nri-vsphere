@@ -51,7 +51,7 @@ tools-vcsim-stop:
 
 
 test: deps validate test-unit test-integration
-test-unit: compile
+test-unit: deps compile
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
 	@gocov test $(GO_PKGS) | gocov-xml > coverage.xml
 
