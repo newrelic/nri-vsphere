@@ -15,7 +15,7 @@ SHORT_INTEGRATION := vsphere
 BINARY_NAME        = nri-$(INTEGRATION)
 
 LINTER         = golangci-lint
-LINTER_VERSION = 1.27.0
+LINTER_VERSION = 1.45.2
 SNYK_BIN       = snyk-linux
 SNYK_VERSION   = v1.361.3
 
