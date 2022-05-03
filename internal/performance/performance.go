@@ -107,7 +107,7 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 
 			retrievedStats, err := methods.QueryPerf(ctx, c.perfManager.Client(), &query)
 			if err != nil {
-				c.logger.Errorf("failed to exec queryPerf:%s", err)
+				c.logger.Errorf("failed to exec queryPerf: %s", err)
 				continue
 			}
 
@@ -125,7 +125,18 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 	return perfMetricsByRef
 }
 
-type Accumulator struct {
+// The metric returned have a field indicating the 'instance' it refers to. However, the vCenter could mix standard values and aggregated values. We give priority
+// to the raw values and fall back to 'instanceless' values in case no raw data has been received
+// An identifier that is derived from configuration names for the device associated with the metric. It identifies the instance of the metric with its source. This property may be empty.
+// -  For memory and aggregated statistics, this property is empty.
+// -  For host and virtual machine devices, this property contains the name of the device, such as the name of the host-bus   adapter or the name of the virtual Ethernet adapter. For example, “mpx.vmhba33:C0:T0:L0” or “vmnic0:”
+// -  For a CPU, this property identifies the numeric position within the CPU core, such as 0, 1, 2, 3.
+type perfEvaluer struct {
+	instancelessValue *int64
+	accumulator       accumulator
+}
+
+type accumulator struct {
 	Occurrences int64
 	Sum         int64
 }
@@ -133,7 +144,8 @@ type Accumulator struct {
 func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetric, perfMetricsByRef map[types.ManagedObjectReference][]PerfMetric) {
 
 	// If for the same metrics multiple instances are returned we perform the average of the values
-	accumulateMetrics := map[string]*Accumulator{}
+	accumulateMetrics := map[string]*perfEvaluer{}
+
 	if metricsValues == nil {
 		return
 	}
@@ -164,16 +176,34 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 
 		// This is a short-lived object, the purpose is to compute the average of the different performance metrics
 		// when more than one instance per entity returns a value
-		if _, ok := accumulateMetrics[name]; !ok {
-			accumulateMetrics[name] = &Accumulator{}
+		pe, ok := accumulateMetrics[name]
+		if !ok {
+			pe = &perfEvaluer{accumulator: accumulator{}}
+			accumulateMetrics[name] = pe
 		}
-		accumulateMetrics[name].Occurrences++
-		accumulateMetrics[name].Sum += metricVal
+
+		if metricValue.GetPerfMetricSeries().Id.Instance == "" {
+			pe.instancelessValue = &metricVal
+		} else {
+			pe.accumulator.Occurrences++
+			pe.accumulator.Sum += metricVal
+		}
+
 	}
+
 	for key, val := range accumulateMetrics {
+		var value int64
+
+		//We give priority to the raw values and fall back to 'instanceless' values in case no raw data has been received
+		if val.accumulator.Occurrences != 0 {
+			value = val.accumulator.Sum / val.accumulator.Occurrences
+		} else if val.instancelessValue != nil {
+			value = *val.instancelessValue
+		}
+
 		perfMetricsByRef[metricsValues.Entity] = append(perfMetricsByRef[metricsValues.Entity], PerfMetric{
 			Counter: key,
-			Value:   val.Sum / val.Occurrences,
+			Value:   value,
 		})
 	}
 
@@ -196,7 +226,7 @@ func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) error
 		c.metricsAvaliableByID[perfCounter.Key] = fullCounterName
 
 		if logAvailableCounters {
-			c.logger.Infof("%s [%d] %v", fullCounterName, perfCounter.Level, perfCounter.NameInfo.GetElementDescription().Summary)
+			c.logger.Infof("%s [%d] %v %d", fullCounterName, perfCounter.Level, perfCounter.NameInfo.GetElementDescription().Summary, perfCounter.Key)
 		}
 	}
 	return err
