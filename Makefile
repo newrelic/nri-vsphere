@@ -15,7 +15,7 @@ SHORT_INTEGRATION := vsphere
 BINARY_NAME        = nri-$(INTEGRATION)
 
 LINTER         = golangci-lint
-LINTER_VERSION = 1.27.0
+LINTER_VERSION = 1.45.2
 SNYK_BIN       = snyk-linux
 SNYK_VERSION   = v1.361.3
 
@@ -51,7 +51,7 @@ tools-vcsim-stop:
 
 
 test: deps validate test-unit test-integration
-test-unit: compile
+test-unit: deps compile
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
 	@gocov test $(GO_PKGS) | gocov-xml > coverage.xml
 
@@ -70,7 +70,7 @@ tidy:
 deps: tools deps-only
 tools: check-version
 	@echo "=== $(PROJECT_NAME) === [ tools ]: Installing tools required by the project..."
-	@$(GO_CMD) get $(GO_TOOLS)
+	@$(GO_CMD) install $(GO_TOOLS)
 tools-update: check-version
 	@echo "=== $(PROJECT_NAME) === [ tools-update ]: Updating tools required by the project..."
 	@$(GO_CMD) get -u $(GO_TOOLS)
