@@ -151,44 +151,14 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 	}
 
 	for _, metricValue := range metricsValues.Value {
-		metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries)
-		if !ok2 || metricValueSeries == nil {
-			continue
-		}
-		name, ok := c.metricsAvaliableByID[metricValueSeries.Id.CounterId]
-		if !ok {
-			c.logger.Debugf("The perf metric Id: %v is not present in the map", metricValueSeries.Id.CounterId)
-			continue
-		}
-		if metricValueSeries.Value == nil {
-			c.logger.Debugf("vCenter returned no samples for the metric: %v", name)
-			continue
-		}
-		var metricVal int64
-		if len(metricValueSeries.Value) < 1 {
-			c.logger.Debugf("The metric: %v is not containing at least one sample, this is not expected", name)
+
+		metricName, metricVal, err := c.extractValue(metricValue)
+		if err != nil {
+			c.logger.Debugf("extractiving value %v", err)
 			continue
 		}
 
-		// MaxSamples is set to 1 but the API is retrieving multiple samples with the same value for historical interval metrics.
-		// We will take just first one.
-		metricVal = metricValueSeries.Value[0]
-
-		// This is a short-lived object, the purpose is to compute the average of the different performance metrics
-		// when more than one instance per entity returns a value
-		pe, ok := accumulateMetrics[name]
-		if !ok {
-			pe = &perfEvaluer{accumulator: accumulator{}}
-			accumulateMetrics[name] = pe
-		}
-
-		if metricValue.GetPerfMetricSeries().Id.Instance == "" {
-			pe.instancelessValue = &metricVal
-		} else {
-			pe.accumulator.Occurrences++
-			pe.accumulator.Sum += metricVal
-		}
-
+		accumulateValues(accumulateMetrics, metricName, metricValue, metricVal)
 	}
 
 	for key, val := range accumulateMetrics {
@@ -207,6 +177,47 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 		})
 	}
 
+}
+
+func accumulateValues(accumulateMetrics map[string]*perfEvaluer, metricName string, metricValue types.BasePerfMetricSeries, metricVal int64) {
+	// This is a short-lived object, the purpose is to compute the average of the different performance metrics
+	// when more than one instance per entity returns a value
+	pe, ok := accumulateMetrics[metricName]
+	if !ok {
+		pe = &perfEvaluer{accumulator: accumulator{}}
+		accumulateMetrics[metricName] = pe
+	}
+
+	if metricValue.GetPerfMetricSeries().Id.Instance == "" {
+		pe.instancelessValue = &metricVal
+	} else {
+		pe.accumulator.Occurrences++
+		pe.accumulator.Sum += metricVal
+	}
+}
+
+func (c *PerfCollector) extractValue(metricValue types.BasePerfMetricSeries) (string, int64, error) {
+	metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries)
+	if !ok2 || metricValueSeries == nil {
+		return "", 0, fmt.Errorf("metricValue is not of type metricValueSeries or nil")
+	}
+
+	name, ok := c.metricsAvaliableByID[metricValueSeries.Id.CounterId]
+	if !ok {
+		return "", 0, fmt.Errorf("perf metric Id: %v is not present in the map", metricValueSeries.Id.CounterId)
+	}
+
+	if metricValueSeries.Value == nil {
+		return "", 0, fmt.Errorf("vCenter returned no samples for the metric: %v", name)
+	}
+
+	if len(metricValueSeries.Value) < 1 {
+		return "", 0, fmt.Errorf(" metric: %v is not containing at least one sample, this is not expected", name)
+	}
+
+	// MaxSamples is set to 1 but the API is retrieving multiple samples with the same value for historical interval metrics.
+	// We will take just first one.
+	return name, metricValueSeries.Value[0], nil
 }
 
 func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) error {
