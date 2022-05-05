@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## v1.2.4 (2022-05-05)
 
-### Changed
-
-
 ### Fix
 * Performance metrics were not taking into consideration instanceless values by @paologallinaharbur in https://github.com/newrelic/nri-vsphere/pull/120
 * DatacenterName attribute was missing from DatacenterSample by @paologallinaharbur in https://github.com/newrelic/nri-vsphere/pull/120
