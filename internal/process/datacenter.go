@@ -86,6 +86,7 @@ func createDatacenterSamples(config *config.Config) {
 			checkError(config.Logrus, ms.SetMetric("mem.usagePercentage", memoryPercentHost, metric.GAUGE))
 		}
 
+		checkError(config.Logrus, ms.SetMetric("datacenterName", datacenterName, metric.ATTRIBUTE))
 		checkError(config.Logrus, ms.SetMetric("mem.size", totalMemoryHost, metric.GAUGE))
 		checkError(config.Logrus, ms.SetMetric("mem.usage", totalMemoryUsedHost, metric.GAUGE))
 		checkError(config.Logrus, ms.SetMetric("cpu.cores", totalCpuHost, metric.GAUGE))

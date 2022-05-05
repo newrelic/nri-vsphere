@@ -107,7 +107,7 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 
 			retrievedStats, err := methods.QueryPerf(ctx, c.perfManager.Client(), &query)
 			if err != nil {
-				c.logger.Errorf("failed to exec queryPerf:%s", err)
+				c.logger.Errorf("failed to exec queryPerf: %s", err)
 				continue
 			}
 
@@ -125,7 +125,21 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 	return perfMetricsByRef
 }
 
-type Accumulator struct {
+// The metrics returned have a field indicating the 'instance' they refer to. However, that field could be empty in some cases.
+//		Instance is an identifier that is derived from configuration names for the device associated with the metric.
+// 		It identifies the instance of the metric with its source. This property may be empty.
+// 		-  For memory and aggregated statistics, this property is empty.
+// 		-  For host and virtual machine devices, this property contains the name of the device, such as the name of the host-bus   adapter or the name of the virtual Ethernet adapter. For example, “mpx.vmhba33:C0:T0:L0” or “vmnic0:”
+// 		-  For a CPU, this property identifies the numeric position within the CPU core, such as 0, 1, 2, 3."""
+// We give priority to the values having the `instance` specified. If more than one value is returned we compute the average.
+// If no value having an 'instance' is found for a perf metric we fall back to 'instanceless' values.
+// If no value is returned we do not report that specific perf metric
+type perfEvaluer struct {
+	instancelessValue *int64
+	accumulator       accumulator
+}
+
+type accumulator struct {
 	Occurrences int64
 	Sum         int64
 }
@@ -133,50 +147,80 @@ type Accumulator struct {
 func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetric, perfMetricsByRef map[types.ManagedObjectReference][]PerfMetric) {
 
 	// If for the same metrics multiple instances are returned we perform the average of the values
-	accumulateMetrics := map[string]*Accumulator{}
+	accumulateMetrics := map[string]*perfEvaluer{}
+
 	if metricsValues == nil {
 		return
 	}
 
 	for _, metricValue := range metricsValues.Value {
-		metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries)
-		if !ok2 || metricValueSeries == nil {
-			continue
-		}
-		name, ok := c.metricsAvaliableByID[metricValueSeries.Id.CounterId]
-		if !ok {
-			c.logger.Debugf("The perf metric Id: %v is not present in the map", metricValueSeries.Id.CounterId)
-			continue
-		}
-		if metricValueSeries.Value == nil {
-			c.logger.Debugf("vCenter returned no samples for the metric: %v", name)
-			continue
-		}
-		var metricVal int64
-		if len(metricValueSeries.Value) < 1 {
-			c.logger.Debugf("The metric: %v is not containing at least one sample, this is not expected", name)
+
+		metricName, metricVal, err := c.extractValue(metricValue)
+		if err != nil {
+			c.logger.Debugf("extracting value %v", err)
 			continue
 		}
 
-		// MaxSamples is set to 1 but the API is retrieving multiple samples with the same value for historical interval metrics.
-		// We will take just first one.
-		metricVal = metricValueSeries.Value[0]
-
-		// This is a short-lived object, the purpose is to compute the average of the different performance metrics
-		// when more than one instance per entity returns a value
-		if _, ok := accumulateMetrics[name]; !ok {
-			accumulateMetrics[name] = &Accumulator{}
-		}
-		accumulateMetrics[name].Occurrences++
-		accumulateMetrics[name].Sum += metricVal
+		accumulateValues(accumulateMetrics, metricName, metricValue, metricVal)
 	}
+
 	for key, val := range accumulateMetrics {
+		var value int64
+
+		//We give priority to the raw values and fall back to 'instanceless' values in case no raw data has been received
+		if val.accumulator.Occurrences != 0 {
+			value = val.accumulator.Sum / val.accumulator.Occurrences
+		} else if val.instancelessValue != nil {
+			value = *val.instancelessValue
+		}
+
 		perfMetricsByRef[metricsValues.Entity] = append(perfMetricsByRef[metricsValues.Entity], PerfMetric{
 			Counter: key,
-			Value:   val.Sum / val.Occurrences,
+			Value:   value,
 		})
 	}
 
+}
+
+func accumulateValues(accumulateMetrics map[string]*perfEvaluer, metricName string, metricValue types.BasePerfMetricSeries, metricVal int64) {
+	// This is a short-lived object, the purpose is to compute the average of the different performance metrics
+	// when more than one instance per entity returns a value
+	pe, ok := accumulateMetrics[metricName]
+	if !ok {
+		pe = &perfEvaluer{accumulator: accumulator{}}
+		accumulateMetrics[metricName] = pe
+	}
+
+	if metricValue.GetPerfMetricSeries().Id.Instance != "" {
+		pe.accumulator.Occurrences++
+		pe.accumulator.Sum += metricVal
+	} else {
+		pe.instancelessValue = &metricVal
+	}
+}
+
+func (c *PerfCollector) extractValue(metricValue types.BasePerfMetricSeries) (string, int64, error) {
+	metricValueSeries, ok2 := metricValue.(*types.PerfMetricIntSeries)
+	if !ok2 || metricValueSeries == nil {
+		return "", 0, fmt.Errorf("metricValue is not of type metricValueSeries or nil")
+	}
+
+	name, ok := c.metricsAvaliableByID[metricValueSeries.Id.CounterId]
+	if !ok {
+		return "", 0, fmt.Errorf("perf metric Id: %v is not present in the map", metricValueSeries.Id.CounterId)
+	}
+
+	if metricValueSeries.Value == nil {
+		return "", 0, fmt.Errorf("vCenter returned no samples for the metric: %v", name)
+	}
+
+	if len(metricValueSeries.Value) < 1 {
+		return "", 0, fmt.Errorf(" metric: %v is not containing at least one sample, this is not expected", name)
+	}
+
+	// MaxSamples is set to 1 but the API is retrieving multiple samples with the same value for historical interval metrics.
+	// We will take just first one.
+	return name, metricValueSeries.Value[0], nil
 }
 
 func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) error {
@@ -196,7 +240,7 @@ func (c *PerfCollector) retrieveCounterMetadata(logAvailableCounters bool) error
 		c.metricsAvaliableByID[perfCounter.Key] = fullCounterName
 
 		if logAvailableCounters {
-			c.logger.Infof("%s [%d] %v", fullCounterName, perfCounter.Level, perfCounter.NameInfo.GetElementDescription().Summary)
+			c.logger.Infof("%s [%d] %v %d", fullCounterName, perfCounter.Level, perfCounter.NameInfo.GetElementDescription().Summary, perfCounter.Key)
 		}
 	}
 	return err
