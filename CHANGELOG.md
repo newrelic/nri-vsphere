@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-## What's Changed
 
 ### Fix
 * Performance metrics were not taking into consideration instanceless values by @paologallinaharbur in https://github.com/newrelic/nri-vsphere/pull/120
