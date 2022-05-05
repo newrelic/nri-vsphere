@@ -125,12 +125,15 @@ func (c *PerfCollector) Collect(mos []types.ManagedObjectReference, metrics []ty
 	return perfMetricsByRef
 }
 
-// The metric returned have a field indicating the 'instance' it refers to. However, the vCenter could mix standard values and aggregated values. We give priority
-// to the raw values and fall back to 'instanceless' values in case no raw data has been received
-// An identifier that is derived from configuration names for the device associated with the metric. It identifies the instance of the metric with its source. This property may be empty.
-// -  For memory and aggregated statistics, this property is empty.
-// -  For host and virtual machine devices, this property contains the name of the device, such as the name of the host-bus   adapter or the name of the virtual Ethernet adapter. For example, “mpx.vmhba33:C0:T0:L0” or “vmnic0:”
-// -  For a CPU, this property identifies the numeric position within the CPU core, such as 0, 1, 2, 3.
+// The metrics returned have a field indicating the 'instance' they refer to. However, that field could be empty in some cases.
+//		Instance is an identifier that is derived from configuration names for the device associated with the metric.
+// 		It identifies the instance of the metric with its source. This property may be empty.
+// 		-  For memory and aggregated statistics, this property is empty.
+// 		-  For host and virtual machine devices, this property contains the name of the device, such as the name of the host-bus   adapter or the name of the virtual Ethernet adapter. For example, “mpx.vmhba33:C0:T0:L0” or “vmnic0:”
+// 		-  For a CPU, this property identifies the numeric position within the CPU core, such as 0, 1, 2, 3."""
+// We give priority to the values having the `instance` specified. If more than one value is returned we compute the average.
+// If no value having an 'instance' is found for a perf metric we fall back to 'instanceless' values.
+// If no value is returned we do not report that specific perf metric
 type perfEvaluer struct {
 	instancelessValue *int64
 	accumulator       accumulator
@@ -154,7 +157,7 @@ func (c *PerfCollector) processEntityMetrics(metricsValues *types.PerfEntityMetr
 
 		metricName, metricVal, err := c.extractValue(metricValue)
 		if err != nil {
-			c.logger.Debugf("extractiving value %v", err)
+			c.logger.Debugf("extracting value %v", err)
 			continue
 		}
 
@@ -188,11 +191,11 @@ func accumulateValues(accumulateMetrics map[string]*perfEvaluer, metricName stri
 		accumulateMetrics[metricName] = pe
 	}
 
-	if metricValue.GetPerfMetricSeries().Id.Instance == "" {
-		pe.instancelessValue = &metricVal
-	} else {
+	if metricValue.GetPerfMetricSeries().Id.Instance != "" {
 		pe.accumulator.Occurrences++
 		pe.accumulator.Sum += metricVal
+	} else {
+		pe.instancelessValue = &metricVal
 	}
 }
 
