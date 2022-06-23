@@ -14,11 +14,6 @@ INTEGRATION       := vsphere
 SHORT_INTEGRATION := vsphere
 BINARY_NAME        = nri-$(INTEGRATION)
 
-LINTER         = golangci-lint
-LINTER_VERSION = 1.45.2
-SNYK_BIN       = snyk-linux
-SNYK_VERSION   = v1.361.3
-
 all: build-local
 build-local: clean compile test tidy
 
@@ -50,7 +45,7 @@ tools-vcsim-stop:
 	@docker-compose -f tools/docker-compose.yml down
 
 
-test: deps validate test-unit test-integration
+test: deps test-unit test-integration
 test-unit: deps compile
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
 	@gocov test $(GO_PKGS) | gocov-xml > coverage.xml
@@ -58,10 +53,6 @@ test-unit: deps compile
 test-integration: compile
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
 	@$(GO_CMD) test -v -tags=integration ./integration-test/.
-
-validate: validate-deps
-	@echo "=== $(PROJECT_NAME) === [ validate             ]: Validating source code running $(LINTER)..."
-	@$(LINTER) run ./...
 
 tidy:
 	@echo "=== $(PROJECT_NAME) === [ tidy ]: Tidying up go mod..."
@@ -77,9 +68,6 @@ tools-update: check-version
 deps-only:
 	@echo "=== $(PROJECT_NAME) === [ deps ]: Installing package dependencies required by the project..."
 	@$(GO_CMD) mod download
-validate-deps:
-	@echo "=== $(PROJECT_NAME) === [ validate-deps ]: Installing linting dependencies required by the project..."
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$($(GO_CMD) env GOPATH)/bin v$(LINTER_VERSION)
 
 check-version:
 ifdef GOOS
