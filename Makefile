@@ -4,7 +4,6 @@ NATIVEOS     := $(shell $(GO_CMD) version | awk -F '[ /]' '{print $$4}')
 NATIVEARCH   := $(shell $(GO_CMD) version | awk -F '[ /]' '{print $$5}')
 GO_PKGS      := $(shell $(GO_CMD) list ./... | grep -v -e "/vendor/" -e "/example")
 GO_FILES     := $(shell find cmd -type f -name "*.go")
-GO_TOOLS      = github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
 BIN_DIR            = $(WORKDIR)/bin
 TARGET             = target
@@ -19,18 +18,18 @@ build-local: clean compile test tidy
 
 clean:
 	@echo "=== $(PROJECT_NAME) === [ clean ]: Removing binaries and coverage file..."
-	@rm -rfv $(BIN_DIR) $(BINS_DIR) coverage.xml $(TARGET)
+	@rm -rfv $(BIN_DIR) $(BINS_DIR) $(TARGET)
 
-compile: deps-only
+compile: deps
 	@echo "=== $(PROJECT_NAME) === [ compile          ]: building commands:"
 	@$(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
-compile-linux: deps-only
+compile-linux: deps
 	@echo "=== $(PROJECT_NAME) === [ compile-linux    ]: building commands:"
 	@GOOS=linux $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
-compile-darwin: deps-only
+compile-darwin: deps
 	@echo "=== $(PROJECT_NAME) === [ compile-darwin    ]: building commands:"
 	@GOOS=darwin $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME) ./cmd/...
-compile-windows: deps-only
+compile-windows: deps
 	@echo "=== $(PROJECT_NAME) === [ compile-windows    ]: building commands:"
 	@GOOS=windows $(GO_CMD) build -o $(BIN_DIR)/$(BINARY_NAME).exe ./cmd/...
 tools-vcsim-run: clean compile-linux
@@ -48,7 +47,7 @@ tools-vcsim-stop:
 test: deps test-unit test-integration
 test-unit: deps compile
 	@echo "=== $(PROJECT_NAME) === [ unit-test        ]: running unit tests..."
-	@gocov test $(GO_PKGS) | gocov-xml > coverage.xml
+	@go test -race ./... -count=1
 
 test-integration: compile
 	@echo "=== $(PROJECT_NAME) === [ integration-test ]: running integration tests..."
@@ -58,14 +57,7 @@ tidy:
 	@echo "=== $(PROJECT_NAME) === [ tidy ]: Tidying up go mod..."
 	@$(GO_CMD) mod tidy
 
-deps: tools deps-only
-tools: check-version
-	@echo "=== $(PROJECT_NAME) === [ tools ]: Installing tools required by the project..."
-	@$(GO_CMD) install $(GO_TOOLS)
-tools-update: check-version
-	@echo "=== $(PROJECT_NAME) === [ tools-update ]: Updating tools required by the project..."
-	@$(GO_CMD) get -u $(GO_TOOLS)
-deps-only:
+deps:
 	@echo "=== $(PROJECT_NAME) === [ deps ]: Installing package dependencies required by the project..."
 	@$(GO_CMD) mod download
 
