@@ -2,8 +2,6 @@
 
 # New Relic VMware vSphere integration
 
-[![Known Vulnerabilities](https://snyk.io/test/github/newrelic/nri-vsphere/badge.svg?targetFile=vendor/vendor.json)](https://snyk.io/test/github/newrelic/nri-vsphere?targetFile=vendor/vendor.json)
-
 New Relic's VMware vSphere integration captures critical summary and performance metrics data by connecting to VMware vCenter or an ESXi Host. For more information, see [the official New Relic docs](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-vsphere-monitoring-integration).
 
 The integration collects data about data centers, clusters, virtual machines, hosts, datastores, resource pools, and networks. In addition to metrics, the integration can also capture vSphere events and VM snapshot information when enabled by the appropriate flags.
