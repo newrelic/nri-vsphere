@@ -135,6 +135,7 @@ func processEvent(config *config.Config, ed *events.EventDispacher, entity *inte
 			Attributes: map[string]interface{}{
 				"vSphereEvent.userName": e.UserName,
 				"vSphereEvent.date":     e.CreatedTime.Format(time.RFC1123),
+				"timestamp":             e.CreatedTime.Unix(),
 			},
 		}
 		if e.Vm != nil {
