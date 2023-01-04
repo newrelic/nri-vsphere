@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## v1.2.6 (2023-01-05)
+### Changed
+- Bump dependencies
+- Bump go version 1.19
+### Fix
+- Event timestamp is now set explicitly to avoid the agent to set it to time.Now() instead of e.CreatedTime
+
 ## v1.2.5 (2022-06-23)
 
 ### Changed
