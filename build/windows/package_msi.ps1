@@ -30,11 +30,15 @@ if ($wrong.Length  -ne 0) {
     exit -1
 }
 
-echo "===> Import .pfx certificate from GH Secrets"
-Import-PfxCertificate -FilePath wincert.pfx -Password (ConvertTo-SecureString -String $pfx_passphrase -AsPlainText -Force) -CertStoreLocation Cert:\CurrentUser\My
+if ($env:NO_SIGN -ieq "true") {
+    echo "===> Import .pfx certificate is disabled by environment variable"
+} else {
+    echo "===> Import .pfx certificate from GH Secrets"
+    Import-PfxCertificate -FilePath wincert.pfx -Password (ConvertTo-SecureString -String $pfx_passphrase -AsPlainText -Force) -CertStoreLocation Cert:\CurrentUser\My
 
-echo "===> Show certificate installed"
-Get-ChildItem -Path cert:\CurrentUser\My\
+    echo "===> Show certificate installed"
+    Get-ChildItem -Path cert:\CurrentUser\My\
+}
 
 echo "===> Checking MSBuild.exe..."
 $msBuild = (Get-ItemProperty hklm:\software\Microsoft\MSBuild\ToolsVersions\4.0).MSBuildToolsPath

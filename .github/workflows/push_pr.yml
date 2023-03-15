@@ -103,6 +103,7 @@ jobs:
     needs: [test-build-nix]
     env:
       GOPATH: ${{ github.workspace }}
+      NO_SIGN: true
     defaults:
       run:
         working-directory: src/github.com/${{ env.ORIGINAL_REPO_NAME }}
@@ -123,9 +124,6 @@ jobs:
           name: windows-packages
           path: src/github.com/${{ env.ORIGINAL_REPO_NAME }}/dist/
 
-      - name: Get PFX certificate from GH secrets
-        shell: bash
-        run: printf "%s" "$PFX_CERTIFICATE_BASE64" | base64 -d - > wincert.pfx
       - name: Extract .exe
         shell: pwsh
         run: build\windows\extract_exe.ps1 "$env:INTEGRATION" ${{ matrix.goarch }} "$env:TAG"
