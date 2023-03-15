@@ -30,7 +30,8 @@ if ($wrong.Length  -ne 0) {
     exit -1
 }
 
-if ($env:NO_SIGN -ieq "true") {
+$noSign = $env:NO_SIGN ?? "false"
+if ($noSign -ieq "true") {
     echo "===> Import .pfx certificate is disabled by environment variable"
 } else {
     echo "===> Import .pfx certificate from GH Secrets"
@@ -51,7 +52,7 @@ echo $msBuild
 echo "===> Building Installer"
 Push-Location -Path "build\package\windows\nri-$arch-installer"
 
-. $msBuild/MSBuild.exe nri-installer.wixproj /p:IntegrationVersion=${version} /p:IntegrationName=$integration /p:Year=$buildYear /p:pfx_certificate_description=$pfx_certificate_description
+. $msBuild/MSBuild.exe nri-installer.wixproj /p:IntegrationVersion=${version} /p:IntegrationName=$integration /p:Year=$buildYear /p:NoSign=$noSign /p:pfx_certificate_description=$pfx_certificate_description
 
 if (-not $?)
 {
