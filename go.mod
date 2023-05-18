@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/newrelic/infra-integrations-sdk v3.7.3+incompatible
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.2
 	github.com/stretchr/testify v1.8.2
 	github.com/vmware/govmomi v0.30.4
 	github.com/xeipuuv/gojsonschema v1.2.0
