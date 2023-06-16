@@ -4,6 +4,8 @@ builds:
     binary: nri-vsphere
     ldflags:
       - -s -w -X main.integrationVersion={{.Version}} -X main.gitCommit={{.Commit}} -X main.buildDate={{.Date}}
+    env:
+      - CGO_ENABLED=0
     goos:
       - linux
       - darwin
@@ -23,6 +25,8 @@ builds:
       - -s -w -X main.integrationVersion={{.Version}} -X main.gitCommit={{.Commit}} -X main.buildDate={{.Date}}
     goos:
       - windows
+    env:
+      - CGO_ENABLED=0
     goarch:
       - 386
       - amd64
