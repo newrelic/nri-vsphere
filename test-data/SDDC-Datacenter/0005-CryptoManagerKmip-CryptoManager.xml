@@ -1,0 +1,34 @@
+<ObjectContent>
+  <obj type="CryptoManagerKmip">CryptoManager</obj>
+  <propSet>
+    <name>enabled</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="xsd:boolean">true</val>
+  </propSet>
+  <propSet>
+    <name>kmipServers</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfKmipClusterInfo">
+      <KmipClusterInfo>
+        <clusterId>
+          <id>NKP_3692bdd6-89e6-455d-829f-05f980f90972_61384342-14ee-4528-97e7-2cb9494ea22a</id>
+        </clusterId>
+        <useAsDefault>true</useAsDefault>
+        <managementType>nativeProvider</managementType>
+        <hasBackup>true</hasBackup>
+        <tpmRequired>false</tpmRequired>
+        <keyId>61384342-14ee-4528-97e7-2cb9494ea22a</keyId>
+      </KmipClusterInfo>
+      <KmipClusterInfo>
+        <clusterId>
+          <id>d2b2110c-b466-4da3-a6b4-e801490de8ec</id>
+        </clusterId>
+        <servers>
+          <name>d2b2110c-b466-4da3-a6b4-e801490de8ec</name>
+          <address>arn:aws:kms:eu-north-1:387809923478:key/4ac674df-ceb6-4e5a-b4d6-922215f32143</address>
+          <port>443</port>
+        </servers>
+        <useAsDefault>false</useAsDefault>
+        <managementType>vCenter</managementType>
+      </KmipClusterInfo>
+    </val>
+  </propSet>
+</ObjectContent>
