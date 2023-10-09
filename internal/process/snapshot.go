@@ -24,7 +24,7 @@ type snapshotProcessor struct {
 	results map[types.ManagedObjectReference]*infoSnapshot
 }
 
-// It takes care of going through VirtualMachineFileLayoutEx building up infoSnapshot
+// It takes care of going through VirtualMachineFileLayoutEx building up infoSnapshot.
 func (sp snapshotProcessor) processSnapshotTree(parentSnapshot *types.ManagedObjectReference, snapshotTrees []types.VirtualMachineSnapshotTree) {
 	for _, st := range snapshotTrees {
 		st := st
@@ -131,7 +131,7 @@ func (sp snapshotProcessor) buildFileStructure(parentSnapshot *types.ManagedObje
 
 	// We do not consider any file belonging to a parent
 	for _, parentFile := range parentFiles {
-		dataAndDiskFiles = removeKey(dataAndDiskFiles, parentFile)
+		removeKey(&dataAndDiskFiles, parentFile)
 	}
 
 	// Extracting the list of all files related to a virtualMachine.
@@ -139,11 +139,11 @@ func (sp snapshotProcessor) buildFileStructure(parentSnapshot *types.ManagedObje
 	// Remaining files are counted if the Snapshot is the "Current" one (from a Vsphere point of view).
 	deltaOfCurrent := extractDiskLayoutFiles(sp.vmLayoutEx.Disk)
 	for _, file := range allSnapshotFiles {
-		deltaOfCurrent = removeKey(deltaOfCurrent, file)
+		removeKey(&deltaOfCurrent, file)
 	}
 
-	deltaOfCurrent = removeKey(deltaOfCurrent, invalidFile)
-	dataAndDiskFiles = removeKey(dataAndDiskFiles, invalidFile)
+	removeKey(&deltaOfCurrent, invalidFile)
+	removeKey(&dataAndDiskFiles, invalidFile)
 
 	return fileStructure{
 		memory:         memoryFile,
@@ -176,17 +176,13 @@ func extractDiskLayoutFiles(diskLayoutList []types.VirtualMachineFileLayoutExDis
 
 // removeKey is a helper function for removing a specific file key from a list
 // of keys associated with disks attached to a virtual machine.
-func removeKey(l []int32, key int32) []int32 {
-	p := make([]int32, len(l))
-	copy(p, l)
-	for i, k := range l {
+func removeKey(l *[]int32, key int32) {
+	for i, k := range *l {
 		if k == key {
-			p = append(p[:i], p[i+1:]...)
+			*l = append((*l)[:i], (*l)[i+1:]...)
 			break
 		}
 	}
-
-	return p
 }
 
 // It adds a new sample for each snapshot following the whole tree in a recursive way.
