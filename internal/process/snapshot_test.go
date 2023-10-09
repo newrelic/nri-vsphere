@@ -302,3 +302,24 @@ func getLayout() *types.VirtualMachineFileLayoutEx {
 		},
 	}
 }
+
+func TestRemoveKey(t *testing.T) {
+	test := []int32{8, 2, 3, 4, 5, 7}
+
+	removeKey(&test, 7)
+	assert.Equal(t, []int32{8, 2, 3, 4, 5}, test)
+	removeKey(&test, 10)
+	assert.Equal(t, []int32{8, 2, 3, 4, 5}, test)
+	removeKey(&test, 8)
+	assert.Equal(t, []int32{2, 3, 4, 5}, test)
+	removeKey(&test, 4)
+	assert.Equal(t, []int32{2, 3, 5}, test)
+	removeKey(&test, 3)
+	assert.Equal(t, []int32{2, 5}, test)
+	removeKey(&test, 2)
+	assert.Equal(t, []int32{5}, test)
+	removeKey(&test, 5)
+	assert.Equal(t, []int32{}, test)
+	removeKey(&test, -1)
+	assert.Equal(t, []int32{}, test)
+}
