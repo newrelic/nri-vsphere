@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/vmware/govmomi/vim25/types"
+
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/config"
 )
@@ -16,7 +18,7 @@ func createVirtualMachineSamples(config *config.Config) {
 	for _, dc := range config.Datacenters {
 		for _, vm := range dc.VirtualMachines {
 
-			// filtering here will to avoid sending data to backend
+			// filtering here will to avoid sending dataAndDisk to backend
 			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(vm.Self) {
 				continue
 			}
@@ -218,14 +220,32 @@ func createVirtualMachineSamples(config *config.Config) {
 			}
 
 			// Snapshots
-			if vm.Snapshot != nil && config.Args.EnableVsphereSnapshots {
-				infoSnapshot, suspendMemory, suspendMemoryUnique := processLayoutEx(vm.LayoutEx)
+			if vm.Snapshot != nil && vm.LayoutEx != nil && config.Args.EnableVsphereSnapshots {
+				sp := snapshotProcessor{
+					vmLayoutEx:      vm.LayoutEx,
+					currentSnapshot: vm.Snapshot.CurrentSnapshot,
+					results:         map[types.ManagedObjectReference]*infoSnapshot{},
+					logger:          config.Logrus,
+				}
+
+				sp.processSnapshotTree(nil, vm.Snapshot.RootSnapshotList)
+
+				for _, tree := range vm.Snapshot.RootSnapshotList {
+					sp.createSnapshotSamples(e, entityName, tree)
+				}
+			}
+
+			// suspendMemory
+			if vm.LayoutEx != nil {
+				var suspendMemory, suspendMemoryUnique int64
+				for _, exFile := range vm.LayoutEx.File {
+					if exFile.Type == "suspendMemory" {
+						suspendMemory += exFile.Size
+						suspendMemoryUnique += exFile.UniqueSize
+					}
+				}
 				checkError(config.Logrus, ms.SetMetric("disk.suspendMemory", strconv.FormatInt(suspendMemory, 10), metric.GAUGE))
 				checkError(config.Logrus, ms.SetMetric("disk.suspendMemoryUnique", strconv.FormatInt(suspendMemoryUnique, 10), metric.GAUGE))
-
-				for _, t := range vm.Snapshot.RootSnapshotList {
-					traverseSnapshotList(e, config, t, entityName, infoSnapshot)
-				}
 			}
 		}
 	}

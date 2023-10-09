@@ -4,109 +4,231 @@
 package process
 
 import (
+	"math"
 	"strconv"
 
-	"github.com/newrelic/nri-vsphere/internal/config"
-
-	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
+	"github.com/newrelic/infra-integrations-sdk/integration"
 )
 
+const invalidFile = -1
+
+type snapshotProcessor struct {
+	vmLayoutEx      *types.VirtualMachineFileLayoutEx
+	currentSnapshot *types.ManagedObjectReference
+	logger          *logrus.Logger
+
+	results map[types.ManagedObjectReference]*infoSnapshot
+}
+
 // It takes care of going through VirtualMachineFileLayoutEx building up infoSnapshot
-func processLayoutEx(ex *types.VirtualMachineFileLayoutEx) (info map[types.ManagedObjectReference]*infoSnapshot, suspendMemory int64, suspendMemoryUnique int64) {
-
-	info = map[types.ManagedObjectReference]*infoSnapshot{}
-	if ex != nil {
-		for _, exFile := range ex.File {
-			if exFile.Type == "snapshotData" {
-				findSnapshotAndUpdateInfoData(ex.Snapshot, exFile, info)
-			} else if exFile.Type == "snapshotMemory" {
-				findSnapshotAndUpdateInfoMemory(ex.Snapshot, exFile, info)
-			} else if exFile.Type == "suspendMemory" {
-				suspendMemory += exFile.Size
-				suspendMemoryUnique += exFile.UniqueSize
-			}
-		}
+func (sp snapshotProcessor) processSnapshotTree(parentSnapshot *types.ManagedObjectReference, snapshotTrees []types.VirtualMachineSnapshotTree) {
+	for _, st := range snapshotTrees {
+		st := st
+		sp.snapshotSize(parentSnapshot, st.Snapshot)
+		sp.processSnapshotTree(&st.Snapshot, st.ChildSnapshotList)
 	}
-	return info, suspendMemory, suspendMemoryUnique
 }
 
-// It finds for the given datakey the snapshotRef and saves the data
-func findSnapshotAndUpdateInfoData(snapshostFiles []types.VirtualMachineFileLayoutExSnapshotLayout, exFile types.VirtualMachineFileLayoutExFileInfo, info map[types.ManagedObjectReference]*infoSnapshot) {
-	for _, exs := range snapshostFiles {
-		if exs.DataKey == exFile.Key {
-			i, ok := info[exs.Key]
-			if !ok {
-				i = &infoSnapshot{}
-				info[exs.Key] = i
-			}
-			i.totalDisk += exFile.Size
-			i.totalUniqueDisk += exFile.UniqueSize
-			i.datastorePathDisk = i.datastorePathDisk + exFile.Name + "|"
+// Function logic taken from the govc implementation
+//
+// SnapshotSize calculates the size of a given snapshot in bytes.
+// List of snapshot files https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.hostclient.doc/GUID-38F4D574-ADE7-4B80-AEAB-7EC502A379F4.html.
+func (sp snapshotProcessor) snapshotSize(parentSnapshot *types.ManagedObjectReference, snapshotRef types.ManagedObjectReference) {
+	// Creating a fileKeyMap just to speedup computation.
+	fileKeyMap := buildFileKeyMap(sp.vmLayoutEx.File)
+	// Creating the fileStructure needed to compute the snapshotSize.
+	files := sp.buildFileStructure(parentSnapshot, snapshotRef)
+
+	sp.computeDiskSizes(parentSnapshot, snapshotRef, files, fileKeyMap)
+
+	if files.memory != 0 {
+		if file, ok := fileKeyMap[files.memory]; ok {
+			sp.results[snapshotRef].totalUniqueMemoryInDisk = file.UniqueSize
+			sp.results[snapshotRef].totalMemoryInDisk = file.Size
+			sp.results[snapshotRef].datastorePathMemory = file.Name
 		}
 	}
 }
 
-// It finds for the given memorykey the snapshotRef and saves the data
-func findSnapshotAndUpdateInfoMemory(snapshostFiles []types.VirtualMachineFileLayoutExSnapshotLayout, exFile types.VirtualMachineFileLayoutExFileInfo, info map[types.ManagedObjectReference]*infoSnapshot) {
-	for _, exs := range snapshostFiles {
-		if exs.MemoryKey == exFile.Key && exs.MemoryKey != -1 {
-			i, ok := info[exs.Key]
-			if !ok {
-				i = &infoSnapshot{}
-				info[exs.Key] = i
+// This structure is needed just to return data in an easier way.
+type fileStructure struct {
+	// memory points to the memory key if set.
+	memory int32
+	// dataAndDisk is the list of all files deltas and data if the snapshot has a parent
+	// otherwise, it is just the snapshot data (to avoid considering the vm Disk).
+	dataAndDisk []int32
+	// deltaOfCurrent are the delta disks of the "Current" (from a Vsphere point of view) snapshot.
+	deltaOfCurrent []int32
+}
+
+// If the snapshot has a parent -> "diskFiles = snapshotFiles - parent snapshot files"
+// If the snapshot is the "current" (from a Vsphere point of view) one -> "diskFiles = allFiles - allSnapshotFiles"
+// To these files it is always added the "data file" that is quite small.
+func (sp snapshotProcessor) computeDiskSizes(parentSnapshot *types.ManagedObjectReference, snapshotRef types.ManagedObjectReference, files fileStructure, fileKeyMap map[int32]types.VirtualMachineFileLayoutExFileInfo) {
+	var datastorePathDisk string
+	var diskSize int64
+	var uniqueDiskSize int64
+	for _, fileKey := range files.dataAndDisk {
+		if file, ok := fileKeyMap[fileKey]; ok {
+			if parentSnapshot != nil ||
+				file.Type != string(types.VirtualMachineFileLayoutExFileTypeDiskDescriptor) &&
+					file.Type != string(types.VirtualMachineFileLayoutExFileTypeDiskExtent) {
+				diskSize += file.Size
+				uniqueDiskSize += file.UniqueSize
+				datastorePathDisk = datastorePathDisk + file.Name + "|"
 			}
-			i.totalMemoryInDisk += exFile.Size
-			i.totalUniqueMemoryInDisk += exFile.UniqueSize
-			i.datastorePathMemory = i.datastorePathMemory + exFile.Name + "|"
 		}
+	}
+
+	if sp.currentSnapshot != nil {
+		if snapshotRef == *sp.currentSnapshot {
+			for _, diskFile := range files.deltaOfCurrent {
+				if file, ok := fileKeyMap[diskFile]; ok {
+					diskSize += file.Size
+					uniqueDiskSize += file.UniqueSize
+					datastorePathDisk = datastorePathDisk + file.Name + "|"
+				}
+			}
+		}
+	}
+
+	sp.results[snapshotRef] = &infoSnapshot{
+		totalDisk:         diskSize,
+		totalUniqueDisk:   uniqueDiskSize,
+		datastorePathDisk: datastorePathDisk,
 	}
 }
 
-// It adds a new sample for each snapshot following the whole tree in a recursive way
-func traverseSnapshotList(e *integration.Entity, config *config.Config, tree types.VirtualMachineSnapshotTree, treeInfo string, info map[types.ManagedObjectReference]*infoSnapshot) {
+func (sp snapshotProcessor) buildFileStructure(parentSnapshot *types.ManagedObjectReference, snapshotRef types.ManagedObjectReference) fileStructure {
+	var allSnapshotFiles []int32
+	var memoryFile int32
+	var parentFiles []int32
+	var dataAndDiskFiles []int32
 
+	for _, snapLayout := range sp.vmLayoutEx.Snapshot {
+		// Extracting the list of files of the current snapshot of the loop.
+		diskLayout := extractDiskLayoutFiles(snapLayout.Disk)
+		// We create the list of all the files of all the snapshots.
+		allSnapshotFiles = append(allSnapshotFiles, diskLayout...)
+
+		// we will consider files merely if the snapshot is the one we are computing.
+		if snapLayout.Key.Value == snapshotRef.Value {
+			// Adding the .vmsn file of the snapshot we are interested into.
+			dataAndDiskFiles = append(dataAndDiskFiles, snapLayout.DataKey)
+			// Adding the .vmdk files of the snapshot we are interested into.
+			dataAndDiskFiles = append(dataAndDiskFiles, diskLayout...)
+			memoryFile = snapLayout.MemoryKey
+		} else if parentSnapshot != nil {
+			if snapLayout.Key.Value == parentSnapshot.Value {
+				parentFiles = append(parentFiles, diskLayout...)
+			}
+		}
+	}
+
+	// We do not consider any file belonging to a parent
+	for _, parentFile := range parentFiles {
+		dataAndDiskFiles = removeKey(dataAndDiskFiles, parentFile)
+	}
+
+	// Extracting the list of all files related to a virtualMachine.
+	// Then we remove all snapshots files that are already considered by parent snapshots
+	// Remaining files are counted if the Snapshot is the "Current" one (from a Vsphere point of view).
+	deltaOfCurrent := extractDiskLayoutFiles(sp.vmLayoutEx.Disk)
+	for _, file := range allSnapshotFiles {
+		deltaOfCurrent = removeKey(deltaOfCurrent, file)
+	}
+
+	deltaOfCurrent = removeKey(deltaOfCurrent, invalidFile)
+	dataAndDiskFiles = removeKey(dataAndDiskFiles, invalidFile)
+
+	return fileStructure{
+		memory:         memoryFile,
+		dataAndDisk:    dataAndDiskFiles,
+		deltaOfCurrent: deltaOfCurrent,
+	}
+}
+
+func buildFileKeyMap(filesInfo []types.VirtualMachineFileLayoutExFileInfo) map[int32]types.VirtualMachineFileLayoutExFileInfo {
+	fileKeyMap := map[int32]types.VirtualMachineFileLayoutExFileInfo{}
+	for _, file := range filesInfo {
+		fileKeyMap[file.Key] = file
+	}
+	return fileKeyMap
+}
+
+// extractDiskLayoutFiles is a helper function used to extract file keys for
+// all disk files attached to the virtual machine at the current point of running.
+func extractDiskLayoutFiles(diskLayoutList []types.VirtualMachineFileLayoutExDiskLayout) []int32 {
+	var result []int32
+
+	for _, layoutExDisk := range diskLayoutList {
+		for _, link := range layoutExDisk.Chain {
+			result = append(result, link.FileKey...)
+		}
+	}
+
+	return result
+}
+
+// removeKey is a helper function for removing a specific file key from a list
+// of keys associated with disks attached to a virtual machine.
+func removeKey(l []int32, key int32) []int32 {
+	p := make([]int32, len(l))
+	copy(p, l)
+	for i, k := range l {
+		if k == key {
+			p = append(p[:i], p[i+1:]...)
+			break
+		}
+	}
+
+	return p
+}
+
+// It adds a new sample for each snapshot following the whole tree in a recursive way.
+func (sp snapshotProcessor) createSnapshotSamples(e *integration.Entity, treeInfo string, tree types.VirtualMachineSnapshotTree) {
 	ms := e.NewMetricSet("VSphere" + sampleTypeSnapshotVm + "Sample")
 	treeInfo = treeInfo + ":" + tree.Name
-	createMetricsCurrentSnapshot(treeInfo, tree, config, ms, info)
+	sp.createMetricsCurrentSnapshot(treeInfo, tree, ms)
 
 	//A recursive function is needed since the actual size of the tree in unknown
 	for _, s := range tree.ChildSnapshotList {
-		traverseSnapshotList(e, config, s, treeInfo, info)
+		sp.createSnapshotSamples(e, treeInfo, s)
 	}
-
 }
 
-func createMetricsCurrentSnapshot(treeInfo string, tree types.VirtualMachineSnapshotTree, config *config.Config, ms *metric.Set, info map[types.ManagedObjectReference]*infoSnapshot) {
-	checkError(config.Logrus, ms.SetMetric("snapshotTreeInfo", treeInfo, metric.ATTRIBUTE))
-	checkError(config.Logrus, ms.SetMetric("name", tree.Name, metric.ATTRIBUTE))
-	checkError(config.Logrus, ms.SetMetric("creationTime", tree.CreateTime.String(), metric.ATTRIBUTE))
-	checkError(config.Logrus, ms.SetMetric("powerState", string(tree.State), metric.ATTRIBUTE))
-	checkError(config.Logrus, ms.SetMetric("snapshotId", strconv.FormatInt(int64(tree.Id), 10), metric.ATTRIBUTE))
-	checkError(config.Logrus, ms.SetMetric("quiesced", strconv.FormatBool(tree.Quiesced), metric.ATTRIBUTE))
+func (sp snapshotProcessor) createMetricsCurrentSnapshot(treeInfo string, tree types.VirtualMachineSnapshotTree, ms *metric.Set) {
+	checkError(sp.logger, ms.SetMetric("snapshotTreeInfo", treeInfo, metric.ATTRIBUTE))
+	checkError(sp.logger, ms.SetMetric("name", tree.Name, metric.ATTRIBUTE))
+	checkError(sp.logger, ms.SetMetric("creationTime", tree.CreateTime.String(), metric.ATTRIBUTE))
+	checkError(sp.logger, ms.SetMetric("powerState", string(tree.State), metric.ATTRIBUTE))
+	checkError(sp.logger, ms.SetMetric("snapshotId", strconv.FormatInt(int64(tree.Id), 10), metric.ATTRIBUTE))
+	checkError(sp.logger, ms.SetMetric("quiesced", strconv.FormatBool(tree.Quiesced), metric.ATTRIBUTE))
 	if tree.BackupManifest != "" {
-		checkError(config.Logrus, ms.SetMetric("backupManifest", tree.BackupManifest, metric.ATTRIBUTE))
+		checkError(sp.logger, ms.SetMetric("backupManifest", tree.BackupManifest, metric.ATTRIBUTE))
 	}
 	if tree.Description != "" {
-		checkError(config.Logrus, ms.SetMetric("description", tree.Description, metric.ATTRIBUTE))
+		checkError(sp.logger, ms.SetMetric("description", tree.Description, metric.ATTRIBUTE))
 	}
 	if tree.ReplaySupported != nil {
-		checkError(config.Logrus, ms.SetMetric("replaySupported", strconv.FormatBool(*tree.ReplaySupported), metric.ATTRIBUTE))
+		checkError(sp.logger, ms.SetMetric("replaySupported", strconv.FormatBool(*tree.ReplaySupported), metric.ATTRIBUTE))
 	}
 
-	if i, ok := info[tree.Snapshot]; ok {
-		checkError(config.Logrus, ms.SetMetric("totalMemoryInDisk", i.totalMemoryInDisk/(1<<20), metric.GAUGE))
-		checkError(config.Logrus, ms.SetMetric("totalUniqueMemoryInDisk", i.totalUniqueMemoryInDisk/(1<<20), metric.GAUGE))
-		checkError(config.Logrus, ms.SetMetric("totalDisk", i.totalDisk/(1<<20), metric.GAUGE))
-		checkError(config.Logrus, ms.SetMetric("totalUniqueDisk", i.totalUniqueDisk/(1<<20), metric.GAUGE))
-		checkError(config.Logrus, ms.SetMetric("datastorePathDisk", i.datastorePathDisk, metric.ATTRIBUTE))
-		checkError(config.Logrus, ms.SetMetric("datastorePathMemory", i.datastorePathMemory, metric.ATTRIBUTE))
+	if i, ok := sp.results[tree.Snapshot]; ok {
+		checkError(sp.logger, ms.SetMetric("totalMemoryInDisk", math.Ceil(float64(i.totalMemoryInDisk)/(1<<20)), metric.GAUGE))
+		checkError(sp.logger, ms.SetMetric("totalUniqueMemoryInDisk", math.Ceil(float64(i.totalUniqueMemoryInDisk)/(1<<20)), metric.GAUGE))
+		checkError(sp.logger, ms.SetMetric("totalDisk", math.Ceil(float64(i.totalDisk)/(1<<20)), metric.GAUGE))
+		checkError(sp.logger, ms.SetMetric("totalUniqueDisk", math.Ceil(float64(i.totalUniqueDisk)/(1<<20)), metric.GAUGE))
+		checkError(sp.logger, ms.SetMetric("datastorePathDisk", i.datastorePathDisk, metric.ATTRIBUTE))
+		checkError(sp.logger, ms.SetMetric("datastorePathMemory", i.datastorePathMemory, metric.ATTRIBUTE))
 	}
 }
 
-// This struct is used to save data before creating the metrics. Otherwise we would need to go thorugh the data structure many times
+// This struct is used to save dataAndDisk before creating the metrics. Otherwise, we would need to go thorugh the dataAndDisk structure many times.
 type infoSnapshot struct {
 	totalMemoryInDisk int64
 	totalDisk         int64
