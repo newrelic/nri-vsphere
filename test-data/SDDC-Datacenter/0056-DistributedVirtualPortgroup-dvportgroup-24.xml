@@ -1,0 +1,312 @@
+<ObjectContent>
+  <obj type="DistributedVirtualPortgroup">dvportgroup-24</obj>
+  <propSet>
+    <name>alarmActionsEnabled</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="xsd:boolean">true</val>
+  </propSet>
+  <propSet>
+    <name>availableField</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfCustomFieldDef"></val>
+  </propSet>
+  <propSet>
+    <name>config</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="DVPortgroupConfigInfo">
+      <key>dvportgroup-24</key>
+      <name>mgmt-ls</name>
+      <numPorts>5</numPorts>
+      <distributedVirtualSwitch type="VmwareDistributedVirtualSwitch">dvs-8</distributedVirtualSwitch>
+      <defaultPortConfig XMLSchema-instance:type="VMwareDVSPortSetting">
+        <blocked>
+          <inherited>false</inherited>
+          <value>false</value>
+        </blocked>
+        <vmDirectPathGen2Allowed>
+          <inherited>false</inherited>
+          <value>false</value>
+        </vmDirectPathGen2Allowed>
+        <inShapingPolicy>
+          <inherited>false</inherited>
+          <enabled>
+            <inherited>false</inherited>
+            <value>false</value>
+          </enabled>
+          <averageBandwidth>
+            <inherited>false</inherited>
+            <value>100000000</value>
+          </averageBandwidth>
+          <peakBandwidth>
+            <inherited>false</inherited>
+            <value>100000000</value>
+          </peakBandwidth>
+          <burstSize>
+            <inherited>false</inherited>
+            <value>104857600</value>
+          </burstSize>
+        </inShapingPolicy>
+        <outShapingPolicy>
+          <inherited>false</inherited>
+          <enabled>
+            <inherited>false</inherited>
+            <value>false</value>
+          </enabled>
+          <averageBandwidth>
+            <inherited>false</inherited>
+            <value>100000000</value>
+          </averageBandwidth>
+          <peakBandwidth>
+            <inherited>false</inherited>
+            <value>100000000</value>
+          </peakBandwidth>
+          <burstSize>
+            <inherited>false</inherited>
+            <value>104857600</value>
+          </burstSize>
+        </outShapingPolicy>
+        <vendorSpecificConfig>
+          <inherited>false</inherited>
+        </vendorSpecificConfig>
+        <networkResourcePoolKey>
+          <inherited>false</inherited>
+          <value>-1</value>
+        </networkResourcePoolKey>
+        <filterPolicy>
+          <inherited>false</inherited>
+        </filterPolicy>
+        <vlan XMLSchema-instance:type="VmwareDistributedVirtualSwitchVlanIdSpec">
+          <inherited>false</inherited>
+          <vlanId>101</vlanId>
+        </vlan>
+        <qosTag>
+          <inherited>false</inherited>
+          <value>-1</value>
+        </qosTag>
+        <uplinkTeamingPolicy>
+          <inherited>false</inherited>
+          <policy>
+            <inherited>true</inherited>
+            <value>loadbalance_srcid</value>
+          </policy>
+          <reversePolicy>
+            <inherited>true</inherited>
+            <value>true</value>
+          </reversePolicy>
+          <notifySwitches>
+            <inherited>true</inherited>
+            <value>true</value>
+          </notifySwitches>
+          <rollingOrder>
+            <inherited>true</inherited>
+            <value>false</value>
+          </rollingOrder>
+          <failureCriteria>
+            <inherited>true</inherited>
+            <checkSpeed>
+              <inherited>true</inherited>
+              <value>minimum</value>
+            </checkSpeed>
+            <speed>
+              <inherited>true</inherited>
+              <value>10</value>
+            </speed>
+            <checkDuplex>
+              <inherited>true</inherited>
+              <value>false</value>
+            </checkDuplex>
+            <fullDuplex>
+              <inherited>true</inherited>
+              <value>false</value>
+            </fullDuplex>
+            <checkErrorPercent>
+              <inherited>true</inherited>
+              <value>false</value>
+            </checkErrorPercent>
+            <percentage>
+              <inherited>true</inherited>
+            </percentage>
+            <checkBeacon>
+              <inherited>true</inherited>
+              <value>false</value>
+            </checkBeacon>
+          </failureCriteria>
+          <uplinkPortOrder>
+            <inherited>false</inherited>
+          </uplinkPortOrder>
+        </uplinkTeamingPolicy>
+        <securityPolicy>
+          <inherited>false</inherited>
+          <allowPromiscuous>
+            <inherited>false</inherited>
+            <value>false</value>
+          </allowPromiscuous>
+          <macChanges>
+            <inherited>false</inherited>
+            <value>false</value>
+          </macChanges>
+          <forgedTransmits>
+            <inherited>false</inherited>
+            <value>false</value>
+          </forgedTransmits>
+        </securityPolicy>
+        <ipfixEnabled>
+          <inherited>false</inherited>
+          <value>false</value>
+        </ipfixEnabled>
+        <txUplink>
+          <inherited>false</inherited>
+          <value>false</value>
+        </txUplink>
+        <lacpPolicy>
+          <inherited>false</inherited>
+          <enable>
+            <inherited>false</inherited>
+            <value>false</value>
+          </enable>
+          <mode>
+            <inherited>false</inherited>
+            <value>passive</value>
+          </mode>
+        </lacpPolicy>
+        <macManagementPolicy>
+          <inherited>false</inherited>
+          <allowPromiscuous>false</allowPromiscuous>
+          <macChanges>false</macChanges>
+          <forgedTransmits>false</forgedTransmits>
+          <macLearningPolicy>
+            <inherited>false</inherited>
+            <enabled>false</enabled>
+          </macLearningPolicy>
+        </macManagementPolicy>
+        <VNI>
+          <inherited>false</inherited>
+        </VNI>
+      </defaultPortConfig>
+      <type>ephemeral</type>
+      <backingType>nsx</backingType>
+      <policy XMLSchema-instance:type="VMwareDVSPortgroupPolicy">
+        <blockOverrideAllowed>true</blockOverrideAllowed>
+        <shapingOverrideAllowed>false</shapingOverrideAllowed>
+        <vendorConfigOverrideAllowed>false</vendorConfigOverrideAllowed>
+        <livePortMovingAllowed>false</livePortMovingAllowed>
+        <portConfigResetAtDisconnect>true</portConfigResetAtDisconnect>
+        <networkResourcePoolOverrideAllowed>false</networkResourcePoolOverrideAllowed>
+        <trafficFilterOverrideAllowed>false</trafficFilterOverrideAllowed>
+        <vlanOverrideAllowed>false</vlanOverrideAllowed>
+        <uplinkTeamingOverrideAllowed>false</uplinkTeamingOverrideAllowed>
+        <securityPolicyOverrideAllowed>false</securityPolicyOverrideAllowed>
+        <ipfixOverrideAllowed>false</ipfixOverrideAllowed>
+        <macManagementOverrideAllowed>false</macManagementOverrideAllowed>
+      </policy>
+      <configVersion>0</configVersion>
+      <autoExpand>false</autoExpand>
+      <uplink>false</uplink>
+      <transportZoneUuid>a1f11d12-c718-41f5-bc2d-7259a9ce2ebe</transportZoneUuid>
+      <transportZoneName>vmc-vlan-tz</transportZoneName>
+      <logicalSwitchUuid>3fc20ccd-c961-4b92-bdd2-7fd695415c2a</logicalSwitchUuid>
+    </val>
+  </propSet>
+  <propSet>
+    <name>configIssue</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfEvent"></val>
+  </propSet>
+  <propSet>
+    <name>configStatus</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ManagedEntityStatus">green</val>
+  </propSet>
+  <propSet>
+    <name>customValue</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfCustomFieldValue"></val>
+  </propSet>
+  <propSet>
+    <name>declaredAlarmState</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfAlarmState"></val>
+  </propSet>
+  <propSet>
+    <name>disabledMethod</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfString"></val>
+  </propSet>
+  <propSet>
+    <name>effectiveRole</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfInt">
+      <int>736455233</int>
+    </val>
+  </propSet>
+  <propSet>
+    <name>host</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfManagedObjectReference">
+      <ManagedObjectReference type="HostSystem">host-14</ManagedObjectReference>
+    </val>
+  </propSet>
+  <propSet>
+    <name>key</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="xsd:string">dvportgroup-24</val>
+  </propSet>
+  <propSet>
+    <name>name</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="xsd:string">mgmt-ls</val>
+  </propSet>
+  <propSet>
+    <name>overallStatus</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ManagedEntityStatus">green</val>
+  </propSet>
+  <propSet>
+    <name>parent</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ManagedObjectReference" type="Folder">group-n7</val>
+  </propSet>
+  <propSet>
+    <name>permission</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfPermission">
+      <Permission>
+        <entity type="DistributedVirtualPortgroup">dvportgroup-24</entity>
+        <principal>VMC.LOCAL\CloudAdminGroup</principal>
+        <group>true</group>
+        <roleId>736455233</roleId>
+        <propagate>true</propagate>
+      </Permission>
+    </val>
+  </propSet>
+  <propSet>
+    <name>portKeys</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfString">
+      <string>6d95f316-c614-4b8f-8dd8-79a5d57f4f27</string>
+      <string>91f53e74-dc82-4347-acf0-2aa83c1f91b1</string>
+      <string>e1134a82-c6cd-4cb2-86ca-8f7b8bb91059</string>
+      <string>e92a6eac-dfb0-440f-8941-9968af38f6f8</string>
+      <string>fc5df560-39f5-45ef-83a8-9c73f3cd94d8</string>
+    </val>
+  </propSet>
+  <propSet>
+    <name>recentTask</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfManagedObjectReference"></val>
+  </propSet>
+  <propSet>
+    <name>summary</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="NetworkSummary">
+      <network type="DistributedVirtualPortgroup">dvportgroup-24</network>
+      <name>mgmt-ls</name>
+      <accessible>true</accessible>
+      <ipPoolName></ipPoolName>
+    </val>
+  </propSet>
+  <propSet>
+    <name>tag</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfTag"></val>
+  </propSet>
+  <propSet>
+    <name>triggeredAlarmState</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfAlarmState"></val>
+  </propSet>
+  <propSet>
+    <name>value</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfCustomFieldValue"></val>
+  </propSet>
+  <propSet>
+    <name>vm</name>
+    <val xmlns:XMLSchema-instance="http://www.w3.org/2001/XMLSchema-instance" XMLSchema-instance:type="ArrayOfManagedObjectReference">
+      <ManagedObjectReference type="VirtualMachine">vm-44</ManagedObjectReference>
+      <ManagedObjectReference type="VirtualMachine">vm-43</ManagedObjectReference>
+      <ManagedObjectReference type="VirtualMachine">vm-23</ManagedObjectReference>
+      <ManagedObjectReference type="VirtualMachine">vm-22</ManagedObjectReference>
+      <ManagedObjectReference type="VirtualMachine">vm-21</ManagedObjectReference>
+    </val>
+  </propSet>
+</ObjectContent>
