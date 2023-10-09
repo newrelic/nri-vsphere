@@ -18,7 +18,7 @@ func createVirtualMachineSamples(config *config.Config) {
 	for _, dc := range config.Datacenters {
 		for _, vm := range dc.VirtualMachines {
 
-			// filtering here will to avoid sending dataAndDisk to backend
+			// filtering here will to avoid sending data to backend
 			if config.TagFilteringEnabled() && !config.TagCollector.MatchObjectTags(vm.Self) {
 				continue
 			}
@@ -229,10 +229,7 @@ func createVirtualMachineSamples(config *config.Config) {
 				}
 
 				sp.processSnapshotTree(nil, vm.Snapshot.RootSnapshotList)
-
-				for _, tree := range vm.Snapshot.RootSnapshotList {
-					sp.createSnapshotSamples(e, entityName, tree)
-				}
+				sp.createSnapshotSamples(e, entityName, vm.Snapshot.RootSnapshotList)
 			}
 
 			// suspendMemory

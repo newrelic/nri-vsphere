@@ -50,7 +50,7 @@ func TestSnapshotsRealData(t *testing.T) {
 
 	i, _ := integration.New("test", "0.0.0")
 	e := i.LocalEntity()
-	sp.createSnapshotSamples(e, "vmName", vm.Snapshot.RootSnapshotList[0])
+	sp.createSnapshotSamples(e, "vmName", vm.Snapshot.RootSnapshotList)
 	testMetrics(t, e)
 }
 

@@ -186,14 +186,13 @@ func removeKey(l *[]int32, key int32) {
 }
 
 // It adds a new sample for each snapshot following the whole tree in a recursive way.
-func (sp snapshotProcessor) createSnapshotSamples(e *integration.Entity, treeInfo string, tree types.VirtualMachineSnapshotTree) {
-	ms := e.NewMetricSet("VSphere" + sampleTypeSnapshotVm + "Sample")
-	treeInfo = treeInfo + ":" + tree.Name
-	sp.createMetricsCurrentSnapshot(treeInfo, tree, ms)
+func (sp snapshotProcessor) createSnapshotSamples(e *integration.Entity, treeInfo string, snapshotTrees []types.VirtualMachineSnapshotTree) {
+	for _, st := range snapshotTrees {
+		ms := e.NewMetricSet("VSphere" + sampleTypeSnapshotVm + "Sample")
+		treeInfo = treeInfo + ":" + st.Name
 
-	//A recursive function is needed since the actual size of the tree in unknown
-	for _, s := range tree.ChildSnapshotList {
-		sp.createSnapshotSamples(e, treeInfo, s)
+		sp.createMetricsCurrentSnapshot(treeInfo, st, ms)
+		sp.createSnapshotSamples(e, treeInfo, st.ChildSnapshotList)
 	}
 }
 
