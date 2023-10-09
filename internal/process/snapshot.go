@@ -39,16 +39,16 @@ type snapshotInfo struct {
 }
 
 func newSnapshotProcessor(logger *logrus.Logger, vm *mo.VirtualMachine) snapshotProcessor {
-	snapshotFileKeyMap, allSnapshotFiles := buildSnapshotFileKeyMap(vm.LayoutEx.Snapshot)
+	snapshotsInfoByKey, allSnapshotFiles := buildSnapshotMapAndSlice(vm.LayoutEx.Snapshot)
 	sp := snapshotProcessor{
 		vmLayoutEx:         vm.LayoutEx,
 		currentSnapshot:    vm.Snapshot.CurrentSnapshot,
 		results:            map[types.ManagedObjectReference]*infoSnapshot{},
 		logger:             logger,
-		filesInfoByKey:     buildFileKeyMap(vm.LayoutEx.File),
-		snapshotsInfoByKey: snapshotFileKeyMap,
+		snapshotsInfoByKey: snapshotsInfoByKey,
 		allSnapshotsFiles:  allSnapshotFiles,
 		allFiles:           extractDiskLayoutFiles(vm.LayoutEx.Disk),
+		filesInfoByKey:     buildFileKeyMap(vm.LayoutEx.File),
 	}
 
 	return sp
@@ -62,20 +62,20 @@ func buildFileKeyMap(filesInfo []types.VirtualMachineFileLayoutExFileInfo) map[i
 	return fileKeyMap
 }
 
-func buildSnapshotFileKeyMap(layout []types.VirtualMachineFileLayoutExSnapshotLayout) (map[types.ManagedObjectReference]snapshotInfo, []int32) {
-	var allFiles []int32
+func buildSnapshotMapAndSlice(layout []types.VirtualMachineFileLayoutExSnapshotLayout) (map[types.ManagedObjectReference]snapshotInfo, []int32) {
+	var allSnapshotsFiles []int32
 	snapshotFileKeyMap := map[types.ManagedObjectReference]snapshotInfo{}
 	for _, snapLayout := range layout { // Extracting the list of files of the current snapshot of the loop.
 		diskFiles := extractDiskLayoutFiles(snapLayout.Disk)
 		// We create the list of all the files of all the snapshots.
-		allFiles = append(allFiles, diskFiles...)
+		allSnapshotsFiles = append(allSnapshotsFiles, diskFiles...)
 		snapshotFileKeyMap[snapLayout.Key] = snapshotInfo{
 			allFiles:   diskFiles,
 			memoryFile: snapLayout.MemoryKey,
 			dataFile:   snapLayout.DataKey,
 		}
 	}
-	return snapshotFileKeyMap, allFiles
+	return snapshotFileKeyMap, allSnapshotsFiles
 }
 
 // It takes care of going through VirtualMachineFileLayoutEx building up infoSnapshot.
@@ -108,13 +108,12 @@ func (sp snapshotProcessor) snapshotSize(parentSnapshot *types.ManagedObjectRefe
 }
 
 func (sp snapshotProcessor) isCurrent(snapshot types.ManagedObjectReference) bool {
-	var isCurrent bool
 	if sp.currentSnapshot != nil {
 		if snapshot == *sp.currentSnapshot {
-			isCurrent = true
+			return true
 		}
 	}
-	return isCurrent
+	return false
 }
 
 // This structure is needed just to return data in an easier way.
