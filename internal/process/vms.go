@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/vmware/govmomi/vim25/types"
-
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/config"
 )
@@ -221,13 +219,7 @@ func createVirtualMachineSamples(config *config.Config) {
 
 			// Snapshots
 			if vm.Snapshot != nil && vm.LayoutEx != nil && config.Args.EnableVsphereSnapshots {
-				sp := snapshotProcessor{
-					vmLayoutEx:      vm.LayoutEx,
-					currentSnapshot: vm.Snapshot.CurrentSnapshot,
-					results:         map[types.ManagedObjectReference]*infoSnapshot{},
-					logger:          config.Logrus,
-				}
-
+				sp := newSnapshotProcessor(config.Logrus, vm)
 				sp.processSnapshotTree(nil, vm.Snapshot.RootSnapshotList)
 				sp.createSnapshotSamples(e, entityName, vm.Snapshot.RootSnapshotList)
 			}

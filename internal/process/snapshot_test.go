@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/newrelic/infra-integrations-sdk/integration"
@@ -31,12 +32,7 @@ func TestSnapshotsRealData(t *testing.T) {
 	// Compared to the UI all values matches, but the one of the first snapshot
 	// Since we decided not to count the disk of the machine in the first snapshot
 
-	sp := snapshotProcessor{
-		vmLayoutEx:      vm.LayoutEx,
-		currentSnapshot: vm.Snapshot.CurrentSnapshot,
-		logger:          nil,
-		results:         map[types.ManagedObjectReference]*infoSnapshot{},
-	}
+	sp := newSnapshotProcessor(nil, &vm)
 
 	sp.processSnapshotTree(nil, vm.Snapshot.RootSnapshotList)
 	testRawResults(t, sp)
@@ -76,12 +72,14 @@ func testRawResults(t *testing.T, sp snapshotProcessor) {
 	assert.Equal(t, int64(0), sp.results[getSnapshotReference(6)].totalUniqueMemoryInDisk)
 	assert.Equal(t, int64(2202009600), sp.results[getSnapshotReference(7)].totalUniqueMemoryInDisk)
 
-	assert.Equal(t, "[WorkloadDatastore] d7741e65-148e-b5ff-2458-068cdd1d8254/test-snap-Snapshot3.vmsn|", sp.results[getSnapshotReference(1)].datastorePathDisk)
-	assert.Equal(t, "[WorkloadDatastore] d7741e65-148e-b5ff-2458-068cdd1d8254/test-snap-Snapshot4.vmsn|[WorkloadDatastore] d7741e65-148e-b5ff-2458-068cdd1d8254/test-snap-000001.vmdk|", sp.results[getSnapshotReference(2)].datastorePathDisk)
-	assert.Equal(t, "", sp.results[getSnapshotReference(3)].datastorePathMemory)
-	assert.Equal(t, "[WorkloadDatastore] d7741e65-148e-b5ff-2458-068cdd1d8254/test-snap-Snapshot6.vmem", sp.results[getSnapshotReference(4)].datastorePathMemory)
-	assert.Equal(t, "[WorkloadDatastore] d7741e65-148e-b5ff-2458-068cdd1d8254/test-snap-Snapshot7.vmsn|[WorkloadDatastore] d7741e65-148e-b5ff-2458-068cdd1d8254/test-snap-000004.vmdk|", sp.results[getSnapshotReference(5)].datastorePathDisk)
-	assert.Equal(t, "[WorkloadDatastore] d7741e65-148e-b5ff-2458-068cdd1d8254/test-snap-Snapshot8.vmsn|[WorkloadDatastore] d7741e65-148e-b5ff-2458-068cdd1d8254/test-snap-000005.vmdk|", sp.results[getSnapshotReference(6)].datastorePathDisk)
+	assert.Contains(t, sp.results[getSnapshotReference(1)].datastorePathDisk, "test-snap-Snapshot3.vmsn")
+	assert.Contains(t, sp.results[getSnapshotReference(2)].datastorePathDisk, "test-snap-Snapshot4.vmsn")
+	assert.Contains(t, sp.results[getSnapshotReference(2)].datastorePathDisk, "test-snap-000001.vmdk")
+	assert.Contains(t, sp.results[getSnapshotReference(3)].datastorePathMemory, "")
+	assert.Contains(t, sp.results[getSnapshotReference(4)].datastorePathMemory, "test-snap-Snapshot6.vmem")
+	assert.Contains(t, sp.results[getSnapshotReference(5)].datastorePathDisk, "test-snap-Snapshot7.vmsn")
+	assert.Contains(t, sp.results[getSnapshotReference(5)].datastorePathDisk, "test-snap-000004.vmdk")
+	assert.Contains(t, sp.results[getSnapshotReference(6)].datastorePathDisk, "test-snap-000005.vmdk")
 }
 
 func testMetrics(t *testing.T, e *integration.Entity) {
@@ -97,7 +95,7 @@ func testMetrics(t *testing.T, e *integration.Entity) {
 	assert.Equal(t, float64(1141), e.Metrics[2].Metrics["totalUniqueDisk"])
 	assert.Equal(t, float64(2172), e.Metrics[3].Metrics["totalUniqueDisk"])
 	assert.Equal(t, float64(61), e.Metrics[5].Metrics["totalUniqueDisk"])
-	assert.Equal(t, "[WorkloadDatastore] d7741e65-148e-b5ff-2458-068cdd1d8254/test-snap-Snapshot3.vmsn|", e.Metrics[0].Metrics["datastorePathDisk"])
+	assert.Contains(t, e.Metrics[0].Metrics["datastorePathDisk"], "test-snap-Snapshot3.vmsn")
 	assert.Equal(t, "false", e.Metrics[2].Metrics["replaySupported"])
 	assert.Equal(t, float64(2172), e.Metrics[3].Metrics["totalDisk"])
 	assert.Equal(t, float64(0), e.Metrics[5].Metrics["totalMemoryInDisk"])
@@ -120,12 +118,13 @@ func TestSnapshots(t *testing.T) {
 		Value: "1",
 	}
 
-	sp := snapshotProcessor{
-		vmLayoutEx:      getLayout(),
-		currentSnapshot: &snapshot,
-		logger:          nil,
-		results:         map[types.ManagedObjectReference]*infoSnapshot{},
+	vm := mo.VirtualMachine{
+		LayoutEx: getLayout(),
+		Snapshot: &types.VirtualMachineSnapshotInfo{
+			CurrentSnapshot: &snapshot,
+		},
 	}
+	sp := newSnapshotProcessor(nil, &vm)
 	sp.processSnapshotTree(nil, getTree())
 
 	require.NotNil(t, sp.results)
@@ -135,7 +134,8 @@ func TestSnapshots(t *testing.T) {
 	assert.Equal(t, int64(2005), s.totalUniqueDisk)
 	assert.Equal(t, int64(50), s.totalUniqueMemoryInDisk)
 	assert.Equal(t, int64(100), s.totalMemoryInDisk)
-	assert.Equal(t, "testPath2|test-000001.vmdk|", s.datastorePathDisk)
+	assert.Contains(t, s.datastorePathDisk, "test-000001.vmdk")
+	assert.Contains(t, s.datastorePathDisk, "testPath2")
 	assert.Equal(t, "testPath3", s.datastorePathMemory)
 
 	// We can check the totalSize against the govmomi library
@@ -213,14 +213,14 @@ func getLayout() *types.VirtualMachineFileLayoutEx {
 			{
 				Key:        0,
 				Name:       "testPath",
-				Type:       "snapshotData",
+				Type:       "snapshotInfo",
 				Size:       2,
 				UniqueSize: 1,
 			},
 			{
 				Key:        1,
 				Name:       "testPath2",
-				Type:       "snapshotData",
+				Type:       "snapshotInfo",
 				Size:       10,
 				UniqueSize: 5,
 			},

@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/sirupsen/logrus"
+	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
@@ -21,7 +22,60 @@ type snapshotProcessor struct {
 	currentSnapshot *types.ManagedObjectReference
 	logger          *logrus.Logger
 
+	// These structures are needed just to speedUpComputation.
+	filesInfoByKey     map[int32]types.VirtualMachineFileLayoutExFileInfo
+	snapshotsInfoByKey map[types.ManagedObjectReference]snapshotInfo
+	allSnapshotsFiles  []int32
+	allFiles           []int32
+
 	results map[types.ManagedObjectReference]*infoSnapshot
+}
+
+// snapshotInfo holds raw data that needs to be computed.
+type snapshotInfo struct {
+	allFiles   []int32
+	memoryFile int32
+	dataFile   int32
+}
+
+func newSnapshotProcessor(logger *logrus.Logger, vm *mo.VirtualMachine) snapshotProcessor {
+	snapshotFileKeyMap, allSnapshotFiles := buildSnapshotFileKeyMap(vm.LayoutEx.Snapshot)
+	sp := snapshotProcessor{
+		vmLayoutEx:         vm.LayoutEx,
+		currentSnapshot:    vm.Snapshot.CurrentSnapshot,
+		results:            map[types.ManagedObjectReference]*infoSnapshot{},
+		logger:             logger,
+		filesInfoByKey:     buildFileKeyMap(vm.LayoutEx.File),
+		snapshotsInfoByKey: snapshotFileKeyMap,
+		allSnapshotsFiles:  allSnapshotFiles,
+		allFiles:           extractDiskLayoutFiles(vm.LayoutEx.Disk),
+	}
+
+	return sp
+}
+
+func buildFileKeyMap(filesInfo []types.VirtualMachineFileLayoutExFileInfo) map[int32]types.VirtualMachineFileLayoutExFileInfo {
+	fileKeyMap := map[int32]types.VirtualMachineFileLayoutExFileInfo{}
+	for _, file := range filesInfo {
+		fileKeyMap[file.Key] = file
+	}
+	return fileKeyMap
+}
+
+func buildSnapshotFileKeyMap(layout []types.VirtualMachineFileLayoutExSnapshotLayout) (map[types.ManagedObjectReference]snapshotInfo, []int32) {
+	var allFiles []int32
+	snapshotFileKeyMap := map[types.ManagedObjectReference]snapshotInfo{}
+	for _, snapLayout := range layout { // Extracting the list of files of the current snapshot of the loop.
+		diskFiles := extractDiskLayoutFiles(snapLayout.Disk)
+		// We create the list of all the files of all the snapshots.
+		allFiles = append(allFiles, diskFiles...)
+		snapshotFileKeyMap[snapLayout.Key] = snapshotInfo{
+			allFiles:   diskFiles,
+			memoryFile: snapLayout.MemoryKey,
+			dataFile:   snapLayout.DataKey,
+		}
+	}
+	return snapshotFileKeyMap, allFiles
 }
 
 // It takes care of going through VirtualMachineFileLayoutEx building up infoSnapshot.
@@ -38,15 +92,15 @@ func (sp snapshotProcessor) processSnapshotTree(parentSnapshot *types.ManagedObj
 // SnapshotSize calculates the size of a given snapshot in bytes.
 // List of snapshot files https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.hostclient.doc/GUID-38F4D574-ADE7-4B80-AEAB-7EC502A379F4.html.
 func (sp snapshotProcessor) snapshotSize(parentSnapshot *types.ManagedObjectReference, snapshotRef types.ManagedObjectReference) {
-	// Creating a fileKeyMap just to speedup computation.
-	fileKeyMap := buildFileKeyMap(sp.vmLayoutEx.File)
-	// Creating the fileStructure needed to compute the snapshotSize.
-	files := sp.buildFileStructure(parentSnapshot, snapshotRef)
 
-	sp.computeDiskSizes(parentSnapshot, snapshotRef, files, fileKeyMap)
+	isCurrent := sp.isCurrent(snapshotRef)
+
+	// Creating the computedSnapshotFiles needed to compute the snapshotSize.
+	files := sp.buildFileStructure(parentSnapshot, snapshotRef, isCurrent)
+	sp.computeDiskSizes(parentSnapshot, snapshotRef, files, isCurrent)
 
 	if files.memory != 0 {
-		if file, ok := fileKeyMap[files.memory]; ok {
+		if file, ok := sp.filesInfoByKey[files.memory]; ok {
 			sp.results[snapshotRef].totalUniqueMemoryInDisk = file.UniqueSize
 			sp.results[snapshotRef].totalMemoryInDisk = file.Size
 			sp.results[snapshotRef].datastorePathMemory = file.Name
@@ -54,8 +108,18 @@ func (sp snapshotProcessor) snapshotSize(parentSnapshot *types.ManagedObjectRefe
 	}
 }
 
+func (sp snapshotProcessor) isCurrent(snapshot types.ManagedObjectReference) bool {
+	var isCurrent bool
+	if sp.currentSnapshot != nil {
+		if snapshot == *sp.currentSnapshot {
+			isCurrent = true
+		}
+	}
+	return isCurrent
+}
+
 // This structure is needed just to return data in an easier way.
-type fileStructure struct {
+type computedSnapshotFiles struct {
 	// memory points to the memory key if set.
 	memory int32
 	// dataAndDisk is the list of all files deltas and data if the snapshot has a parent
@@ -65,18 +129,23 @@ type fileStructure struct {
 	deltaOfCurrent []int32
 }
 
-// If the snapshot has a parent -> "diskFiles = snapshotFiles - parent snapshot files"
-// If the snapshot is the "current" (from a Vsphere point of view) one -> "diskFiles = allFiles - allSnapshotFiles"
-// To these files it is always added the "data file" that is quite small.
-func (sp snapshotProcessor) computeDiskSizes(parentSnapshot *types.ManagedObjectReference, snapshotRef types.ManagedObjectReference, files fileStructure, fileKeyMap map[int32]types.VirtualMachineFileLayoutExFileInfo) {
+// Vmware consider that the snapshot files are the ones attached to the vm at the point of taking the snapshot.
+// For example: the files of "snapshot 3" will be: delta of snapshot 2 (containing the delta of 1) + initial VM disk.
+// Therefore, to compute the size of Snapshot 3 you need to do "Size of snapshot 3 files" - Size of 2 (parent) + Current delta (if snapshot if Current)
+// In particular:
+//
+//	If the snapshot has a parent -> "diskFiles += snapshotFiles - parent snapshot files"
+//	If the snapshot is the "current" (from a Vsphere point of view) one -> "diskFiles += allFiles - allSnapshotFiles"
+//	To these files it is always added the "data file" that is quite small.
+func (sp snapshotProcessor) computeDiskSizes(parentSnapshot *types.ManagedObjectReference, snapshotRef types.ManagedObjectReference, files computedSnapshotFiles, isCurrent bool) {
 	var datastorePathDisk string
 	var diskSize int64
 	var uniqueDiskSize int64
+
 	for _, fileKey := range files.dataAndDisk {
-		if file, ok := fileKeyMap[fileKey]; ok {
-			if parentSnapshot != nil ||
-				file.Type != string(types.VirtualMachineFileLayoutExFileTypeDiskDescriptor) &&
-					file.Type != string(types.VirtualMachineFileLayoutExFileTypeDiskExtent) {
+		if file, ok := sp.filesInfoByKey[fileKey]; ok {
+			// if the parent is nil, we do not consider files belonging to the VM itself
+			if parentSnapshot != nil || isMetadata(file) {
 				diskSize += file.Size
 				uniqueDiskSize += file.UniqueSize
 				datastorePathDisk = datastorePathDisk + file.Name + "|"
@@ -84,14 +153,12 @@ func (sp snapshotProcessor) computeDiskSizes(parentSnapshot *types.ManagedObject
 		}
 	}
 
-	if sp.currentSnapshot != nil {
-		if snapshotRef == *sp.currentSnapshot {
-			for _, diskFile := range files.deltaOfCurrent {
-				if file, ok := fileKeyMap[diskFile]; ok {
-					diskSize += file.Size
-					uniqueDiskSize += file.UniqueSize
-					datastorePathDisk = datastorePathDisk + file.Name + "|"
-				}
+	if isCurrent {
+		for _, diskFile := range files.deltaOfCurrent {
+			if file, ok := sp.filesInfoByKey[diskFile]; ok {
+				diskSize += file.Size
+				uniqueDiskSize += file.UniqueSize
+				datastorePathDisk = datastorePathDisk + file.Name + "|"
 			}
 		}
 	}
@@ -103,29 +170,26 @@ func (sp snapshotProcessor) computeDiskSizes(parentSnapshot *types.ManagedObject
 	}
 }
 
-func (sp snapshotProcessor) buildFileStructure(parentSnapshot *types.ManagedObjectReference, snapshotRef types.ManagedObjectReference) fileStructure {
-	var allSnapshotFiles []int32
+func isMetadata(file types.VirtualMachineFileLayoutExFileInfo) bool {
+	return file.Type != string(types.VirtualMachineFileLayoutExFileTypeDiskDescriptor) && file.Type != string(types.VirtualMachineFileLayoutExFileTypeDiskExtent)
+}
+
+func (sp snapshotProcessor) buildFileStructure(parentSnapshot *types.ManagedObjectReference, snapshotRef types.ManagedObjectReference, isCurrent bool) computedSnapshotFiles {
 	var memoryFile int32
 	var parentFiles []int32
 	var dataAndDiskFiles []int32
 
-	for _, snapLayout := range sp.vmLayoutEx.Snapshot {
-		// Extracting the list of files of the current snapshot of the loop.
-		diskLayout := extractDiskLayoutFiles(snapLayout.Disk)
-		// We create the list of all the files of all the snapshots.
-		allSnapshotFiles = append(allSnapshotFiles, diskLayout...)
+	if data, ok := sp.snapshotsInfoByKey[snapshotRef]; ok {
+		// Adding the .vmdk files of the snapshot we are interested into.
+		dataAndDiskFiles = append(dataAndDiskFiles, data.allFiles...)
+		// Adding the .vmsn file of the snapshot we are interested into.
+		dataAndDiskFiles = append(dataAndDiskFiles, data.dataFile)
+		memoryFile = data.memoryFile
+	}
 
-		// we will consider files merely if the snapshot is the one we are computing.
-		if snapLayout.Key.Value == snapshotRef.Value {
-			// Adding the .vmsn file of the snapshot we are interested into.
-			dataAndDiskFiles = append(dataAndDiskFiles, snapLayout.DataKey)
-			// Adding the .vmdk files of the snapshot we are interested into.
-			dataAndDiskFiles = append(dataAndDiskFiles, diskLayout...)
-			memoryFile = snapLayout.MemoryKey
-		} else if parentSnapshot != nil {
-			if snapLayout.Key.Value == parentSnapshot.Value {
-				parentFiles = append(parentFiles, diskLayout...)
-			}
+	if parentSnapshot != nil {
+		if data, ok := sp.snapshotsInfoByKey[*parentSnapshot]; ok {
+			parentFiles = append(parentFiles, data.allFiles...)
 		}
 	}
 
@@ -133,31 +197,26 @@ func (sp snapshotProcessor) buildFileStructure(parentSnapshot *types.ManagedObje
 	for _, parentFile := range parentFiles {
 		removeKey(&dataAndDiskFiles, parentFile)
 	}
-
-	// Extracting the list of all files related to a virtualMachine.
-	// Then we remove all snapshots files that are already considered by parent snapshots
-	// Remaining files are counted if the Snapshot is the "Current" one (from a Vsphere point of view).
-	deltaOfCurrent := extractDiskLayoutFiles(sp.vmLayoutEx.Disk)
-	for _, file := range allSnapshotFiles {
-		removeKey(&deltaOfCurrent, file)
-	}
-
-	removeKey(&deltaOfCurrent, invalidFile)
 	removeKey(&dataAndDiskFiles, invalidFile)
 
-	return fileStructure{
+	var deltaOfCurrent []int32
+	if isCurrent {
+		// Extracting the list of all files related to a virtualMachine.
+		// Then we remove all snapshots files that are already considered by parent snapshots
+		// Remaining files are counted if the Snapshot is the "Current" one (from a Vsphere point of view).
+		deltaOfCurrent = sp.allFiles
+		for _, file := range sp.allSnapshotsFiles {
+			removeKey(&deltaOfCurrent, file)
+		}
+
+		removeKey(&deltaOfCurrent, invalidFile)
+	}
+
+	return computedSnapshotFiles{
 		memory:         memoryFile,
 		dataAndDisk:    dataAndDiskFiles,
 		deltaOfCurrent: deltaOfCurrent,
 	}
-}
-
-func buildFileKeyMap(filesInfo []types.VirtualMachineFileLayoutExFileInfo) map[int32]types.VirtualMachineFileLayoutExFileInfo {
-	fileKeyMap := map[int32]types.VirtualMachineFileLayoutExFileInfo{}
-	for _, file := range filesInfo {
-		fileKeyMap[file.Key] = file
-	}
-	return fileKeyMap
 }
 
 // extractDiskLayoutFiles is a helper function used to extract file keys for
