@@ -92,7 +92,6 @@ func (sp snapshotProcessor) processSnapshotTree(parentSnapshot *types.ManagedObj
 // SnapshotSize calculates the size of a given snapshot in bytes.
 // List of snapshot files https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.hostclient.doc/GUID-38F4D574-ADE7-4B80-AEAB-7EC502A379F4.html.
 func (sp snapshotProcessor) snapshotSize(parentSnapshot *types.ManagedObjectReference, snapshotRef types.ManagedObjectReference) {
-
 	isCurrent := sp.isCurrent(snapshotRef)
 
 	// Creating the computedSnapshotFiles needed to compute the snapshotSize.
