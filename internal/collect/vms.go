@@ -21,7 +21,7 @@ func VirtualMachines(config *config.Config) {
 	propertiesToRetrieve := []string{"name", "summary", "network", "config", "guest", "runtime", "resourcePool", "datastore", "overallStatus"}
 	if config.Args.EnableVsphereSnapshots {
 		config.Logrus.Debug("collecting as well snapshot and layoutEx properties")
-		propertiesToRetrieve = append(propertiesToRetrieve, "snapshot", "layoutEx.file", "layoutEx.snapshot")
+		propertiesToRetrieve = append(propertiesToRetrieve, "snapshot", "layoutEx.file", "layoutEx.disk", "layoutEx.snapshot")
 	}
 
 	for i, dc := range config.Datacenters {

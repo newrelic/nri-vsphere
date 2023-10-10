@@ -218,14 +218,23 @@ func createVirtualMachineSamples(config *config.Config) {
 			}
 
 			// Snapshots
-			if vm.Snapshot != nil && config.Args.EnableVsphereSnapshots {
-				infoSnapshot, suspendMemory, suspendMemoryUnique := processLayoutEx(vm.LayoutEx)
+			if vm.Snapshot != nil && vm.LayoutEx != nil && config.Args.EnableVsphereSnapshots {
+				sp := newSnapshotProcessor(config.Logrus, vm)
+				sp.processSnapshotTree(nil, vm.Snapshot.RootSnapshotList)
+				sp.createSnapshotSamples(e, entityName, vm.Snapshot.RootSnapshotList)
+			}
+
+			// suspendMemory
+			if vm.LayoutEx != nil {
+				var suspendMemory, suspendMemoryUnique int64
+				for _, exFile := range vm.LayoutEx.File {
+					if exFile.Type == "suspendMemory" {
+						suspendMemory += exFile.Size
+						suspendMemoryUnique += exFile.UniqueSize
+					}
+				}
 				checkError(config.Logrus, ms.SetMetric("disk.suspendMemory", strconv.FormatInt(suspendMemory, 10), metric.GAUGE))
 				checkError(config.Logrus, ms.SetMetric("disk.suspendMemoryUnique", strconv.FormatInt(suspendMemoryUnique, 10), metric.GAUGE))
-
-				for _, t := range vm.Snapshot.RootSnapshotList {
-					traverseSnapshotList(e, config, t, entityName, infoSnapshot)
-				}
 			}
 		}
 	}
