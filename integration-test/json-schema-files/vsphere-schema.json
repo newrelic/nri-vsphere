@@ -289,7 +289,7 @@
                   "standbyMode": {
                     "type": "string",
                     "enum": [
-                      ""
+                      "none"
                     ]
                   },
                   "uuid": {
