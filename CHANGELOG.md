@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## v1.3.0 (2023-10-10)
+### Changed
+ - Dependencies have been updated: testify, logrus, govmomi
+ - The way snapshot sizes are computed has been refactored in order to take into account delta disks
+
+
 ## v1.2.6 (2023-01-05)
 ### Changed
 - Bump dependencies
