@@ -246,6 +246,10 @@ func createVirtualMachineSamples(config *config.Config) {
 	}
 }
 
+// computeFullHostname joins hostname and domain for each VM
+// These data depends on the vmwareTools, therefore they need to be installed,
+// and we depend on how such tool is collecting the value.
+// Moreover, notice that we are returning the first domain contained in IpStack array.
 func computeFullHostname(vm *mo.VirtualMachine) string {
 	if vm.Guest == nil {
 		return ""
