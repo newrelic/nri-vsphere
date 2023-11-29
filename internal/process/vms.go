@@ -10,6 +10,7 @@ import (
 
 	"github.com/newrelic/infra-integrations-sdk/data/metric"
 	"github.com/newrelic/nri-vsphere/internal/config"
+	"github.com/vmware/govmomi/vim25/mo"
 )
 
 func createVirtualMachineSamples(config *config.Config) {
@@ -190,8 +191,13 @@ func createVirtualMachineSamples(config *config.Config) {
 						}
 					}
 				}
+
+				if fqdn := computeFullHostname(vm); fqdn != "" {
+					checkError(config.Logrus, ms.SetMetric("vmFullHostname", fqdn, metric.ATTRIBUTE))
+				}
+
 				ipAddressesTrimmed := strings.TrimSuffix(ipAddresses.String(), "|")
-				// it might be empty but we still add the attribute for consistency
+				// it might be empty, but we still add the attribute for consistency
 				checkError(config.Logrus, ms.SetMetric("ipAddresses", ipAddressesTrimmed, metric.ATTRIBUTE))
 			}
 
@@ -238,4 +244,42 @@ func createVirtualMachineSamples(config *config.Config) {
 			}
 		}
 	}
+}
+
+// computeFullHostname joins hostname and domain for each VM
+// These data depends on the vmwareTools, therefore they need to be installed,
+// and we depend on how such tool is collecting the value.
+// Moreover, notice that we are returning the first domain contained in IpStack array.
+func computeFullHostname(vm *mo.VirtualMachine) string {
+	if vm.Guest == nil {
+		return ""
+	}
+	if vm.Summary.Guest == nil {
+		return ""
+	}
+
+	for _, is := range vm.Guest.IpStack {
+		if is.DnsConfig == nil {
+			continue
+		}
+
+		var domain = is.DnsConfig.DomainName
+		var hostname = is.DnsConfig.HostName
+		if domain == "" || hostname == "" {
+			continue
+		}
+		if hostname != vm.Summary.Guest.HostName {
+			continue
+		}
+
+		// we noticed that the hostname is sometimes the short one and sometimes the fqdn
+		hostname = strings.TrimSuffix(hostname, domain)
+		hostname = strings.TrimSuffix(hostname, ".")
+
+		var fullHostname = hostname + "." + domain
+		fullHostname = strings.TrimSuffix(fullHostname, ".")
+
+		return fullHostname
+	}
+	return ""
 }
