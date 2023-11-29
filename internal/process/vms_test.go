@@ -115,6 +115,6 @@ func TestComputeFullHostname(t *testing.T) {
 	assert.Equal(t, "", computeFullHostname(vm))
 
 	// Testing it with mock from real data
-	realVm := testdata.GetVMFromStaticData(t)
-	assert.Equal(t, "vm-3.test.com", computeFullHostname(&realVm))
+	realVM := testdata.GetVMFromStaticData(t)
+	assert.Equal(t, "vm-3.test.com", computeFullHostname(&realVM))
 }
