@@ -1088,10 +1088,44 @@ const vmData = `
     "GuestId": "",
     "GuestFamily": "",
     "GuestFullName": "",
-    "HostName": "",
+    "HostName": "vm-3",
     "IpAddress": "",
     "Net": null,
-    "IpStack": null,
+    "ipStack": [
+	  {
+		"dnsConfig": {
+		  "dhcp": false,
+		  "hostName": "vm-3",
+		  "domainName": "test.com",
+		  "ipAddress": [
+			"10.2.192.2",
+			"127.0.0.53"
+		  ],
+		  "searchDomain": [
+			"test.com"
+		  ]
+		},
+		"ipRouteConfig": {
+		  "ipRoute": [
+			{
+			  "network": "0.0.0.0",
+			  "prefixLength": 0,
+			  "gateway": {
+				"ipAddress": "10.2.192.1",
+				"device": "0"
+			  }
+			},
+			{
+			  "network": "10.2.192.0",
+			  "prefixLength": 19,
+			  "gateway": {
+				"device": "0"
+			  }
+			}
+		  ]
+		}
+	  }
+	],
     "Disk": null,
     "Screen": {
       "Width": 1024,
@@ -1386,7 +1420,7 @@ const vmData = `
       "ToolsVersionStatus": "guestToolsNotInstalled",
       "ToolsVersionStatus2": "guestToolsNotInstalled",
       "ToolsRunningStatus": "guestToolsNotRunning",
-      "HostName": "",
+      "HostName": "vm-3",
       "IpAddress": "",
       "HwVersion": "vmx-14"
     },
