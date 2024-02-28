@@ -18,7 +18,7 @@ func VirtualMachines(config *config.Config) {
 	m := config.ViewManager
 
 	// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
-	propertiesToRetrieve := []string{"name", "summary", "network", "config", "guest", "guest.ipStack", "runtime", "resourcePool", "datastore", "overallStatus"}
+	propertiesToRetrieve := []string{"name", "summary", "network", "config", "guest", "runtime", "resourcePool", "datastore", "overallStatus"}
 	if config.Args.EnableVsphereSnapshots {
 		config.Logrus.Debug("collecting as well snapshot and layoutEx properties")
 		propertiesToRetrieve = append(propertiesToRetrieve, "snapshot", "layoutEx.file", "layoutEx.disk", "layoutEx.snapshot")
