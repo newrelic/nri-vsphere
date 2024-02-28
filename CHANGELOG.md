@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## v1.4.1 (2024-02-28)
+### Fixed
+ - Reverted a new metric that was reporting a FQDN different from the one reported by the infra-agent
+
 ## v1.3.0 (2023-10-10)
 ### Changed
  - Dependencies have been updated: testify, logrus, govmomi
