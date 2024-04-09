@@ -1,0 +1,16 @@
+name: Prerelease pipeline
+
+on:
+  release:
+    types:
+      - prereleased
+    tags:
+      - 'v*'
+
+jobs:
+  pre-release:
+    uses: newrelic/coreint-automation/.github/workflows/reusable_pre_release.yaml@v2
+    with:
+      tag: ${{ github.event.release.tag_name }}
+      integration: "vsphere"
+    secrets: inherit

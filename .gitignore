@@ -33,3 +33,6 @@ target/
 
 coverage.xml
 vendor/*
+
+# Release toolkit
+CHANGELOG.partial.md
