@@ -1,3 +1,5 @@
+# NOTE: This file should always be named `repolinter.yml` to allow
+# workflow_dispatch to work properly
 name: Repolinter Action
 
 on:
