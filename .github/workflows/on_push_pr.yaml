@@ -1,0 +1,17 @@
+name: Push/PR
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - renovate/**
+  pull_request:
+
+jobs:
+  push-pr:
+    uses: newrelic/coreint-automation/.github/workflows/reusable_push_pr.yaml@v2
+    secrets: inherit
+    with:
+      run_test_build_nix: true
+      integration: "vsphere"

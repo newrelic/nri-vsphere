@@ -1,0 +1,9 @@
+name: Repolinter Action
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  repolinter:
+    uses: newrelic/coreint-automation/.github/workflows/reusable_repolinter.yaml@v2
