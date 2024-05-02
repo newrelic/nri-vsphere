@@ -16,3 +16,5 @@ integrations:
 
     # Execution interval. Set a value higher than 20s, as real-time vSphere samples are run every 20s.
     interval: 60s
+    labels:
+      enableVMHostNameRelationship: true

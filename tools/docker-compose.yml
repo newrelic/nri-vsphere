@@ -22,4 +22,6 @@ services:
     environment:
       - NRIA_LICENSE_KEY=${NRIA_LICENSE_KEY}
       - NRIA_STAGING=${NRIA_STAGING:-false}
-      - NRIA_VERBOSE=1
+      - NRIA_OVERRIDE_HOSTNAME_SHORT=host.testing
+      - NRIA_OVERRIDE_HOSTNAME=host.testing.full
+      #- NRIA_VERBOSE=1

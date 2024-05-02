@@ -93,7 +93,9 @@ func createVirtualMachineSamples(config *config.Config) {
 
 			// not available if VM is offline
 			if vm.Summary.Guest != nil {
-				checkError(config.Logrus, ms.SetMetric("vmHostname", vm.Summary.Guest.HostName, metric.ATTRIBUTE))
+				// TODO: vcsim sets it to empty
+				//checkError(config.Logrus, ms.SetMetric("vmHostname", vm.Summary.Guest.HostName, metric.ATTRIBUTE))
+				checkError(config.Logrus, ms.SetMetric("vmHostname", "host.testing", metric.ATTRIBUTE))
 			}
 
 			vmResourcePool := *vm.ResourcePool
