@@ -38,10 +38,10 @@ tools-vcsim-run: clean compile-linux
 	    echo "Error: missing required env-var: NRIA_LICENSE_KEY\n" ;\
         exit 1 ;\
 	fi
-	@docker-compose -f tools/docker-compose.yml up -d --build
+	@docker compose -f tools/docker-compose.yml up -d --build
 tools-vcsim-stop:
 	@echo "=== $(PROJECT_NAME) === Stopping vcsim with agent:"
-	@docker-compose -f tools/docker-compose.yml down
+	@docker compose -f tools/docker-compose.yml down
 
 
 test: deps test-unit test-integration
