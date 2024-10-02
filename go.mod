@@ -1,6 +1,6 @@
 module github.com/newrelic/nri-vsphere
 
-go 1.23.1
+go 1.23.2
 
 require (
 	github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible
