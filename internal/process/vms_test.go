@@ -2,6 +2,8 @@ package process
 
 import (
 	"context"
+	"testing"
+
 	"github.com/newrelic/infra-integrations-sdk/v3/integration"
 	"github.com/newrelic/nri-vsphere/internal/client"
 	"github.com/newrelic/nri-vsphere/internal/collect"
@@ -13,7 +15,6 @@ import (
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/mo"
-	"testing"
 )
 
 func Test_createVirtualMachineSamples_HasIpAddresses(t *testing.T) {
