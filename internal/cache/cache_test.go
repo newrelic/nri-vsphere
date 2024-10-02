@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/newrelic/infra-integrations-sdk/persist"
+	"github.com/newrelic/infra-integrations-sdk/v3/persist"
 	"github.com/stretchr/testify/assert"
 )
 

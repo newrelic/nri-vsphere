@@ -9,7 +9,7 @@ import (
 
 	"github.com/newrelic/nri-vsphere/internal/config"
 
-	"github.com/newrelic/infra-integrations-sdk/data/metric"
+	"github.com/newrelic/infra-integrations-sdk/v3/data/metric"
 )
 
 func createHostSamples(config *config.Config) {

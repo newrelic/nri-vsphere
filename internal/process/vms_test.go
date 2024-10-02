@@ -2,7 +2,7 @@ package process
 
 import (
 	"context"
-	"github.com/newrelic/infra-integrations-sdk/integration"
+	"github.com/newrelic/infra-integrations-sdk/v3/integration"
 	"github.com/newrelic/nri-vsphere/internal/client"
 	"github.com/newrelic/nri-vsphere/internal/collect"
 	"github.com/newrelic/nri-vsphere/internal/config"

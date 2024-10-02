@@ -3,7 +3,7 @@ module github.com/newrelic/nri-vsphere
 go 1.23.1
 
 require (
-	github.com/newrelic/infra-integrations-sdk v3.8.2+incompatible
+	github.com/newrelic/infra-integrations-sdk/v3 v3.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	github.com/vmware/govmomi v0.36.3
