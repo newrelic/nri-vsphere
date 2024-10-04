@@ -1,4 +1,4 @@
-// +build integration
+//go:build integration
 
 /*
 * Copyright 2020 New Relic Corporation. All rights reserved.
@@ -27,7 +27,7 @@ import (
 	"github.com/vmware/govmomi/vim25"
 )
 
-//This can set whn running the test as -ldflags "-X github.com/newrelic/nri-winservices/test.integrationPath="
+// This can set when running the test as -ldflags "-X github.com/newrelic/nri-winservices/test.integrationPath="
 var (
 	integrationPath = "../bin/nri-vsphere"
 )

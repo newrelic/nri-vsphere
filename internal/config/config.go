@@ -13,8 +13,8 @@ import (
 	"github.com/newrelic/nri-vsphere/internal/performance"
 	"github.com/newrelic/nri-vsphere/internal/tag"
 
-	sdkArgs "github.com/newrelic/infra-integrations-sdk/args"
-	"github.com/newrelic/infra-integrations-sdk/integration"
+	sdkArgs "github.com/newrelic/infra-integrations-sdk/v3/args"
+	"github.com/newrelic/infra-integrations-sdk/v3/integration"
 	logrus "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/view"

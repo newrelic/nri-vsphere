@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/newrelic/infra-integrations-sdk/persist"
+	"github.com/newrelic/infra-integrations-sdk/v3/persist"
 )
 
 type Cache struct {
