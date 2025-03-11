@@ -1,3 +1,6 @@
+---
+version: 2
+project_name: nri-vsphere
 builds:
   - id: nri-vsphere-nix
     main: ./cmd/nri-vsphere
@@ -18,6 +21,26 @@ builds:
       - goos: darwin
         goarch: 386
 
+  - id: nri-vsphere-nix-fips
+    main: ./cmd/nri-vsphere
+    binary: nri-vsphere
+    ldflags:
+      - -s -w -X main.integrationVersion={{.Version}} -X main.gitCommit={{.Commit}} -X main.buildDate={{.Date}}
+    env:
+      - CGO_ENABLED=1
+      - GOEXPERIMENT=boringcrypto
+      - >-
+        {{- if eq .Arch "arm64" -}}
+        CC=aarch64-linux-gnu-gcc
+        {{- end }}
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    tags:
+      - fips
+
   - id: nri-vsphere-win
     main: ./cmd/nri-vsphere
     binary: nri-vsphere
@@ -35,12 +58,16 @@ builds:
 
 nfpms:
   - id: linux
-    file_name_template: "{{ .ProjectName }}_{{ .Version }}-1_{{ .Arch }}"
+    package_name: nri-vsphere
+    file_name_template: "{{ .PackageName }}_{{ .Version }}-1_{{ .Arch }}"
     vendor: "New Relic, Inc."
     homepage: "https://www.newrelic.com/infrastructure"
     maintainer: "New Relic Infrastructure Team <infrastructure-eng@newrelic.com>"
     description: "New Relic Infrastructure vsphere Integration extend the core New Relic\nInfrastructure agent's capabilities to allow you to collect metric and\nlive state data from vsphere components."
     license: "https://newrelic.com/terms (also see LICENSE installed with this package)"
+
+    builds:
+      - nri-vsphere-nix
 
     dependencies:
       - "newrelic-infra"
@@ -63,9 +90,58 @@ nfpms:
 
     overrides:
       rpm:
-        file_name_template: "{{ .ProjectName }}-{{ .Version }}-1.{{ .Arch }}"
-        replacements:
-          amd64: x86_64
+        file_name_template: >-
+          {{- .ProjectName }}-
+          {{- .Version }}-1.
+          {{- if eq .Arch "amd64" -}}x86_64
+          {{- else -}}
+          {{ .Arch }}
+          {{- end }}
+
+    formats:
+      - deb
+      - rpm
+  
+  - id: linux-fips
+    package_name: nri-vsphere-fips
+    file_name_template: "{{ .PackageName }}_{{ .Version }}-1_{{ .Arch }}"
+    vendor: "New Relic, Inc."
+    homepage: "https://www.newrelic.com/infrastructure"
+    maintainer: "New Relic Infrastructure Team <infrastructure-eng@newrelic.com>"
+    description: "New Relic Infrastructure vsphere Integration extend the core New Relic\nInfrastructure agent's capabilities to allow you to collect metric and\nlive state data from vsphere components."
+    license: "https://newrelic.com/terms (also see LICENSE installed with this package)"
+
+    builds:
+      - nri-vsphere-nix-fips
+
+    dependencies:
+      - newrelic-infra-fips (>= 1.60.0)
+
+    bindir: "/var/db/newrelic-infra/newrelic-integrations/bin"
+
+    contents:
+      - src: "vsphere-config.yml.sample"
+        dst: "/etc/newrelic-infra/integrations.d/vsphere-config.yml.sample"
+        type: config
+      - src: "vsphere-performance.metrics"
+        dst: "/etc/newrelic-infra/integrations.d/vsphere-performance.metrics"
+        type: config
+      - src: "CHANGELOG.md"
+        dst: "/usr/share/doc/nri-vsphere/CHANGELOG.md"
+      - src: "README.md"
+        dst: "/usr/share/doc/nri-vsphere/README.md"
+      - src: "LICENSE"
+        dst: "/usr/share/doc/nri-vsphere/LICENSE"
+
+    overrides:
+      rpm:
+        file_name_template: >-
+          {{- .ProjectName }}-fips-
+          {{- .Version }}-1.
+          {{- if eq .Arch "amd64" -}}x86_64
+          {{- else -}}
+          {{ .Arch }}
+          {{- end }}
 
     formats:
       - deb
@@ -76,6 +152,15 @@ archives:
     builds:
       - nri-vsphere-nix
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Version }}_{{ .Arch }}_dirty"
+    files:
+      - vsphere-config.yml.sample
+      - vsphere-performance.metrics
+    format: tar.gz
+  
+  - id: nri-vsphere-nix-fips
+    builds:
+      - nri-vsphere-nix-fips
+    name_template: "{{ .ProjectName }}-fips_{{ .Os }}_{{ .Version }}_{{ .Arch }}_dirty"
     files:
       - vsphere-config.yml.sample
       - vsphere-performance.metrics

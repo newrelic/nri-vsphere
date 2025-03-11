@@ -4,6 +4,8 @@ NATIVEOS     := $(shell $(GO_CMD) version | awk -F '[ /]' '{print $$4}')
 NATIVEARCH   := $(shell $(GO_CMD) version | awk -F '[ /]' '{print $$5}')
 GO_PKGS      := $(shell $(GO_CMD) list ./... | grep -v -e "/vendor/" -e "/example")
 GO_FILES     := $(shell find cmd -type f -name "*.go")
+GO_VERSION 		?= $(shell grep '^go ' go.mod | awk '{print $$2}')
+BUILDER_IMAGE 	?= "ghcr.io/newrelic/coreint-automation:latest-go$(GO_VERSION)-ubuntu16.04"
 
 BIN_DIR            = $(WORKDIR)/bin
 TARGET             = target
