@@ -110,7 +110,7 @@ func createHostSamples(config *config.Config) {
 			memoryUsed := host.Summary.QuickStats.OverallMemoryUsage
 			checkError(config.Logrus, ms.SetMetric("mem.usage", memoryUsed, metric.GAUGE))
 
-			memoryFree := int32(memoryTotal) - memoryUsed
+			memoryFree := memoryTotal - int64(memoryUsed)
 			checkError(config.Logrus, ms.SetMetric("mem.free", memoryFree, metric.GAUGE))
 
 			// cpu
