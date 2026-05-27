@@ -3,7 +3,6 @@ package events
 import (
 	"context"
 	"fmt"
-	"math"
 	"strconv"
 	"time"
 
@@ -120,14 +119,10 @@ func (ed *EventDispacher) Cancel() {
 func (ed *EventDispacher) CollectEvents(eventsPageSize string) {
 	ed.log.WithField("timestamp", ed.LastTimestamp.String()).Debug("using as starting event")
 
-	pageSize, err := strconv.Atoi(eventsPageSize)
+	parsedPageSize, err := strconv.ParseInt(eventsPageSize, 10, 32)
+	pageSize := int(parsedPageSize)
 	if err != nil {
 		ed.log.WithError(err).Error("error while parsing EventsPageSize, using default value")
-		pageSize = pageSizeDefault
-	}
-
-	if pageSize <= 0 || pageSize > math.MaxInt32 {
-		ed.log.Warnf("EventsPageSize %d out of valid range, using default", pageSize)
 		pageSize = pageSizeDefault
 	}
 
