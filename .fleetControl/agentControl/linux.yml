@@ -1,0 +1,69 @@
+namespace: newrelic
+name: com.newrelic.infrastructure.nri_vsphere
+version: 1.0.0
+platform: host
+operating_system: linux
+protocol_version: "1.0"
+variables:
+  config:
+    description: "nri-vsphere integration YAML consumed by the infra-agent"
+    type: yaml
+    required: true
+    classification: config
+  perf_metrics:
+    description: "nri-vsphere performance metrics files"
+    type: string_map
+    required: false
+    default: {}
+    classification: multi-config
+  version:
+    description: "Agent version"
+    type: string
+    required: true
+  oci:
+    repository:
+      description: "OCI repository name for nri-vsphere"
+      type: string
+      required: false
+      default: newrelic/nri-vsphere-artifacts
+deployment:
+  packages:
+    nri-vsphere:
+      download:
+        oci:
+          repository: ${nr-var:oci.repository}
+          version: ${nr-var:version}
+          public_key_url: https://publickeys.newrelic.com/g/agent-control-oci/global/nri-vsphere/jwks.json
+  shared_filesystem:
+    infra-agent-ohi-configs:
+      kind: dir
+      entries:
+        nri-vsphere.yaml:
+          kind: file
+          text: |
+            ${nr-var:config}
+    infra-agent-ohi-binaries:
+      kind: dir
+      entries:
+        nri-vsphere:
+          kind: file
+          copy_from_file: ${nr-sub:packages.nri-vsphere.dir}/nri-vsphere
+  # Allows setting up additional files to be used as `PERF_METRIC_FILE` on nri-vsphere configuration
+  # It can be referenced as follows in values:
+  #
+  # ```
+  # perf_metrics:
+  #   vsphere-performance.metrics: |
+  #     <PERF-METRICS-CONTENT>
+  #
+  # config:
+  #    integrations:
+  #      - name: nri-vsphere
+  #        env:
+  #          # ...
+  #          PERF_METRIC_FILE: ${nr-path:agent_dir}/perf_metrics/vsphere-performance.metrics
+  # ```
+  filesystem:
+    perf_metrics:
+      kind: dir_content_from_map
+      source: ${nr-var:perf_metrics}
