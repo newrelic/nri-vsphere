@@ -8,6 +8,11 @@ Unreleased section should follow [Release Toolkit](https://github.com/newrelic/r
 
 ## Unreleased
 
+## v1.8.9 - 2026-11-19
+
+### ⛓️ Dependencies
+- Updated go module directive to v1.27.4
+
 ## v1.8.8 - 2026-10-29
 
 ### ⛓️ Dependencies
